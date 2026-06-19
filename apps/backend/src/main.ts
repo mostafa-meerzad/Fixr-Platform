@@ -14,6 +14,13 @@ async function bootstrap() {
     new FastifyAdapter({ logger: true }),
   );
 
+  // Register multipart support for file uploads (used by MediaController)
+  await app.register(
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    require('@fastify/multipart'),
+    { limits: { fileSize: 100 * 1024 * 1024 } }, // 100 MB hard cap
+  );
+
   app.enableCors({
     origin: process.env.ALLOWED_ORIGINS?.split(',') ?? ['http://localhost:3000'],
     credentials: true,
