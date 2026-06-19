@@ -37,13 +37,21 @@ export class OtpService {
       );
     }
 
-    const code = this.generateCode();
+    const isDev = this.config.get('NODE_ENV') !== 'production';
+    const code = isDev
+      ? (this.config.get<string>('DEV_OTP_CODE') ?? '000000')
+      : this.generateCode();
+
     const expiryMinutes = this.config.get<number>('OTP_EXPIRY_MINUTES', 5);
     const expiresAt = new Date(Date.now() + expiryMinutes * 60 * 1000);
 
     await this.prisma.otpSession.create({
       data: { phone, code, expiresAt },
     });
+
+    if (isDev) {
+      return { message: `[DEV] OTP bypass active. Use code: ${code}` };
+    }
 
     await this.sendWhatsAppMessage(phone, code);
 
