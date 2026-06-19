@@ -25,60 +25,52 @@
 ### Foundation Layer — COMPLETE ✓
 - [x] Project setup — Expo SDK 55, expo-router, Zustand, i18next
 - [x] Theme constants (`constants/theme.ts`) — Colors, FontSize, Spacing, Radius
-- [x] i18n setup — fa (primary) + en, RTL support
-- [x] UI primitives:
-  - [x] `Text` — variants: h1/h2/h3/body/sm/xs/label, RTL-aware
-  - [x] `Button` — primary/outline/ghost/danger, sm/md/lg, loading state
-  - [x] `Card` — dark bgCard with Radius.lg
-  - [x] `Badge` — emergency/today/bidSent/active/done
-  - [x] `Input` — RTL-aware, error display, dark styling
-  - [x] `ScreenWrapper` — scroll/non-scroll, RefreshControl, SafeAreaView
-  - [x] `Divider`
-  - [x] `StarRating`
-  - [x] `FixrLogo` — "fix" white + "r" teal
+- [x] i18n setup — fa (primary) + en, full bilingual string coverage, RTL support
+- [x] UI primitives: Text, Button, Card, Badge, Input, ScreenWrapper, Divider, StarRating, FixrLogo
 - [x] Hooks: `useRTL()`
-- [x] Services: `api.ts` (axios + token interceptor + refresh logic), `auth.service.ts`, `jobs.service.ts`, `bids.service.ts`, `notifications.service.ts`, `lookup.service.ts`
+- [x] Services: api.ts, auth.service.ts, jobs.service.ts, bids.service.ts, notifications.service.ts, lookup.service.ts, chat.service.ts, reviews.service.ts
 - [x] Stores: `auth.store.ts` (Zustand + SecureStore persistence)
 - [x] Utils: `format.ts` (AFN, relative time, duration, arrival)
 - [x] Root layout (`_layout.tsx`) with Stack navigator, SafeAreaProvider, status bar
 
-### Auth Screens — TODO
-- [ ] `(auth)/_layout.tsx` — auth stack layout
-- [ ] `(auth)/phone.tsx` — phone number entry screen
-- [ ] `(auth)/otp.tsx` — OTP code entry + resend
-- [ ] `(auth)/register.tsx` — name + role selection (HOMEOWNER / EXPERT)
-- [ ] `app/index.tsx` — redirect guard (auth vs role-based home)
+### Auth Screens — COMPLETE ✓
+- [x] `(auth)/_layout.tsx` — auth stack layout
+- [x] `(auth)/phone.tsx` — phone number entry
+- [x] `(auth)/otp.tsx` — 6-digit code with visual boxes, resend countdown (60s)
+- [x] `(auth)/register.tsx` — name + role picker (HOMEOWNER / EXPERT cards)
+- [x] `app/index.tsx` — auth guard → routes by role to correct home
 
-### Expert Flow — TODO
-- [ ] `(expert)/_layout.tsx` — tab layout (Home, Browse, Bids, Notifications, Profile)
-- [ ] `(expert)/index.tsx` — home dashboard (availability toggle, stats grid, nearby job alerts)
-- [ ] `(expert)/browse.tsx` — browse open jobs by zone/category
-- [ ] `(expert)/job/[id].tsx` — job detail + place bid form
-- [ ] `(expert)/bids.tsx` — my active bids list
-- [ ] `(expert)/active-job/[id].tsx` — accepted job with state transitions (en-route → arrived → in-progress → completion)
-- [ ] `(expert)/credits.tsx` — credit balance + transaction ledger
-- [ ] `(expert)/notifications.tsx` — notification list with mark-read
-- [ ] `(expert)/profile.tsx` — profile view/edit, verification status, zones, categories
-- [ ] `(expert)/verification.tsx` — submit verification documents (if unverified)
+### Expert Flow — COMPLETE ✓
+- [x] `(expert)/_layout.tsx` — 5-tab layout (Home, Browse, Bids, Credits, Profile)
+- [x] `(expert)/home.tsx` — availability toggle, stats grid, nearby job alerts, verification banner
+- [x] `(expert)/browse.tsx` — category + zone filter chips, job cards
+- [x] `(expert)/job/[id].tsx` — job detail + bid form (place/update/withdraw, credit cost label)
+- [x] `(expert)/bids.tsx` — my bids list with status badges and job navigation
+- [x] `(expert)/active-job/[id].tsx` — step indicator + state transitions (en-route → arrived → in-progress → request completion)
+- [x] `(expert)/credits.tsx` — balance card + transaction ledger with +/− coloring
+- [x] `(expert)/notifications.tsx` — unread dot, mark-read, mark-all
+- [x] `(expert)/profile.tsx` — stats, verification status, zones/categories tags, logout
 
-### Homeowner Flow — TODO
-- [ ] `(homeowner)/_layout.tsx` — tab layout (Home, My Jobs, Notifications, Profile)
-- [ ] `(homeowner)/index.tsx` — home with quick post + active jobs summary
-- [ ] `(homeowner)/post/create.tsx` — step 1: job details (title, category, zone, urgency)
-- [ ] `(homeowner)/post/media.tsx` — step 2: add photos/video
-- [ ] `(homeowner)/post/review.tsx` — step 3: review + publish
-- [ ] `(homeowner)/jobs.tsx` — my jobs list (draft / open / active / completed)
-- [ ] `(homeowner)/job/[id].tsx` — job detail with bids list
-- [ ] `(homeowner)/job/[id]/bids.tsx` — bids from experts; accept flow
-- [ ] `(homeowner)/active-job/[id].tsx` — active job tracking (status, expert info, confirm completion)
-- [ ] `(homeowner)/notifications.tsx`
-- [ ] `(homeowner)/profile.tsx`
+### Homeowner Flow — COMPLETE ✓
+- [x] `(homeowner)/_layout.tsx` — 4-tab layout (Home, Jobs, Alerts, Profile)
+- [x] `(homeowner)/home.tsx` — active jobs summary + post job CTA
+- [x] `(homeowner)/jobs.tsx` — status tab filter (ALL/DRAFT/OPEN/ASSIGNED/COMPLETED)
+- [x] `(homeowner)/post/create.tsx` — job details form (title, description, category, zone, urgency)
+- [x] `(homeowner)/post/review.tsx` — preview + publish/delete
+- [x] `(homeowner)/job/[id].tsx` — job detail + full bid list with expert stats + accept flow
+- [x] `(homeowner)/active-job/[id].tsx` — status display, confirm completion, chat/call expert
+- [x] `(homeowner)/notifications.tsx` — unread indicator, mark-read
+- [x] `(homeowner)/profile.tsx` — user info, logout
 
-### Shared Screens — TODO
-- [ ] `(shared)/chat/[jobId].tsx` — Stream Chat channel view (both roles)
-- [ ] `(shared)/review/[jobId].tsx` — leave review after completion
+### Shared Screens — COMPLETE ✓
+- [x] `(shared)/_layout.tsx`
+- [x] `(shared)/chat/[jobId].tsx` — Stream Chat integration (lazy SDK load, graceful fallback if not installed)
+- [x] `(shared)/review/[jobId].tsx` — star picker + positive/negative tag chips + comment
+
+### Remaining Mobile TODOs
+- [ ] `(homeowner)/post/media.tsx` — photo/video upload step (skipped; can publish without media if description ≥ 50 chars)
 - [ ] `(shared)/dispute/[jobId].tsx` — raise dispute form
-- [ ] Push notification registration on app start
+- [ ] Push notification registration on app start (requires EAS project ID for production)
 - [ ] Deep link handling for notification taps
 
 ## Phase 3: Admin Panel (Next.js) — NOT STARTED

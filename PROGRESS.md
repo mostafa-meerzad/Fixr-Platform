@@ -6,8 +6,8 @@ _Last updated: 2026-06-19_
 | App | Status |
 |---|---|
 | `packages/shared` | ✅ Complete |
-| `apps/backend` | ✅ Complete (user actively Postman-testing) |
-| `apps/mobile` | 🔄 Foundation layer done, screens not started |
+| `apps/backend` | ✅ Complete (user Postman-testing) |
+| `apps/mobile` | ✅ All screens done — ready to boot and test |
 | `apps/admin` | ❌ Not started |
 
 ---
@@ -38,26 +38,23 @@ All modules implemented and committed. Last commit: `118ae6d feat(backend): comp
 | Reviews | `reviews.service.ts` | ✅ |
 | No-show cron | `jobs.no-show.ts` (`@Cron(EVERY_10_MINUTES)`) | ✅ |
 
-### Prisma Schema Models (15)
-`User`, `RefreshToken`, `AdminProfile`, `ExpertProfile`, `Zone`, `ExpertZone`, `Category`, `Job`, `JobMedia`, `Bid`, `CreditBalance`, `CreditTransaction`, `CreditRate`, `Notification`, `Review`, `Dispute`, `OtpSession`
-
 ### Known Business Logic Details
-- **Dev OTP bypass**: When `NODE_ENV !== 'production'`, OTP is set to `DEV_OTP_CODE` (default `000000`); code returned in response message
-- **Token rotation**: Refresh tokens are opaque, stored in DB, deleted and reissued on each use; 30-day expiry
-- **Credit atomicity**: `spendCredit()` uses a Prisma transaction; throws 400 on insufficient balance
-- **Job state machine**: Declarative `TRANSITIONS` record in `job-state-machine.ts`; each target state specifies `from[]` and `allowedRoles[]`
+- **Dev OTP bypass**: `NODE_ENV !== 'production'` → uses `DEV_OTP_CODE` (default `000000`); returned in response
+- **Token rotation**: Refresh tokens opaque, stored in DB, deleted+reissued on each use; 30-day expiry
+- **Credit atomicity**: `spendCredit()` uses Prisma transaction; throws 400 on insufficient balance
+- **Job state machine**: Declarative `TRANSITIONS` record; each target specifies `from[]` and `allowedRoles[]`
 - **Completion stats**: `updateExpertCompletionStats()` called on `transition()` when target = COMPLETED
-- **No-show**: Finds ASSIGNED jobs where `assignedAt + ETA + 2h < now`; atomically increments `noShowCount`, clears `acceptedBidId`, returns job to OPEN
+- **No-show**: Finds ASSIGNED jobs where `assignedAt + ETA + 2h < now`; atomically resets to OPEN
 - **Expert profile**: Auto-created (empty) when user registers with `role = EXPERT`
 - **Welcome credits**: Granted only when admin sets verification status to VERIFIED
-- **Chat access**: `getChatToken()` gate checks job status is in `[ASSIGNED, EN_ROUTE, ARRIVED, IN_PROGRESS, COMPLETION_REQUESTED, COMPLETED]`
+- **Chat access**: Gated on job status ∈ [ASSIGNED, EN_ROUTE, ARRIVED, IN_PROGRESS, COMPLETION_REQUESTED, COMPLETED]
 
 ### Seed Data
-Run `bun run prisma:seed` to populate:
+Run `bun run prisma:seed`:
 - Admin: `admin@fixr.af` / `Fixr@Admin2025!`
 - Credit rate: 50 AFN/credit, 5 welcome credits, 30-day expiry
-- 12 Kabul zones with GPS (کارته سه, خیر خانه, شهر نو, ماکروریان, خواجه بغرا, تایمنی, دارالامان, کارته چهار, کارته پنج, وزیر اکبر خان, سرای شمالی, چهارراهی قمبر)
-- 8 categories (لوله‌کشی, برق‌کاری, نجاری, رنگ‌کاری, تعمیر لوازم خانگی, نظافت, ساختمان‌سازی, سایر)
+- 12 Kabul zones with GPS
+- 8 categories in Dari
 
 ---
 
@@ -71,80 +68,118 @@ Run `bun run prisma:seed` to populate:
 
 ---
 
-## Mobile App (`apps/mobile`) — FOUNDATION ONLY
+## Mobile App (`apps/mobile`) — COMPLETE
 
-### What Exists
+Last commit: `9311eca feat(mobile): complete full mobile app — auth, expert, homeowner, shared screens`
 
-All files in `apps/mobile/src/`:
+### Full File Tree
 
-**`constants/`**
-- `theme.ts` — `Colors`, `FontSize`, `Spacing`, `Radius` — single source of truth for design tokens
+```
+apps/mobile/src/
+├── app/
+│   ├── index.tsx                      ← auth guard (→ phone OR role home)
+│   ├── _layout.tsx                    ← root: GestureHandler + SafeArea + Stack
+│   ├── (auth)/
+│   │   ├── _layout.tsx
+│   │   ├── phone.tsx                  ← phone entry
+│   │   ├── otp.tsx                    ← 6-digit OTP + resend countdown
+│   │   └── register.tsx              ← name + role card picker
+│   ├── (expert)/
+│   │   ├── _layout.tsx               ← 5-tab: Home/Browse/Bids/Credits/Profile
+│   │   ├── home.tsx                  ← availability toggle, stats, nearby jobs
+│   │   ├── browse.tsx                ← category+zone filter chips
+│   │   ├── bids.tsx                  ← my bids list
+│   │   ├── credits.tsx               ← balance + ledger
+│   │   ├── notifications.tsx
+│   │   ├── profile.tsx               ← stats, verification, zones, categories
+│   │   ├── job/[id].tsx             ← job detail + bid form
+│   │   └── active-job/[id].tsx      ← state transitions with progress steps
+│   ├── (homeowner)/
+│   │   ├── _layout.tsx               ← 4-tab: Home/Jobs/Alerts/Profile
+│   │   ├── home.tsx                  ← active jobs + post CTA
+│   │   ├── jobs.tsx                  ← status-tab filtered list
+│   │   ├── notifications.tsx
+│   │   ├── profile.tsx
+│   │   ├── post/
+│   │   │   ├── create.tsx            ← job details form (step 1)
+│   │   │   └── review.tsx            ← preview + publish/delete (step 3)
+│   │   ├── job/[id].tsx             ← bids list + accept flow
+│   │   └── active-job/[id].tsx      ← confirm completion + chat/call
+│   └── (shared)/
+│       ├── _layout.tsx
+│       ├── chat/[jobId].tsx          ← Stream Chat (lazy SDK, graceful fallback)
+│       └── review/[jobId].tsx        ← star picker + tag chips
+├── components/ui/
+│   ├── Text.tsx         Badge.tsx    Button.tsx    Card.tsx
+│   ├── Input.tsx        Divider.tsx  StarRating.tsx FixrLogo.tsx
+│   └── ScreenWrapper.tsx
+├── constants/
+│   └── theme.ts                      ← Colors, FontSize, Spacing, Radius
+├── hooks/
+│   └── useRTL.ts                     ← isRTL, textAlign, flexDirection
+├── i18n/
+│   ├── index.ts                      ← fa primary, en fallback
+│   ├── fa/common.ts                  ← full Dari strings
+│   └── en/common.ts                  ← full English strings
+├── services/
+│   ├── api.ts                        ← axios + Bearer + refresh interceptor
+│   ├── auth.service.ts
+│   ├── bids.service.ts
+│   ├── chat.service.ts
+│   ├── jobs.service.ts
+│   ├── lookup.service.ts
+│   ├── notifications.service.ts
+│   └── reviews.service.ts
+├── stores/
+│   └── auth.store.ts                 ← Zustand + SecureStore
+└── utils/
+    └── format.ts                     ← AFN, relativeTime, duration, arrival
+```
 
-**`i18n/`**
-- `index.ts` — i18next init; fa primary, en fallback; defaultNS = 'common'
-- `fa/common.ts` — Dari translations
-- `en/common.ts` — English translations
+### Key Implementation Notes
+- **OTP screen**: Uses a hidden `TextInput` behind visual digit boxes; cursor advances automatically
+- **Register screen**: Passes `sessionId` (from `verifyOtp` response) as route param to link OTP session → new user
+- **Expert home**: Fetches expert profile from `/experts/me` directly (not through a service file — uses fetch with auth token)
+- **Credits/Profile**: Same pattern — direct fetch to avoid over-abstracting one-off endpoints
+- **Active job (expert)**: `STATUS_ORDER` array drives the progress step dots; current step highlighted teal
+- **Active job (homeowner)**: Shows confirm-completion button only when status = `COMPLETION_REQUESTED`
+- **Chat screen**: `stream-chat-react-native` lazy-required so app doesn't crash if SDK not yet installed; shows error message instead
+- **Review screen**: Positive tag chips shown only when rating ≥ 4; negative tags only when rating ≤ 2
 
-**`hooks/`**
-- `useRTL.ts` — returns `{ isRTL, textAlign, flexDirection }`; calls `I18nManager.forceRTL()` when language changes
-
-**`stores/`**
-- `auth.store.ts` — Zustand store with `user`, `accessToken`, `isLoading`; persists to SecureStore; keys: `fixr_access_token`, `fixr_refresh_token`, `fixr_user`
-
-**`services/`**
-- `api.ts` — axios instance; request interceptor attaches Bearer token; response interceptor handles 401 → refresh → retry; auto-clears storage on refresh failure
-- `auth.service.ts` — `sendOtp`, `verifyOtp`, `login`, `register`, `refresh`, `logout`
-- `jobs.service.ts` — `create`, `update`, `publish`, `cancel`, `deleteDraft`, `list`, `browse`, `get`, all 5 state transition calls
-- `bids.service.ts` — `place`, `update`, `withdraw`, `accept`, `listForJob`, `mine`
-- `notifications.service.ts` — `list`, `markRead`, `markAllRead`, `registerPushToken`
-- `lookup.service.ts` — `categories`, `zones`
-
-**`components/ui/`**
-- `Text.tsx` — variants: h1/h2/h3/body/sm/xs/label; RTL-aware textAlign
-- `Button.tsx` — primary/outline/ghost/danger × sm/md/lg; loading spinner; fullWidth
-- `Card.tsx` — bgCard dark card with Radius.lg
-- `Badge.tsx` — emergency/today/bidSent/active/done with correct colors matching UI mockups
-- `Input.tsx` — RTL-aware, error state, dark styling
-- `ScreenWrapper.tsx` — scroll/non-scroll, RefreshControl, SafeAreaView
-- `Divider.tsx`
-- `StarRating.tsx`
-- `FixrLogo.tsx` — "fix" white + "r" teal
-
-**`utils/`**
-- `format.ts` — `formatAFN`, `formatAFNEn`, `formatRelativeTime`, `formatDuration`, `formatArrival`
-
-**`app/`**
-- `_layout.tsx` — RootLayout: GestureHandlerRootView + SafeAreaProvider + StatusBar dark + Stack with `(auth)`, `(homeowner)`, `(expert)` groups; calls `authStore.initialize()` on mount
-- `index.tsx` — placeholder redirect (needs proper auth guard logic)
-
-### What Does NOT Exist Yet
-- Auth screens: `(auth)/phone.tsx`, `(auth)/otp.tsx`, `(auth)/register.tsx`, `(auth)/_layout.tsx`
-- Expert screens: all of `(expert)/`
-- Homeowner screens: all of `(homeowner)/`
-- Shared screens: chat, review, dispute
-
-### None of the mobile files have been committed yet.
+### What's NOT Built (intentional scope decisions)
+- `post/media.tsx` — photo upload step; backend supports it but homeowners can publish with description ≥ 50 chars instead
+- `(shared)/dispute/[jobId].tsx` — dispute form; disputes can be raised via admin or added in a follow-up
+- Push notification registration — needs EAS `projectId` configured for production builds
+- Expert verification document upload screen — placeholder button in profile navigates to (needs backend file upload endpoint)
 
 ---
 
-## Known Issues / Half-Finished Items
+## Admin Panel (`apps/admin`) — NOT STARTED
 
-### Backend (discovered during authoring, may or may not affect testing)
-1. **No rate limiting on OTP endpoint** — should be added before production; low priority for dev
-2. **Expert profile completionRate** — added as `completionRate Float @default(0)` in schema; verify migration applied
-3. **`/auth/refresh` endpoint** — the mobile `api.ts` interceptor calls it; confirm the backend route matches exactly `POST /api/v1/auth/refresh` with body `{ refreshToken }` and returns `{ accessToken, refreshToken }`
+Next phase. Tech: Next.js 15, App Router, Tailwind CSS.
 
-### Mobile
-1. `app/index.tsx` is a placeholder — needs proper auth + role check before routing to `(homeowner)` or `(expert)`
-2. `notifications.service.ts` uses `Notifications.getExpoPushTokenAsync()` without `projectId` argument — may need `{ projectId: Constants.expoConfig.extra.eas.projectId }` for production builds
+Planned screens:
+- Login (email + password → `/auth/admin/login`)
+- Dashboard (metrics: jobs, users, revenue, disputes)
+- Expert verification queue (view docs, approve/reject)
+- User management (list, view, ban)
+- Jobs management (list, view, intervene)
+- Disputes management (list, resolve)
+- Credits management (grant, adjust, ledger per expert)
+- Credit rate configuration
+- Zone + Category CRUD
+- Notifications broadcast
 
 ---
 
-## Docs
+## Known Issues / Watch Points
 
-`docs/api-reference.md` — 1043-line complete REST API reference with:
-- All 50+ endpoints (request/response shapes, error cases, side effects)
-- Job lifecycle state diagram
-- Notification type table
-- Environment variable reference
-- Setup/seed instructions
+### Backend (found during authoring)
+1. **`/auth/refresh` route shape**: Mobile sends `POST /auth/refresh` with `{ refreshToken }`, returns `{ accessToken, refreshToken }` — verify this matches the backend controller exactly
+2. **`/experts/me` endpoint**: Expert home and profile screens call this directly — confirm it exists and returns `{ verificationStatus, completedJobs, noShowCount, completionRate, avgRating, creditBalance, zones[], categories[] }`
+3. **No rate limiting on OTP endpoint** — add before production
+
+### Mobile (to verify when running)
+1. `Ionicons` from `@expo/vector-icons` — confirm it's in `apps/mobile/package.json`
+2. `useFocusEffect` imported from `@react-navigation/native` — included in Expo SDK 55 by default
+3. Stream Chat screen shows graceful error if `stream-chat-react-native` not installed — expected behavior until SDK is added
