@@ -1,0 +1,50 @@
+{
+  "name": "@fixr/backend",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start:dev": "nest start --watch",
+    "start:prod": "node dist/main",
+    "build": "nest build",
+    "lint": "eslint src --ext .ts",
+    "test": "jest",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:studio": "prisma studio"
+  },
+  "dependencies": {
+    "@nestjs/common": "^11.0.0",
+    "@nestjs/core": "^11.0.0",
+    "@nestjs/platform-fastify": "^11.0.0",
+    "@nestjs/jwt": "^11.0.0",
+    "@nestjs/passport": "^11.0.0",
+    "@nestjs/throttler": "^6.0.0",
+    "@nestjs/config": "^4.0.0",
+    "@nestjs/swagger": "^8.0.0",
+    "@prisma/client": "^6.0.0",
+    "@fixr/shared": "*",
+    "passport": "^0.7.0",
+    "passport-jwt": "^4.0.0",
+    "bcryptjs": "^2.4.3",
+    "class-validator": "^0.14.0",
+    "class-transformer": "^0.5.1",
+    "cloudinary": "^2.0.0",
+    "firebase-admin": "^13.0.0",
+    "multer": "^1.4.5",
+    "axios": "^1.7.0",
+    "rxjs": "^7.8.0",
+    "reflect-metadata": "^0.2.0"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "^11.0.0",
+    "@nestjs/testing": "^11.0.0",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/multer": "^1.4.11",
+    "@types/passport-jwt": "^4.0.1",
+    "@types/node": "^24.0.0",
+    "prisma": "^6.0.0",
+    "typescript": "^5.9.0",
+    "jest": "^29.0.0",
+    "ts-jest": "^29.0.0"
+  }
+}

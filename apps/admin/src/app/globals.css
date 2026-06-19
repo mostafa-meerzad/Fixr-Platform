@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #111827;
+  --bg-card: #1f2937;
+  --primary: #2D9B6F;
+  --primary-light: #34d399;
+  --text: #f9fafb;
+  --text-muted: #9ca3af;
+  --border: #374151;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}

@@ -1,0 +1,17 @@
+{
+  "name": "fixr-platform",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "backend": "bun run --cwd apps/backend start:dev",
+    "admin": "bun run --cwd apps/admin dev",
+    "mobile": "bun run --cwd apps/mobile start"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.0"
+  }
+}

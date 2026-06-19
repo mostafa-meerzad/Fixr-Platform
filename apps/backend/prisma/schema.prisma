@@ -1,0 +1,367 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  HOMEOWNER
+  EXPERT
+  ADMIN
+}
+
+enum JobStatus {
+  DRAFT
+  OPEN
+  ASSIGNED
+  EN_ROUTE
+  ARRIVED
+  IN_PROGRESS
+  COMPLETION_REQUESTED
+  COMPLETED
+  CANCELLED
+  DISPUTED
+}
+
+enum Urgency {
+  EMERGENCY
+  TODAY
+  SCHEDULED
+}
+
+enum VerificationStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum DisputeReason {
+  PRICE_DISPUTE
+  WORK_QUALITY
+  NO_SHOW
+  COMMUNICATION_ISSUE
+  OTHER
+}
+
+enum CreditTransactionType {
+  WELCOME_GRANT
+  PURCHASE
+  BID_SPEND
+  BID_REFUND
+  ADMIN_ADJUSTMENT
+}
+
+enum NotificationType {
+  JOB_POSTED
+  BID_RECEIVED
+  BID_ACCEPTED
+  BID_WITHDRAWN
+  NEW_MESSAGE
+  EXPERT_EN_ROUTE
+  EXPERT_ARRIVED
+  COMPLETION_REQUESTED
+  JOB_COMPLETED
+  JOB_CANCELLED
+  REVIEW_REQUESTED
+  VERIFICATION_APPROVED
+  VERIFICATION_REJECTED
+}
+
+model User {
+  id          String   @id @default(cuid())
+  phone       String   @unique
+  name        String
+  role        UserRole
+  avatarUrl   String?
+  fcmToken    String?
+  language    String   @default("fa")
+  isActive    Boolean  @default(true)
+  isSuspended Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  expertProfile      ExpertProfile?
+  adminProfile       AdminProfile?
+  jobsAsHomeowner    Job[]              @relation("HomeownerJobs")
+  notifications      Notification[]
+  refreshTokens      RefreshToken[]
+  reviewsGiven       Review[]           @relation("ReviewsGiven")
+  reviewsReceived    Review[]           @relation("ReviewsReceived")
+  disputes           Dispute[]          @relation("DisputeReporter")
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@map("refresh_tokens")
+}
+
+model AdminProfile {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+
+  @@map("admin_profiles")
+}
+
+model ExpertProfile {
+  id               String             @id @default(cuid())
+  userId           String             @unique
+  user             User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  selfieUrl        String?
+  tazkiraFrontUrl  String?
+  tazkiraBackUrl   String?
+  shopName         String?
+  shopImageUrl     String?
+  workLicenseUrl   String?
+  description      String?
+  verificationStatus VerificationStatus @default(PENDING)
+  verificationNote   String?
+  isAvailable      Boolean            @default(true)
+
+  // Stats
+  rating           Float              @default(0)
+  completedJobs    Int                @default(0)
+  totalJobs        Int                @default(0)
+  noShowCount      Int                @default(0)
+  positivePoints   Int                @default(0)
+  negativePoints   Int                @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  serviceZones     ExpertZone[]
+  bids             Bid[]
+  creditBalance    CreditBalance?
+  creditTransactions CreditTransaction[]
+
+  @@map("expert_profiles")
+}
+
+model Zone {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  nameEn      String?
+  latitude    Float?
+  longitude   Float?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  experts     ExpertZone[]
+  jobs        Job[]
+
+  @@map("zones")
+}
+
+model ExpertZone {
+  expertId  String
+  zoneId    String
+  expert    ExpertProfile @relation(fields: [expertId], references: [id], onDelete: Cascade)
+  zone      Zone          @relation(fields: [zoneId], references: [id], onDelete: Cascade)
+
+  @@id([expertId, zoneId])
+  @@map("expert_zones")
+}
+
+model Category {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  nameEn    String?
+  icon      String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  jobs      Job[]
+
+  @@map("categories")
+}
+
+model Job {
+  id          String    @id @default(cuid())
+  title       String
+  description String
+  address     String
+  notes       String?
+  status      JobStatus @default(DRAFT)
+  urgency     Urgency
+  scheduledAt DateTime?
+
+  homeownerId  String
+  homeowner    User      @relation("HomeownerJobs", fields: [homeownerId], references: [id])
+  categoryId   String
+  category     Category  @relation(fields: [categoryId], references: [id])
+  zoneId       String
+  zone         Zone      @relation(fields: [zoneId], references: [id])
+
+  // GPS (optional)
+  latitude     Float?
+  longitude    Float?
+
+  // Assigned expert (after bid acceptance)
+  acceptedBidId String? @unique
+
+  // Timestamps for state transitions
+  openedAt              DateTime?
+  assignedAt            DateTime?
+  expertEnRouteAt       DateTime?
+  expertArrivedAt       DateTime?
+  inProgressAt          DateTime?
+  completionRequestedAt DateTime?
+  completedAt           DateTime?
+  cancelledAt           DateTime?
+  cancellationReason    String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  bids       Bid[]
+  media      JobMedia[]
+  dispute    Dispute?
+  review     Review?
+  acceptedBid Bid?     @relation("AcceptedBid", fields: [acceptedBidId], references: [id])
+
+  @@map("jobs")
+}
+
+model JobMedia {
+  id        String   @id @default(cuid())
+  jobId     String
+  job       Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  url       String
+  type      String   // 'image' | 'video'
+  createdAt DateTime @default(now())
+
+  @@map("job_media")
+}
+
+model Bid {
+  id                      String   @id @default(cuid())
+  jobId                   String
+  job                     Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  expertId                String
+  expert                  ExpertProfile @relation(fields: [expertId], references: [id])
+  price                   Int
+  estimatedArrivalMinutes Int
+  estimatedDurationHours  Float
+  warrantyDescription     String?
+  expertMessage           String?
+  isWithdrawn             Boolean  @default(false)
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  acceptedForJob          Job?     @relation("AcceptedBid")
+
+  @@unique([jobId, expertId])
+  @@map("bids")
+}
+
+model CreditBalance {
+  id              String        @id @default(cuid())
+  expertId        String        @unique
+  expert          ExpertProfile @relation(fields: [expertId], references: [id], onDelete: Cascade)
+  balance         Int           @default(0)
+  updatedAt       DateTime      @updatedAt
+
+  @@map("credit_balances")
+}
+
+model CreditTransaction {
+  id           String                @id @default(cuid())
+  expertId     String
+  expert       ExpertProfile         @relation(fields: [expertId], references: [id])
+  type         CreditTransactionType
+  amount       Int
+  balanceAfter Int
+  description  String
+  expiresAt    DateTime?
+  createdAt    DateTime              @default(now())
+
+  @@map("credit_transactions")
+}
+
+model CreditRate {
+  id        String   @id @default(cuid())
+  afnPerCredit Int
+  welcomeCredits Int  @default(5)
+  welcomeExpiryDays Int @default(30)
+  updatedAt DateTime @updatedAt
+  updatedBy String?
+
+  @@map("credit_rates")
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      NotificationType
+  title     String
+  titleEn   String?
+  body      String
+  bodyEn    String?
+  data      Json?
+  isRead    Boolean          @default(false)
+  sentAt    DateTime         @default(now())
+
+  @@map("notifications")
+}
+
+model Review {
+  id          String   @id @default(cuid())
+  jobId       String   @unique
+  job         Job      @relation(fields: [jobId], references: [id])
+  reviewerId  String
+  reviewer    User     @relation("ReviewsGiven", fields: [reviewerId], references: [id])
+  revieweeId  String
+  reviewee    User     @relation("ReviewsReceived", fields: [revieweeId], references: [id])
+  rating      Int
+  comment     String?
+  isPositive  Boolean?
+  createdAt   DateTime @default(now())
+  expiresAt   DateTime
+
+  @@map("reviews")
+}
+
+model Dispute {
+  id          String        @id @default(cuid())
+  jobId       String        @unique
+  job         Job           @relation(fields: [jobId], references: [id])
+  reporterId  String
+  reporter    User          @relation("DisputeReporter", fields: [reporterId], references: [id])
+  reason      DisputeReason
+  description String
+  resolution  String?
+  resolvedAt  DateTime?
+  createdAt   DateTime      @default(now())
+
+  @@map("disputes")
+}
+
+model OtpSession {
+  id        String   @id @default(cuid())
+  phone     String
+  code      String
+  attempts  Int      @default(0)
+  verified  Boolean  @default(false)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([phone])
+  @@map("otp_sessions")
+}
