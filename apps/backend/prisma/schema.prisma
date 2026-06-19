@@ -137,6 +137,7 @@ model ExpertProfile {
   rating           Float              @default(0)
   completedJobs    Int                @default(0)
   totalJobs        Int                @default(0)
+  completionRate   Float              @default(0)
   noShowCount      Int                @default(0)
   positivePoints   Int                @default(0)
   negativePoints   Int                @default(0)

@@ -1,5 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../prisma/prisma.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { JobStatus } from '@prisma/client';
 
 const GRACE_PERIOD_MS = 2 * 60 * 60 * 1000; // 2 hours
@@ -8,26 +10,25 @@ const GRACE_PERIOD_MS = 2 * 60 * 60 * 1000; // 2 hours
 export class NoShowService {
   private readonly logger = new Logger(NoShowService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notifications: NotificationsService,
+  ) {}
 
-  /**
-   * Called periodically (e.g. every 15 min) to flag no-shows.
-   * A no-show is an ASSIGNED job where the expert's estimated arrival time
-   * + 2-hour grace period has passed but the job is still not EN_ROUTE or beyond.
-   */
+  // Runs every 15 minutes
+  @Cron(CronExpression.EVERY_10_MINUTES)
   async detectAndFlagNoShows(): Promise<void> {
     const now = new Date();
 
-    // Find ASSIGNED jobs whose accepted bid ETA has expired
     const stalledJobs = await this.prisma.job.findMany({
       where: {
         status: JobStatus.ASSIGNED,
-        acceptedBid: {
-          isNot: null,
-        },
+        assignedAt: { not: null },
+        acceptedBid: { isNot: null },
       },
       include: {
         acceptedBid: true,
+        homeowner: { select: { id: true } },
       },
     });
 
@@ -37,24 +38,32 @@ export class NoShowService {
       const etaMs = job.acceptedBid.estimatedArrivalMinutes * 60 * 1000;
       const noShowThreshold = new Date(job.assignedAt.getTime() + etaMs + GRACE_PERIOD_MS);
 
-      if (now > noShowThreshold) {
-        this.logger.log(`No-show detected for job ${job.id}, expert ${job.acceptedBid.expertId}`);
+      if (now <= noShowThreshold) continue;
 
-        await this.prisma.expertProfile.update({
+      this.logger.log(`No-show: job ${job.id}, expert profile ${job.acceptedBid.expertId}`);
+
+      await this.prisma.$transaction([
+        // Increment expert no-show count
+        this.prisma.expertProfile.update({
           where: { id: job.acceptedBid.expertId },
           data: { noShowCount: { increment: 1 } },
-        });
-
-        // Move job back to OPEN so homeowner can accept a different bid
-        await this.prisma.job.update({
+        }),
+        // Return job to OPEN so homeowner can accept another bid
+        this.prisma.job.update({
           where: { id: job.id },
-          data: {
-            status: JobStatus.OPEN,
-            acceptedBidId: null,
-            assignedAt: null,
-          },
-        });
-      }
+          data: { status: JobStatus.OPEN, acceptedBidId: null, assignedAt: null },
+        }),
+      ]);
+
+      // Notify homeowner
+      await this.notifications.notifyUser(job.homeowner.id, {
+        type: 'JOB_CANCELLED',
+        title: 'متخصص نیامد',
+        titleEn: 'Expert did not show up',
+        body: `متخصص برای "${job.title}" نیامد. می‌توانید قیمت دیگری بپذیرید.`,
+        bodyEn: `The expert did not arrive for "${job.title}". You can accept another bid.`,
+        data: { jobId: job.id },
+      });
     }
   }
 }

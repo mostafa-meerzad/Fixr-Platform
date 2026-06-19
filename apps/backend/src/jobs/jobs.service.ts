@@ -157,7 +157,29 @@ export class JobsService {
 
     await this.sendTransitionNotification(updated, actor, targetStatus);
 
+    // When a job completes, update the expert's stats
+    if (targetStatus === JobStatus.COMPLETED && updated.acceptedBid?.expertId) {
+      await this.updateExpertCompletionStats(updated.acceptedBid.expertId);
+    }
+
     return updated;
+  }
+
+  private async updateExpertCompletionStats(expertProfileId: string): Promise<void> {
+    const profile = await this.prisma.expertProfile.findUnique({
+      where: { id: expertProfileId },
+      select: { completedJobs: true, totalJobs: true },
+    });
+    if (!profile) return;
+
+    const completedJobs = profile.completedJobs + 1;
+    const totalJobs = profile.totalJobs + 1;
+    const completionRate = Math.round((completedJobs / totalJobs) * 100);
+
+    await this.prisma.expertProfile.update({
+      where: { id: expertProfileId },
+      data: { completedJobs, totalJobs, completionRate: completionRate / 100 },
+    });
   }
 
   async cancel(jobId: string, homeowner: User, dto: CancelJobDto) {
