@@ -73,21 +73,21 @@
 - [ ] Push notification registration on app start (requires EAS project ID for production)
 - [ ] Deep link handling for notification taps
 
-## Phase 3: Admin Panel (Next.js) — NOT STARTED
+## Phase 3: Admin Panel (Next.js) — COMPLETE ✓
 
-- [ ] Project setup — Next.js 15, App Router, Tailwind
-- [ ] Auth — email + password login, session management
-- [ ] Dashboard — metrics overview (jobs, users, revenue, disputes)
-- [ ] User management — list, view, ban/unban
-- [ ] Expert verification queue — view submitted docs, approve/reject
-- [ ] Jobs management — list, view, intervene
-- [ ] Disputes management — list, view, resolve
-- [ ] Credits management — grant, adjust, view ledger per expert
-- [ ] Credit rate configuration
-- [ ] Zone management — CRUD with GPS coordinates
-- [ ] Category management — CRUD with Dari/English names
-- [ ] Notifications broadcast
-- [ ] Settings panel
+- [x] Project setup — Next.js 16, App Router, Tailwind
+- [x] Auth — email + password login, JWT in localStorage, route guard
+- [x] Dashboard — metrics overview (users, experts, jobs, credits, disputes)
+- [x] User management — list (role filter, paginated), view detail, suspend/unsuspend
+- [x] Expert verification queue — view docs/selfie/tazkira, approve/reject with note
+- [x] Jobs management — list with status filter
+- [x] Disputes management — list, resolve with resolution note
+- [x] Credits management — per-expert balance, purchase, adjust, ledger
+- [x] Credit rate configuration (Settings page)
+- [x] Zone management — CRUD with GPS coordinates
+- [x] Category management — CRUD with Dari/English names
+- [x] Notification log (admin view of all platform notifications)
+- [x] Settings panel — credit rate, welcome credits, expiry days
 
 ## Ongoing
 
