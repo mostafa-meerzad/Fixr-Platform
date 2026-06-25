@@ -1,6 +1,6 @@
 import { IsString, IsEnum, MinLength, MaxLength, Matches } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { UserRole } from '@prisma/client';
+import { UserRole } from '@fixr/shared';
 
 export class RegisterDto {
   @ApiProperty({ example: '+93701234567' })

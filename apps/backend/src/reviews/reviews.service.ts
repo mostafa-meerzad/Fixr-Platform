@@ -74,18 +74,6 @@ export class ReviewsService {
       await this.updateExpertStats(job.acceptedBid.expertId, dto.rating, dto.isPositive);
     }
 
-    // Update homeowner points when expert reviews the homeowner
-    if (isAssignedExpert && dto.isPositive !== undefined) {
-      await this.prisma.user.update({
-        where: { id: revieweeId },
-        data: dto.isPositive
-          ? { expertProfile: undefined } // homeowner has no expertProfile — update via raw
-          : undefined,
-      });
-      // Points are stored on profiles — for homeowners we track via the User model
-      // A future iteration can add a HomeownerProfile model; for MVP we log it via the review record
-    }
-
     return review;
   }
 

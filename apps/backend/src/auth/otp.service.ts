@@ -1,7 +1,8 @@
 import {
   Injectable,
   BadRequestException,
-  TooManyRequestsException,
+  HttpException,
+  HttpStatus,
   InternalServerErrorException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -32,8 +33,9 @@ export class OtpService {
     });
 
     if (recent) {
-      throw new TooManyRequestsException(
+      throw new HttpException(
         `Please wait ${OTP_COOLDOWN_SECONDS} seconds before requesting a new code.`,
+        HttpStatus.TOO_MANY_REQUESTS,
       );
     }
 

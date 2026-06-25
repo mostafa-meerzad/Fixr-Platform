@@ -10,7 +10,7 @@ import { CreateDisputeDto } from './dto/create-dispute.dto';
 import { ResolveDisputeDto } from './dto/resolve-dispute.dto';
 import { JobStatus, User, UserRole } from '@prisma/client';
 
-const DISPUTABLE_STATUSES = [
+const DISPUTABLE_STATUSES: JobStatus[] = [
   JobStatus.ASSIGNED,
   JobStatus.EN_ROUTE,
   JobStatus.ARRIVED,

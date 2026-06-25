@@ -3,14 +3,12 @@ import {
   Post,
   Delete,
   Param,
+  Req,
   UseGuards,
-  UseInterceptors,
-  UploadedFile,
   BadRequestException,
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-fastify';
 import {
   ApiTags,
   ApiBearerAuth,
@@ -19,6 +17,7 @@ import {
   ApiBody,
   ApiParam,
 } from '@nestjs/swagger';
+import { FastifyRequest } from 'fastify';
 import { MediaService } from './media.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
@@ -42,10 +41,11 @@ export class MediaController {
   @ApiOperation({ summary: 'Upload profile avatar (any role)' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({ schema: fileSchema })
-  @UseInterceptors(FileInterceptor('file'))
-  uploadAvatar(@CurrentUser() user: User, @UploadedFile() file: Express.Multer.File) {
-    this.requireFile(file);
-    return this.mediaService.uploadAvatar(user, file);
+  async uploadAvatar(@CurrentUser() user: User, @Req() req: FastifyRequest) {
+    const upload = await (req as any).file();
+    if (!upload) throw new BadRequestException('No file provided.');
+    const buffer = await upload.toBuffer();
+    return this.mediaService.uploadAvatar(user, { buffer, mimetype: upload.mimetype, size: buffer.length });
   }
 
   @Post('expert/:target')
@@ -54,18 +54,19 @@ export class MediaController {
   @ApiConsumes('multipart/form-data')
   @ApiBody({ schema: fileSchema })
   @ApiParam({ name: 'target', enum: ['selfie', 'tazkira_front', 'tazkira_back', 'shop_image', 'work_license'] })
-  @UseInterceptors(FileInterceptor('file'))
-  uploadExpertMedia(
+  async uploadExpertMedia(
     @CurrentUser() user: User,
     @Param('target') target: string,
-    @UploadedFile() file: Express.Multer.File,
+    @Req() req: FastifyRequest,
   ) {
-    this.requireFile(file);
     const allowed = ['selfie', 'tazkira_front', 'tazkira_back', 'shop_image', 'work_license'];
     if (!allowed.includes(target)) {
       throw new BadRequestException(`Invalid target. Allowed: ${allowed.join(', ')}`);
     }
-    return this.mediaService.uploadExpertMedia(user, target as any, file);
+    const upload = await (req as any).file();
+    if (!upload) throw new BadRequestException('No file provided.');
+    const buffer = await upload.toBuffer();
+    return this.mediaService.uploadExpertMedia(user, target as any, { buffer, mimetype: upload.mimetype, size: buffer.length });
   }
 
   @Post('jobs/:jobId')
@@ -74,14 +75,15 @@ export class MediaController {
   @ApiConsumes('multipart/form-data')
   @ApiBody({ schema: fileSchema })
   @ApiParam({ name: 'jobId' })
-  @UseInterceptors(FileInterceptor('file'))
-  uploadJobMedia(
+  async uploadJobMedia(
     @CurrentUser() user: User,
     @Param('jobId') jobId: string,
-    @UploadedFile() file: Express.Multer.File,
+    @Req() req: FastifyRequest,
   ) {
-    this.requireFile(file);
-    return this.mediaService.uploadJobMedia(user, jobId, file);
+    const upload = await (req as any).file();
+    if (!upload) throw new BadRequestException('No file provided.');
+    const buffer = await upload.toBuffer();
+    return this.mediaService.uploadJobMedia(user, jobId, { buffer, mimetype: upload.mimetype, size: buffer.length });
   }
 
   @Delete('jobs/media/:mediaId')
@@ -91,9 +93,5 @@ export class MediaController {
   @ApiParam({ name: 'mediaId' })
   deleteJobMedia(@CurrentUser() user: User, @Param('mediaId') mediaId: string) {
     return this.mediaService.deleteJobMedia(user, mediaId);
-  }
-
-  private requireFile(file: Express.Multer.File | undefined) {
-    if (!file) throw new BadRequestException('No file provided.');
   }
 }

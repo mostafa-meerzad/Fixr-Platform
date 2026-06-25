@@ -21,6 +21,8 @@ async function bootstrap() {
     { limits: { fileSize: 100 * 1024 * 1024 } }, // 100 MB hard cap
   );
 
+  app.setGlobalPrefix('api');
+
   app.enableCors({
     origin: process.env.ALLOWED_ORIGINS?.split(',') ?? ['http://localhost:3000'],
     credentials: true,
