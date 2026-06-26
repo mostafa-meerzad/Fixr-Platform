@@ -1,5 +1,5 @@
 import { IsString, IsOptional, IsBoolean, MaxLength, IsArray } from 'class-validator';
-import { ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class UpdateExpertProfileDto {
   @ApiPropertyOptional()
@@ -40,4 +40,13 @@ export class SubmitVerificationDto {
   @IsString()
   @MaxLength(500)
   description?: string;
+
+  @ApiProperty({ example: 'clx_zone1', description: 'Zone where the shop is located' })
+  @IsString()
+  shopZoneId: string;
+
+  @ApiProperty({ example: '12th Street, Shop No. 4', description: 'Physical shop address' })
+  @IsString()
+  @MaxLength(500)
+  shopAddress: string;
 }

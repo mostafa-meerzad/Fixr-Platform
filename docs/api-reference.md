@@ -78,7 +78,9 @@ Register a new user (first time only). Consumes the OTP session.
   "phone": "+93701234567",
   "name": "Ahmad Karimi",
   "role": "HOMEOWNER",        // or "EXPERT"
-  "sessionId": "clx..."
+  "sessionId": "clx...",
+  "zoneId": "clx_zone1",     // required when role = HOMEOWNER
+  "address": "12th Street, House No. 102, near the blue mosque"  // required when role = HOMEOWNER
 }
 
 // Response 201
@@ -90,9 +92,20 @@ Register a new user (first time only). Consumes the OTP session.
     "name": "Ahmad Karimi",
     "phone": "+93701234567",
     "role": "HOMEOWNER",
-    "avatarUrl": null
+    "avatarUrl": null,
+    "homeownerProfile": {       // present when role = HOMEOWNER
+      "id": "...",
+      "zoneId": "clx_zone1",
+      "address": "12th Street, House No. 102",
+      "zone": { "id": "clx_zone1", "nameEn": "Karte Seh" },
+      "positivePoints": 0,
+      "negativePoints": 0
+    }
   }
 }
+
+// Error 400 — missing zone or address for homeowner
+{ "message": "zoneId and address are required for homeowner registration." }
 ```
 
 ---
@@ -159,7 +172,7 @@ Admin email + password login. No OTP.
 🔒 Protected — any role
 
 ```json
-// Response 200
+// Response 200 — EXPERT role
 {
   "id": "clx...",
   "name": "Ahmad Karimi",
@@ -178,8 +191,29 @@ Admin email + password login. No OTP.
     "noShowCount": 0,
     "positivePoints": 0,
     "negativePoints": 0,
+    "shopZoneId": "clx_zone2",
+    "shopAddress": "12th Street, Shop No. 4",
+    "shopZone": { "id": "clx_zone2", "nameEn": "Shahr-e-Naw" },
     "creditBalance": { "balance": 0 },
     "serviceZones": []
+  }
+}
+
+// Response 200 — HOMEOWNER role
+{
+  "id": "clx...",
+  "name": "Ahmad Karimi",
+  "phone": "+93701234567",
+  "role": "HOMEOWNER",
+  "avatarUrl": null,
+  "language": "fa",
+  "homeownerProfile": {
+    "id": "...",
+    "zoneId": "clx_zone1",
+    "address": "12th Street, House No. 102",
+    "zone": { "id": "clx_zone1", "nameEn": "Karte Seh" },
+    "positivePoints": 0,
+    "negativePoints": 0
   }
 }
 ```
@@ -246,17 +280,31 @@ Replaces all zone assignments atomically. Min 1, max 10.
 
 ### POST /users/me/submit-verification
 🔒 Expert only  
-Requires selfie + tazkira_front + tazkira_back to have been uploaded first.
+Requires all 5 media uploads before submission: selfie, tazkira_front, tazkira_back, shop_image, work_license.
 
 ```json
-// Request (optional)
-{ "shopName": "Karimi Plumbing", "description": "5 years experience" }
+// Request
+{
+  "shopName": "Karimi Plumbing",        // optional
+  "description": "5 years experience", // optional
+  "shopZoneId": "clx_zone2",           // required
+  "shopAddress": "12th Street, Shop No. 4"  // required
+}
 
 // Response 200
-{ "verificationStatus": "PENDING", ... }
+{
+  "verificationStatus": "PENDING",
+  "shopZoneId": "clx_zone2",
+  "shopAddress": "12th Street, Shop No. 4",
+  "shopZone": { "id": "clx_zone2", "nameEn": "Shahr-e-Naw" },
+  ...
+}
 
-// Error 400 — media not uploaded yet
-{ "message": "Please upload your selfie and Tazkira (front and back) before submitting." }
+// Error 400 — any required upload missing
+{ "message": "Please upload your selfie, Tazkira (front and back), shop image, and work license before submitting." }
+
+// Error 400 — shopZoneId or shopAddress missing
+{ "message": "shopZoneId and shopAddress are required." }
 ```
 
 ---
@@ -511,10 +559,25 @@ Returns OPEN jobs in the expert's service zones, excluding ones they've already 
 
 Query params: `urgency`, `categoryId`, `page`, `limit`
 
+Each job in the response includes a `homeowner` trust block:
+```json
+"homeowner": {
+  "firstName": "Ahmad",         // first word of user.name only — no phone, no last name
+  "positivePoints": 12,         // from homeownerProfile
+  "jobsPosted": 4               // total jobs posted by this homeowner
+}
+```
+
 ---
 
 ### GET /jobs/:id
 🔒 Protected — role-scoped access
+
+**Homeowner phone visibility rules:**
+- Homeowner requesting their own job: phone always included
+- Admin: phone always included
+- Expert viewing an OPEN job (before assignment): `homeowner.phone` is **omitted**
+- Expert viewing ASSIGNED / EN_ROUTE / ARRIVED / IN_PROGRESS / COMPLETION_REQUESTED / COMPLETED: `homeowner.phone` is **included**
 
 ```json
 // Response 200
@@ -531,6 +594,12 @@ Query params: `urgency`, `categoryId`, `page`, `limit`
   "acceptedBid": null,
   "_count": { "bids": 3 },
   "homeownerId": "...",
+  "homeowner": {
+    "id": "...",
+    "name": "Ahmad Karimi",
+    "avatarUrl": null
+    // "phone" is included or omitted per the rules above
+  },
   "openedAt": "2025-01-01T10:00:00Z",
   "createdAt": "2025-01-01T09:55:00Z"
 }
@@ -667,13 +736,16 @@ Use these values to initialise the Stream Chat client on the mobile app.
 {
   "rating": 5,              // 1–5
   "comment": "Great work, fast and clean.",
-  "isPositive": true        // optional — adds to reviewee's positive/negative points
+  "isPositive": true,       // optional — adds to reviewee's positive/negative points
+  "tags": ["Punctual", "Quality work", "Fair price"]  // optional — UI tag chips
 }
 
 // Response 201
 // Side effects (homeowner reviewing expert):
 //   - expertProfile.rating recalculated (rolling average)
 //   - expertProfile.positivePoints or negativePoints incremented
+// Side effects (expert reviewing homeowner):
+//   - homeownerProfile.positivePoints or negativePoints incremented
 
 // Error 400 — window closed
 { "message": "The 48-hour review window for this job has closed." }

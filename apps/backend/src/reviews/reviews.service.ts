@@ -28,7 +28,6 @@ export class ReviewsService {
       throw new BadRequestException('Reviews can only be submitted for completed jobs.');
     }
 
-    // Determine who is reviewing whom
     const isHomeowner = reviewer.role === UserRole.HOMEOWNER && job.homeownerId === reviewer.id;
     const isAssignedExpert =
       reviewer.role === UserRole.EXPERT &&
@@ -38,7 +37,6 @@ export class ReviewsService {
       throw new ForbiddenException('You are not a participant in this job.');
     }
 
-    // Enforce 48-hour review window
     const windowExpiry = new Date(
       (job.completedAt ?? new Date()).getTime() + REVIEW_WINDOW_HOURS * 60 * 60 * 1000,
     );
@@ -48,11 +46,9 @@ export class ReviewsService {
       );
     }
 
-    // One review per reviewer per job
     const existing = await this.prisma.review.findUnique({ where: { jobId } });
     if (existing) throw new ConflictException('A review for this job has already been submitted.');
 
-    // Reviewee is the other party
     const revieweeId = isHomeowner
       ? job.acceptedBid!.expert.user.id
       : job.homeownerId;
@@ -65,13 +61,17 @@ export class ReviewsService {
         rating: dto.rating,
         comment: dto.comment,
         isPositive: dto.isPositive,
+        tags: dto.tags ?? [],
         expiresAt: windowExpiry,
       },
     });
 
-    // Update expert stats when homeowner reviews the expert
     if (isHomeowner && job.acceptedBid) {
       await this.updateExpertStats(job.acceptedBid.expertId, dto.rating, dto.isPositive);
+    }
+
+    if (isAssignedExpert) {
+      await this.updateHomeownerStats(job.homeownerId, dto.isPositive);
     }
 
     return review;
@@ -116,6 +116,21 @@ export class ReviewsService {
       where: { id: expertProfileId },
       data: {
         rating: Math.round(newRating * 10) / 10,
+        ...(isPositive === true && { positivePoints: { increment: 1 } }),
+        ...(isPositive === false && { negativePoints: { increment: 1 } }),
+      },
+    });
+  }
+
+  private async updateHomeownerStats(homeownerId: string, isPositive?: boolean) {
+    const profile = await this.prisma.homeownerProfile.findUnique({
+      where: { userId: homeownerId },
+    });
+    if (!profile) return;
+
+    await this.prisma.homeownerProfile.update({
+      where: { userId: homeownerId },
+      data: {
         ...(isPositive === true && { positivePoints: { increment: 1 } }),
         ...(isPositive === false && { negativePoints: { increment: 1 } }),
       },

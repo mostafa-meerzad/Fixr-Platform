@@ -18,6 +18,11 @@ import { User, VerificationStatus } from '@prisma/client';
 const EXPERT_INCLUDE = {
   serviceZones: { include: { zone: true } },
   creditBalance: true,
+  shopZone: { select: { id: true, nameEn: true } },
+} as const;
+
+const HOMEOWNER_PROFILE_INCLUDE = {
+  zone: { select: { id: true, nameEn: true } },
 } as const;
 
 @Injectable()
@@ -31,6 +36,13 @@ export class UsersService {
         include: EXPERT_INCLUDE,
       });
       return { ...user, expertProfile: profile };
+    }
+    if (user.role === 'HOMEOWNER') {
+      const homeownerProfile = await this.prisma.homeownerProfile.findUnique({
+        where: { userId: user.id },
+        include: HOMEOWNER_PROFILE_INCLUDE,
+      });
+      return { ...user, homeownerProfile };
     }
     return user;
   }
@@ -98,7 +110,6 @@ export class UsersService {
       throw new BadRequestException('You can serve a maximum of 10 zones.');
     }
 
-    // Validate all zone IDs exist and are active
     const zones = await this.prisma.zone.findMany({
       where: { id: { in: dto.zoneIds }, isActive: true },
     });
@@ -106,7 +117,6 @@ export class UsersService {
       throw new BadRequestException('One or more zone IDs are invalid or inactive.');
     }
 
-    // Replace all zone assignments atomically
     await this.prisma.$transaction([
       this.prisma.expertZone.deleteMany({ where: { expertId: profile.id } }),
       this.prisma.expertZone.createMany({
@@ -127,11 +137,21 @@ export class UsersService {
       throw new BadRequestException('Your account is already verified.');
     }
 
-    // Media (selfie, tazkira) must have been uploaded before submitting
-    if (!profile.selfieUrl || !profile.tazkiraFrontUrl || !profile.tazkiraBackUrl) {
+    if (
+      !profile.selfieUrl ||
+      !profile.tazkiraFrontUrl ||
+      !profile.tazkiraBackUrl ||
+      !profile.shopImageUrl ||
+      !profile.workLicenseUrl
+    ) {
       throw new BadRequestException(
-        'Please upload your selfie and Tazkira (front and back) before submitting for verification.',
+        'Please upload your selfie, Tazkira (front and back), shop image, and work license before submitting.',
       );
+    }
+
+    const shopZone = await this.prisma.zone.findUnique({ where: { id: dto.shopZoneId } });
+    if (!shopZone || !shopZone.isActive) {
+      throw new BadRequestException('Invalid or inactive shop zone.');
     }
 
     return this.prisma.expertProfile.update({
@@ -139,8 +159,11 @@ export class UsersService {
       data: {
         shopName: dto.shopName,
         description: dto.description,
+        shopZoneId: dto.shopZoneId,
+        shopAddress: dto.shopAddress,
         verificationStatus: VerificationStatus.PENDING,
       },
+      include: EXPERT_INCLUDE,
     });
   }
 
@@ -152,6 +175,8 @@ export class UsersService {
       select: {
         id: true,
         shopName: true,
+        shopZoneId: true,
+        shopAddress: true,
         description: true,
         rating: true,
         completedJobs: true,
@@ -159,6 +184,7 @@ export class UsersService {
         positivePoints: true,
         negativePoints: true,
         verificationStatus: true,
+        shopZone: { select: { id: true, nameEn: true } },
         serviceZones: { include: { zone: { select: { id: true, name: true, nameEn: true } } } },
         user: {
           select: { id: true, name: true, avatarUrl: true },

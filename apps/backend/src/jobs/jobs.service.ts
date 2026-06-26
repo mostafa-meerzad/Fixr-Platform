@@ -28,6 +28,29 @@ const JOB_INCLUDE = {
   _count: { select: { bids: { where: { isWithdrawn: false } } } },
 } as const;
 
+// Used only for GET /jobs/browse — adds homeowner trust block without exposing phone
+const BROWSE_JOB_INCLUDE = {
+  ...JOB_INCLUDE,
+  homeowner: {
+    select: {
+      id: true,
+      name: true,
+      homeownerProfile: { select: { positivePoints: true } },
+      _count: { select: { jobsAsHomeowner: true } },
+    },
+  },
+} as const;
+
+// Statuses where the assigned expert may see the homeowner's phone number
+const PHONE_VISIBLE_STATUSES: JobStatus[] = [
+  JobStatus.ASSIGNED,
+  JobStatus.EN_ROUTE,
+  JobStatus.ARRIVED,
+  JobStatus.IN_PROGRESS,
+  JobStatus.COMPLETION_REQUESTED,
+  JobStatus.COMPLETED,
+];
+
 @Injectable()
 export class JobsService {
   constructor(
@@ -137,7 +160,7 @@ export class JobsService {
   async findOne(jobId: string, actor: User) {
     const job = await this.findOneOrFail(jobId);
     this.assertViewAccess(job, actor);
-    return job;
+    return this.redactHomeownerPhone(job, actor);
   }
 
   async transition(jobId: string, actor: User, targetStatus: JobStatus) {
@@ -253,20 +276,34 @@ export class JobsService {
       zoneId: { in: zoneIds },
       ...(query.urgency && { urgency: query.urgency }),
       ...(query.categoryId && { categoryId: query.categoryId }),
-      // Exclude jobs the expert already bid on
       bids: { none: { expertId: expertProfile.id } },
     };
 
-    const [data, total] = await Promise.all([
+    const [raw, total] = await Promise.all([
       this.prisma.job.findMany({
         where,
-        include: JOB_INCLUDE,
+        include: BROWSE_JOB_INCLUDE,
         orderBy: [{ urgency: 'asc' }, { createdAt: 'desc' }],
         skip,
         take: limit,
       }),
       this.prisma.job.count({ where }),
     ]);
+
+    // Shape the homeowner block — first name only, no phone, computed fields
+    const data = raw.map((job) => {
+      const { homeowner, ...rest } = job as any;
+      return {
+        ...rest,
+        homeowner: homeowner
+          ? {
+              firstName: (homeowner.name as string).split(' ')[0],
+              positivePoints: homeowner.homeownerProfile?.positivePoints ?? 0,
+              jobsPosted: homeowner._count?.jobsAsHomeowner ?? 0,
+            }
+          : null,
+      };
+    });
 
     return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
@@ -382,6 +419,18 @@ export class JobsService {
     if (!zone || !zone.isActive) {
       throw new BadRequestException('Invalid or inactive zone.');
     }
+  }
+
+  private redactHomeownerPhone(job: any, actor: User) {
+    if (!job.homeowner) return job;
+    if (actor.role === UserRole.ADMIN) return job;
+    if (actor.role === UserRole.HOMEOWNER) return job;
+
+    // Expert: phone only visible at ASSIGNED and beyond
+    if (PHONE_VISIBLE_STATUSES.includes(job.status as JobStatus)) return job;
+
+    const { phone: _phone, ...homeownerWithoutPhone } = job.homeowner;
+    return { ...job, homeowner: homeownerWithoutPhone };
   }
 
   private async sendTransitionNotification(

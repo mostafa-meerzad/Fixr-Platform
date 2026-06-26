@@ -85,6 +85,7 @@ model User {
 
   // Relations
   expertProfile      ExpertProfile?
+  homeownerProfile   HomeownerProfile?
   adminProfile       AdminProfile?
   jobsAsHomeowner    Job[]              @relation("HomeownerJobs")
   notifications      Notification[]
@@ -118,6 +119,21 @@ model AdminProfile {
   @@map("admin_profiles")
 }
 
+model HomeownerProfile {
+  id             String   @id @default(cuid())
+  userId         String   @unique
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  zoneId         String?
+  zone           Zone?    @relation("HomeownerZone", fields: [zoneId], references: [id])
+  address        String?
+  positivePoints Int      @default(0)
+  negativePoints Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("homeowner_profiles")
+}
+
 model ExpertProfile {
   id               String             @id @default(cuid())
   userId           String             @unique
@@ -128,6 +144,9 @@ model ExpertProfile {
   shopName         String?
   shopImageUrl     String?
   workLicenseUrl   String?
+  shopZoneId       String?
+  shopZone         Zone?              @relation("ExpertShopZone", fields: [shopZoneId], references: [id])
+  shopAddress      String?
   description      String?
   verificationStatus VerificationStatus @default(PENDING)
   verificationNote   String?
@@ -163,8 +182,10 @@ model Zone {
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
 
-  experts     ExpertZone[]
-  jobs        Job[]
+  experts            ExpertZone[]
+  jobs               Job[]
+  homeownerProfiles  HomeownerProfile[] @relation("HomeownerZone")
+  expertShopProfiles ExpertProfile[]    @relation("ExpertShopZone")
 
   @@map("zones")
 }
@@ -333,6 +354,7 @@ model Review {
   rating      Int
   comment     String?
   isPositive  Boolean?
+  tags        String[]
   createdAt   DateTime @default(now())
   expiresAt   DateTime
 

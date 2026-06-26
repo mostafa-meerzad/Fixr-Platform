@@ -3,6 +3,7 @@ import {
   ConflictException,
   UnauthorizedException,
   ForbiddenException,
+  BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { OtpService } from './otp.service';
@@ -69,6 +70,16 @@ export class AuthService {
       throw new ConflictException('An account with this phone number already exists.');
     }
 
+    if (dto.role === UserRole.HOMEOWNER) {
+      if (!dto.zoneId || !dto.address) {
+        throw new BadRequestException('zoneId and address are required for homeowner registration.');
+      }
+      const zone = await this.prisma.zone.findUnique({ where: { id: dto.zoneId } });
+      if (!zone || !zone.isActive) {
+        throw new BadRequestException('Invalid or inactive zone.');
+      }
+    }
+
     const user = await this.prisma.user.create({
       data: {
         phone: dto.phone,
@@ -77,8 +88,16 @@ export class AuthService {
         ...(dto.role === UserRole.EXPERT && {
           expertProfile: { create: {} },
         }),
+        ...(dto.role === UserRole.HOMEOWNER && {
+          homeownerProfile: {
+            create: { zoneId: dto.zoneId, address: dto.address },
+          },
+        }),
       },
-      include: { expertProfile: true },
+      include: {
+        expertProfile: true,
+        homeownerProfile: { include: { zone: { select: { id: true, nameEn: true } } } },
+      },
     });
 
     const tokens = await this.tokenService.issueTokens(user);
@@ -91,6 +110,7 @@ export class AuthService {
         phone: user.phone,
         role: user.role,
         avatarUrl: user.avatarUrl,
+        ...(user.homeownerProfile && { homeownerProfile: user.homeownerProfile }),
       },
     };
   }

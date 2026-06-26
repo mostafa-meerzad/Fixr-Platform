@@ -1,5 +1,5 @@
-import { IsString, IsEnum, MinLength, MaxLength, Matches } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
+import { IsString, IsEnum, IsOptional, MinLength, MaxLength, Matches } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { UserRole } from '@fixr/shared';
 
 export class RegisterDto {
@@ -21,4 +21,15 @@ export class RegisterDto {
   @ApiProperty({ example: 'otp-session-id-from-verify-step' })
   @IsString()
   sessionId: string;
+
+  @ApiPropertyOptional({ example: 'clx_zone1', description: 'Required when role = HOMEOWNER' })
+  @IsOptional()
+  @IsString()
+  zoneId?: string;
+
+  @ApiPropertyOptional({ example: '12th Street, House No. 102', description: 'Required when role = HOMEOWNER' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  address?: string;
 }
