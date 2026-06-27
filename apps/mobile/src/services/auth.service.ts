@@ -37,4 +37,6 @@ export interface RegisterPayload {
   name: string;
   role: 'HOMEOWNER' | 'EXPERT';
   sessionId: string;
+  zoneId?: string;   // required when role = HOMEOWNER
+  address?: string;  // required when role = HOMEOWNER
 }

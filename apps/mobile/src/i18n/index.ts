@@ -1,18 +1,15 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
-import faCommon from './fa/common';
-import enCommon from './en/common';
-
-export const defaultLanguage = 'fa';
+import en from '../locales/en.json';
+import fa from '../locales/fa.json';
 
 i18n.use(initReactI18next).init({
-  resources: {
-    fa: { common: faCommon },
-    en: { common: enCommon },
-  },
-  lng: defaultLanguage,
+  lng: 'en',
   fallbackLng: 'en',
-  defaultNS: 'common',
+  resources: {
+    en: { translation: en },
+    fa: { translation: fa },
+  },
   interpolation: { escapeValue: false },
 });
 

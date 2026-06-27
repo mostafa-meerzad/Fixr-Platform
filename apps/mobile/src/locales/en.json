@@ -1,0 +1,34 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Something went wrong.",
+    "retry": "Retry",
+    "cancel": "Cancel",
+    "save": "Save",
+    "back": "Back",
+    "next": "Next",
+    "done": "Done",
+    "skip": "Skip for now",
+    "confirm": "Confirm",
+    "continue": "Continue"
+  },
+  "auth": {
+    "phone": {},
+    "otp": {},
+    "roleSelect": {},
+    "register": {},
+    "onboarding": {}
+  },
+  "homeowner": {
+    "home": {},
+    "myJobs": {},
+    "messages": {},
+    "profile": {}
+  },
+  "expert": {
+    "browse": {},
+    "myBids": {},
+    "messages": {},
+    "profile": {}
+  }
+}

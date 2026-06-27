@@ -25,6 +25,7 @@ api.interceptors.response.use(
         const refreshToken = await SecureStore.getItemAsync('fixr_refresh_token');
         const { data } = await axios.post(`${BASE_URL}/auth/refresh`, { refreshToken });
         await SecureStore.setItemAsync('fixr_access_token', data.accessToken);
+        await SecureStore.setItemAsync('fixr_refresh_token', data.refreshToken);
         original.headers.Authorization = `Bearer ${data.accessToken}`;
         return api(original);
       } catch {

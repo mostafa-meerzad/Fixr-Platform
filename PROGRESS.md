@@ -24,38 +24,45 @@ Six targeted changes were applied to support the mobile UI. Migration applied:
 
 ---
 
-## Phase 0 — Bootstrap
+## Phase 0 — Bootstrap ✅
 
-Must be completed in full before any screen is built.
+Completed 2026-06-27. All items verified with `npx tsc --noEmit` — zero errors.
 
-### Packages
-- [ ] Install: `i18next react-i18next @expo/vector-icons expo-font @gorhom/bottom-sheet zustand axios expo-secure-store`
+### Packages ✅
+- [x] Install: `i18next react-i18next @expo/vector-icons expo-font @gorhom/bottom-sheet zustand axios expo-secure-store`
+- [x] Also installed: `@expo-google-fonts/inter` (Inter 400/500/600/700)
 
-### Foundation files
-- [ ] `src/constants/theme.ts` — Colors, Typography, Spacing, Radius, Shadows, IconSize
-- [ ] `src/constants/icons.ts` — MaterialIcons name constants (no magic strings in screens)
-- [ ] `src/locales/en.json` — empty `{}`
-- [ ] `src/locales/fa.json` — empty `{}`
-- [ ] `src/i18n/index.ts` — i18next config, English only, no RTL
-- [ ] `src/services/api.ts` — axios instance, Bearer header, refresh interceptor
-- [ ] `src/stores/auth.store.ts` — Zustand + SecureStore
+### Foundation files ✅
+- [x] `src/constants/theme.ts` — Colors, Typography, Spacing, Radius, Shadows, IconSize
+- [x] `src/constants/icons.ts` — MaterialIcons name constants (no magic strings in screens)
+- [x] `src/locales/en.json` — common keys + empty namespace stubs
+- [x] `src/locales/fa.json` — empty `{}`
+- [x] `src/i18n/index.ts` — i18next config, English only (`lng: 'en'`), `translation` namespace, no RTL
+- [x] `src/services/api.ts` — axios instance, Bearer header, refresh interceptor (rotates both tokens)
+- [x] `src/stores/auth.store.ts` — Zustand + SecureStore
 
-### UI Primitives (`components/ui/`)
-- [ ] `Button.tsx`
-- [ ] `Input.tsx`
-- [ ] `Card.tsx`
-- [ ] `Pill.tsx`
-- [ ] `Avatar.tsx`
-- [ ] `BottomSheet.tsx`
-- [ ] `EmptyState.tsx`
-- [ ] `Toast.tsx`
-- [ ] `ProgressBar.tsx`
-- [ ] `ScreenWrapper.tsx`
-- [ ] `Divider.tsx`
+### UI Primitives (`components/ui/`) ✅
+- [x] `Button.tsx` — primary / secondary / destructive / ghost; loading + disabled states
+- [x] `Input.tsx` — focus border+shadow, error state, label, textarea variant; validates on blur
+- [x] `Card.tsx` — default / emergency (3px danger left border) / accepted (primary50 bg)
+- [x] `Pill.tsx` — 6 variants + `getStatusVariant()` helper for job status strings
+- [x] `Avatar.tsx` — 4 sizes, initials fallback, verified badge overlay
+- [x] `BottomSheet.tsx` — `@gorhom/bottom-sheet` v5 modal pattern; backdrop, handle, swipe-to-dismiss
+- [x] `EmptyState.tsx` — icon + title + subtitle + optional CTA
+- [x] `Toast.tsx` — Context provider + `useToast()` hook; success/error variants; 3s auto-dismiss
+- [x] `ProgressBar.tsx` — 3px animated bar; supports `progress` (0–1) or `currentStep/totalSteps`
+- [x] `ScreenWrapper.tsx` — SafeAreaView + optional scroll + keyboard avoiding
+- [x] `Divider.tsx` — 1px gray200 horizontal line
 
-### App shell
-- [ ] `app/_layout.tsx` — root Stack, SafeAreaProvider, i18n init, font load
-- [ ] `app/index.tsx` — auth guard → phone screen or role home tab
+### App shell ✅
+- [x] `app/_layout.tsx` — root Stack, SafeAreaProvider, BottomSheetModalProvider, ToastProvider, i18n init, Inter font load, SplashScreen
+- [x] `app/index.tsx` — auth guard → `/(auth)/phone` or `/(homeowner)/home` or `/(expert)/browse`
+
+### Fixes applied during Phase 0
+- `app.json` — `userInterfaceStyle: light`, splash + Android icon colors → primary600 teal
+- `tsconfig.json` — exclude old broken `src/i18n/en` and `src/i18n/fa` directories
+- `src/services/api.ts` — refresh interceptor was only rotating `accessToken`; fixed to also save `refreshToken`
+- `src/services/auth.service.ts` — `RegisterPayload` now includes `zoneId?` + `address?` (required for HOMEOWNER)
 
 ---
 
