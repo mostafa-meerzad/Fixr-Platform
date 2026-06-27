@@ -1,3 +1,4 @@
+import { UserRole } from '@fixr/shared';
 import { api } from './api';
 
 export const authService = {
@@ -27,7 +28,7 @@ export interface AuthResponse {
     id: string;
     name: string;
     phone: string;
-    role: 'HOMEOWNER' | 'EXPERT';
+    role: UserRole;
     avatarUrl?: string;
   };
 }

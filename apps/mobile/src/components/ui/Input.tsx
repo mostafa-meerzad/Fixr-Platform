@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { forwardRef, useState } from 'react';
 import {
   View,
   Text,
@@ -29,30 +29,34 @@ interface InputProps {
   style?: ViewStyle;
 }
 
-export function Input({
-  label,
-  placeholder,
-  value,
-  onChangeText,
-  error,
-  multiline = false,
-  secureTextEntry = false,
-  keyboardType = 'default',
-  editable = true,
-  onBlur,
-  autoFocus = false,
-  maxLength,
-  returnKeyType,
-  onSubmitEditing,
-  autoCapitalize,
-  style,
-}: InputProps) {
+export const Input = forwardRef<TextInput, InputProps>(function Input(
+  {
+    label,
+    placeholder,
+    value,
+    onChangeText,
+    error,
+    multiline = false,
+    secureTextEntry = false,
+    keyboardType = 'default',
+    editable = true,
+    onBlur,
+    autoFocus = false,
+    maxLength,
+    returnKeyType,
+    onSubmitEditing,
+    autoCapitalize,
+    style,
+  },
+  ref,
+) {
   const [focused, setFocused] = useState(false);
 
   return (
     <View style={[styles.container, style]}>
       {label ? <Text style={styles.label}>{label}</Text> : null}
       <TextInput
+        ref={ref}
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
@@ -82,7 +86,7 @@ export function Input({
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   container: {

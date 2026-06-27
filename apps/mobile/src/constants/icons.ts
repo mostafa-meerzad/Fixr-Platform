@@ -55,6 +55,7 @@ export const Icons = {
   image:        'image',
 
   // Misc
+  chevronDown:  'expand_more',
   checkCircle:  'check_circle',
   warning:      'warning',
   info:         'info',

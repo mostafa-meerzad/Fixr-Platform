@@ -66,11 +66,20 @@ Completed 2026-06-27. All items verified with `npx tsc --noEmit` — zero errors
 
 ---
 
-## Phase 1 — Auth Screens
+## Phase 1 — Auth Screens ✅
 
-- [ ] `(auth)/phone.tsx`
-- [ ] `(auth)/otp.tsx`
-- [ ] `(auth)/register.tsx` — name + role picker; HOMEOWNER collects zone + address; calls `/auth/register` (with `zoneId` + `address` for HOMEOWNER) or `/auth/login`
+Completed 2026-06-27. Zero TypeScript errors.
+
+- [x] `(auth)/_layout.tsx` — Stack with headerShown: false
+- [x] `(auth)/phone.tsx` — +93 prefix + numeric input; disabled until 9–10 digits; sendOtp → OTP screen
+- [x] `(auth)/otp.tsx` — 6 visual boxes + hidden TextInput; auto-submit on 6 digits; 60s resend countdown; verifyOtp → login (existing) or register (new)
+- [x] `(auth)/register.tsx` — 3-step flow: role picker → name (first+last) → location (HOMEOWNER only, zone picker modal + address); calls /auth/register; routes to expert onboarding or home
+
+### Changes made during Phase 1
+- `components/ui/Input.tsx` — converted to `forwardRef` so register.tsx can focus the last-name field from the first-name keyboard
+- `services/auth.service.ts` — `AuthResponse.user.role` typed as `UserRole` (from @fixr/shared) to match auth store's `AuthUser` interface
+- `constants/icons.ts` — added `chevronDown: 'expand_more'`
+- `locales/en.json` — added `auth.phone.*`, `auth.otp.*`, `auth.register.*` keys
 
 ---
 

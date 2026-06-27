@@ -13,10 +13,55 @@
     "continue": "Continue"
   },
   "auth": {
-    "phone": {},
-    "otp": {},
+    "phone": {
+      "title": "Welcome to Fixr",
+      "subtitle": "Your home, expertly handled",
+      "label": "Phone number",
+      "placeholder": "7XX XXX XXXX",
+      "helper": "We'll send a verification code to this number",
+      "continue": "Continue",
+      "errorInvalidLength": "Enter a valid Afghan mobile number",
+      "errorNetwork": "Couldn't send the code. Please try again."
+    },
+    "otp": {
+      "title": "Enter code",
+      "subtitle": "We sent a 6-digit code to",
+      "resendIn": "Resend in",
+      "resend": "Resend code",
+      "resendSuccess": "A new code was sent.",
+      "hint": "Didn't receive it? Check your WhatsApp",
+      "errorInvalid": "Invalid code. Please try again.",
+      "errorNetwork": "Something went wrong. Please try again."
+    },
     "roleSelect": {},
-    "register": {},
+    "register": {
+      "roleTitle": "How will you use Fixr?",
+      "roleSubtitle": "Choose your role — this cannot be changed later.",
+      "homeownerTitle": "I need help at home",
+      "homeownerDesc": "Post jobs and hire verified local experts",
+      "expertTitle": "I offer services",
+      "expertDesc": "Browse jobs and earn by completing them",
+      "roleDisclaimer": "One phone number = one role, always",
+      "stepLabel": "Step {{current}} of {{total}}",
+      "nameTitle": "Your name",
+      "firstNameLabel": "First name",
+      "firstNamePlaceholder": "e.g. Ahmad",
+      "lastNameLabel": "Last name",
+      "lastNamePlaceholder": "e.g. Karimi",
+      "locationTitle": "Your location",
+      "locationSubtitle": "We use your zone to show your jobs to nearby experts.",
+      "zoneLabel": "Zone",
+      "zonePlaceholder": "Select your zone",
+      "selectZoneTitle": "Select zone",
+      "addressLabel": "Address",
+      "addressPlaceholder": "e.g. 12th Street, House No. 102, near the blue mosque",
+      "continue": "Continue",
+      "createAccount": "Create account",
+      "errorFirstName": "Please enter your first name",
+      "errorZone": "Please select your zone",
+      "errorAddress": "Please enter your address",
+      "errorNetwork": "Something went wrong. Please try again."
+    },
     "onboarding": {}
   },
   "homeowner": {
