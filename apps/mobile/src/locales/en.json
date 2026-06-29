@@ -11,7 +11,24 @@
     "skip": "Skip for now",
     "confirm": "Confirm",
     "continue": "Continue",
-    "unknown": "Unknown"
+    "unknown": "Unknown",
+    "status": {
+      "assigned": "Assigned",
+      "enRoute": "On the Way",
+      "arrived": "Arrived",
+      "inProgress": "In Progress",
+      "completionRequested": "Review Requested",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "disputed": "Disputed"
+    },
+    "timeline": {
+      "accepted": "Accepted",
+      "enRoute": "En Route",
+      "arrived": "Arrived",
+      "inProgress": "In Prog.",
+      "done": "Done"
+    }
   },
   "auth": {
     "phone": {
@@ -228,6 +245,23 @@
       "emptyTitle": "No conversations yet",
       "emptySubtitle": "Accept a bid to start chatting with an expert."
     },
+    "activeJob": {
+      "title": "Active Job",
+      "yourExpert": "YOUR EXPERT",
+      "jobsCompleted": "jobs completed",
+      "verified": "✓ Verified",
+      "messageExpert": "Message Expert",
+      "expertNote": "EXPERT'S NOTE",
+      "warranty": "WARRANTY",
+      "raiseDispute": "Raise a dispute",
+      "waitingForExpert": "Waiting for expert...",
+      "jobInProgress": "Job in progress",
+      "confirmCompletion": "Confirm Completion",
+      "raiseDisputeBtn": "Raise a Dispute",
+      "leaveReview": "Leave a Review",
+      "completionRequestedBanner": "Your expert says the job is done. Please review the work and confirm.",
+      "completionSuccess": "Job completed!"
+    },
     "profile": {
       "title": "Profile",
       "editProfile": "Edit profile",
@@ -330,6 +364,26 @@
       "emptyTitle": "No conversations yet",
       "emptySubtitle": "Your chat unlocks once a homeowner accepts your bid."
     },
+    "activeJob": {
+      "homeownerLabel": "HOMEOWNER",
+      "locationLabel": "LOCATION",
+      "openInMaps": "Open in Maps",
+      "messageHomeowner": "Message Homeowner",
+      "raiseDispute": "Raise a dispute",
+      "onMyWay": "I'm On My Way",
+      "iArrived": "I've Arrived",
+      "startJob": "Start Job",
+      "requestCompletion": "Request Completion",
+      "waitingConfirmation": "Waiting for confirmation...",
+      "leaveReview": "Leave a Review",
+      "completionSheetTitle": "Confirm job completion?",
+      "completionSheetSubtitle": "Let the homeowner know you've finished the job. They'll confirm and release payment.",
+      "notesLabel": "NOTES FOR HOMEOWNER",
+      "notesOptional": "(optional)",
+      "notesPlaceholder": "e.g. Replaced the faulty circuit breaker. All lights working.",
+      "sendCompletion": "Send Completion Request",
+      "notYet": "Not yet"
+    },
     "profile": {
       "title": "Profile",
       "edit": "Edit",
@@ -357,6 +411,26 @@
       "saveChanges": "Save changes",
       "savedToast": "Profile updated",
       "errorName": "Please enter your name"
+    }
+  },
+  "shared": {
+    "dispute": {
+      "headerTitle": "Raise a Dispute",
+      "heading": "What went wrong?",
+      "subtitle": "Our team will review and respond within 24 hours.",
+      "whatWentWrong": "WHAT WENT WRONG?",
+      "describeWhat": "DESCRIBE WHAT HAPPENED",
+      "reasonNoShow": "Expert didn't show up",
+      "reasonPriceDispute": "Price was different from the bid",
+      "reasonWorkQuality": "Work quality was unsatisfactory",
+      "reasonCommunication": "Communication problems",
+      "reasonOther": "Other",
+      "descriptionPlaceholder": "Describe in detail...",
+      "descriptionError": "Please describe what happened (minimum 20 characters)",
+      "submit": "Submit Dispute",
+      "successToast": "Dispute submitted. We'll review and respond within 24 hours.",
+      "errorAlreadyExists": "A dispute already exists for this job.",
+      "errorNetwork": "Something went wrong. Please try again."
     }
   }
 }

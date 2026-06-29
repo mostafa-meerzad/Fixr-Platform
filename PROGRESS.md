@@ -157,10 +157,18 @@ Completed 2026-06-29. Zero TypeScript errors.
 
 ---
 
-## Phase 7 — Active Jobs
+## Phase 7 — Active Jobs ✅
 
-- [ ] `(expert)/active-job/[id].tsx` — status progression CTAs
-- [ ] `(homeowner)/active-job/[id].tsx` — status display, confirm completion
+Completed 2026-06-29. Zero TypeScript errors.
+
+- [x] `src/components/StatusTimeline.tsx` — 5-step visual timeline (Accepted → En Route → Arrived → In Prog. → Done); filled/outlined/gray circles + connecting lines; shared by both active-job screens
+- [x] `(expert)/active-job/[id].tsx` — job summary card (homeowner name+phone, zone+address, Open in Maps); status timeline; Message Homeowner button; sticky CTA bar (6 states: I'm On My Way / I've Arrived / Start Job / Request Completion sheet / Waiting... / Leave a Review); Request Completion BottomSheet with optional notes; Raise a dispute ghost link; pull-to-refresh
+- [x] `(homeowner)/active-job/[id].tsx` — job summary card (expert avatar+rating+verified badge, price, Message Expert); status timeline; COMPLETION_REQUESTED amber banner (pinned); expert's note card; sticky CTA bar (waiting / in-progress / Confirm Completion + Raise Dispute / Leave a Review); Raise a dispute link; pull-to-refresh
+- [x] `(shared)/_layout.tsx` — Stack with headerShown: false
+- [x] `(shared)/dispute/[jobId].tsx` — 5-reason radio selector (NO_SHOW, PRICE_DISPUTE, WORK_QUALITY, COMMUNICATION_ISSUE, OTHER); description textarea (min 20 chars); Submit Dispute (danger600 bg); 409 duplicate-dispute error handling; success toast + router.back()
+
+### Changes made during Phase 7
+- `src/locales/en.json` — added `common.status.*`, `common.timeline.*`, `expert.activeJob.*`, `homeowner.activeJob.*`, `shared.dispute.*` keys
 
 ---
 
@@ -168,4 +176,3 @@ Completed 2026-06-29. Zero TypeScript errors.
 
 - [ ] `(shared)/chat/[jobId].tsx` — Stream Chat (ASSIGNED+ only)
 - [ ] `(shared)/review/[jobId].tsx` — star picker + tags + comment
-- [ ] `(shared)/dispute/[jobId].tsx` — dispute form
