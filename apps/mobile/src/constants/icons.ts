@@ -53,6 +53,7 @@ export const Icons = {
   video:        'videocam',
   play:         'play_circle',
   image:        'image',
+  addPhoto:     'add_a_photo',
 
   // Misc
   chevronDown:  'expand_more',

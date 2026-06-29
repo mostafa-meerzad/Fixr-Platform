@@ -112,27 +112,48 @@ Completed 2026-06-29. Zero TypeScript errors.
 
 ---
 
-## Phase 4 — Expert Tabs
+## Phase 4 — Expert Tabs ✅
 
-- [ ] `(expert)/browse.tsx`
-- [ ] `(expert)/my-bids.tsx`
-- [ ] `(expert)/messages.tsx`
-- [ ] `(expert)/profile.tsx`
+Completed 2026-06-29. Zero TypeScript errors.
+
+- [x] `(expert)/_layout.tsx` — 4-tab Tabs navigator; red-dot badge on Messages via GET /notifications/me
+- [x] `(expert)/browse.tsx` — PENDING/REJECTED banners + empty states; VERIFIED job feed with category filter chips, zone picker sheet, pull-to-refresh, homeowner trust block
+- [x] `(expert)/my-bids.tsx` — toggle pills Bids/Active Jobs; bid cards with price + arrival + status pill; active job CTA buttons by status
+- [x] `(expert)/messages.tsx` — flat list of ASSIGNED+ jobs as chat entry points; tap → /(shared)/chat/[id]
+- [x] `(expert)/profile.tsx` — credits card, stats row (completed/rate/rating/no-shows), service zones multi-select sheet, settings sections, edit-name sheet, log out
+- [x] `src/locales/en.json` — added all `expert.browse.*`, `expert.myBids.*`, `expert.messages.*`, `expert.profile.*` keys
+
+### Notes
+- Expert pending state (verificationStatus = PENDING / REJECTED) implemented in browse.tsx (closes the deferred item from Phase 2)
+- Zone picker in browse.tsx selects a single zone (replaces all current zones); zones sheet in profile.tsx is multi-select (toggle each zone)
 
 ---
 
-## Phase 5 — Job Posting Flow
+## Phase 5 — Job Posting Flow ✅
 
-- [ ] `(homeowner)/post/create.tsx` — creates DRAFT job
-- [ ] `(homeowner)/post/media.tsx` — uploads photos/video to draft (max 3 photos, 1 video)
-- [ ] `(homeowner)/post/review.tsx` — preview + publish (POST /jobs/:id/publish)
+Completed 2026-06-29. Zero TypeScript errors.
+
+- [x] `(homeowner)/post/create.tsx` — 4-step flow: category grid → title+description → urgency cards → location (zone picker + address); calls POST /jobs on submit; navigates to media with jobId
+- [x] `(homeowner)/post/media.tsx` — 3 photo slots (upload-on-pick, delete via ×), optional video slot; Continue + Skip for now buttons; calls mediaService.uploadJobMedia + deleteJobMedia
+- [x] `(homeowner)/post/review.tsx` — loads draft via GET /jobs/:id; summary card rows with Edit links; calls POST /jobs/:id/publish; on success navigates to home + shows success toast
+
+### Changes made during Phase 5
+- `src/services/media.service.ts` — added `uploadJobMedia(jobId, uri, mimeType)` and `deleteJobMedia(mediaId)`
+- `src/services/disputes.service.ts` — created with `submit(jobId, { reason, description })`
+- `src/constants/icons.ts` — added `addPhoto: 'add_a_photo'`
+- `src/locales/en.json` — added all `homeowner.post.*` keys
 
 ---
 
-## Phase 6 — Job Detail & Bidding
+## Phase 6 — Job Detail & Bidding ✅
 
-- [ ] `(homeowner)/job/[id].tsx` — job detail + bids list + accept flow
-- [ ] `(expert)/job/[id].tsx` — job detail + bid form (costs 1 credit)
+Completed 2026-06-29. Zero TypeScript errors.
+
+- [x] `(homeowner)/job/[id].tsx` — image carousel, job details, bids list with price/arrival sort, accept bid BottomSheet (confirm + accept → ASSIGNED), assigned expert card with Message button, cancel job BottomSheet
+- [x] `(expert)/job/[id].tsx` — image carousel, job details, homeowner trust block (no phone at OPEN), sticky bottom bar with credit balance + Place Bid button, bid form BottomSheet (85% snap, 5 fields, validation), my-bid card with Edit/Withdraw, 1-credit warning panel
+
+### Changes made during Phase 6
+- `src/locales/en.json` — added `homeowner.jobDetail.*` and `expert.jobDetail.*` keys; added `common.unknown`
 
 ---
 
