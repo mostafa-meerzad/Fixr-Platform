@@ -2,7 +2,7 @@ import { api } from './api';
 
 export const chatService = {
   getToken: (jobId: string) =>
-    api.get<ChatTokenResponse>(`/chat/token/${jobId}`),
+    api.get<ChatTokenResponse>(`/chat/jobs/${jobId}/token`),
 };
 
 export interface ChatTokenResponse {

@@ -172,7 +172,20 @@ Completed 2026-06-29. Zero TypeScript errors.
 
 ---
 
-## Phase 8 — Shared Screens
+## Phase 8 — Shared Screens ✅
 
-- [ ] `(shared)/chat/[jobId].tsx` — Stream Chat (ASSIGNED+ only)
-- [ ] `(shared)/review/[jobId].tsx` — star picker + tags + comment
+Completed 2026-06-29. Zero TypeScript errors.
+
+- [x] `(shared)/chat/[jobId].tsx` — Stream Chat (ASSIGNED+ only); OverlayProvider + Chat + Channel + MessageList + MessageInput; loading/forbidden/error/ready states; disconnectUser on unmount; teal accent override via `value={{ style: { colors: { accent_blue } } }}`
+- [x] `(shared)/review/[jobId].tsx` — loads job to determine homeowner/expert perspective; 5-star tap rating; positive tag chips (always shown); negative tag chips (revealed when rating ≤ 3, danger colors); optional comment textarea; isPositive logic per spec; toast + router.back() on success; 48h window closed error handled
+
+### Changes made during Phase 8
+- `src/services/chat.service.ts` — fixed endpoint from `/chat/token/:jobId` to `/chat/jobs/:jobId/token`
+- `src/services/reviews.service.ts` — fixed payload shape: replaced `positivePoints`/`negativePoints` with `isPositive?: boolean` + `tags?: string[]`; fixed endpoint from `/jobs/:id/reviews` to `/jobs/:id/review`
+- `src/locales/en.json` — added `shared.chat.*` and `shared.review.*` keys
+
+---
+
+## All Phases Complete ✅
+
+The full mobile UI rebuild is finished. All 26 screens across 8 phases are implemented and type-checked.

@@ -414,6 +414,22 @@
     }
   },
   "shared": {
+    "chat": {
+      "title": "Chat",
+      "lockedTitle": "Chat not available yet",
+      "lockedSubtitle": "Chat unlocks once a homeowner accepts your bid."
+    },
+    "review": {
+      "headerTitle": "Leave a Review",
+      "questionExpert": "How was your experience with {{name}}?",
+      "questionHomeowner": "How was this homeowner?",
+      "homeowner": "Homeowner",
+      "whatWentWrong": "WHAT WENT WRONG?",
+      "commentPlaceholder": "Add a comment (optional)",
+      "submit": "Submit Review",
+      "successToast": "Review submitted. Thank you!",
+      "errorWindowClosed": "The 48-hour review window for this job has closed."
+    },
     "dispute": {
       "headerTitle": "Raise a Dispute",
       "heading": "What went wrong?",
