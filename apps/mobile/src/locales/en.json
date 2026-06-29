@@ -62,7 +62,54 @@
       "errorAddress": "Please enter your address",
       "errorNetwork": "Something went wrong. Please try again."
     },
-    "onboarding": {}
+    "onboarding": {
+      "stepLabel": "Step {{current}} of {{total}}",
+      "permissionDenied": "Camera access is required. Please enable it in Settings.",
+      "uploadError": "Upload failed. Please try again.",
+      "retake": "Retake photo",
+
+      "selfieTitle": "Your selfie",
+      "selfieSubtitle": "Take a clear, well-lit photo of your face. No sunglasses or hats.",
+      "takeSelfie": "Take Selfie",
+      "selfieTip1": "Face clearly visible",
+      "selfieTip2": "Good lighting",
+
+      "tazkiraTitle": "Your Tazkira",
+      "tazkiraSubtitle": "We need photos of both sides of your national ID.",
+      "tazkiraFrontLabel": "Front side",
+      "tazkiraBackLabel": "Back side",
+      "takePhoto": "Take Photo",
+      "tazkiraFrontDone": "Front uploaded",
+      "tazkiraBackDone": "Back uploaded",
+
+      "businessTitle": "Business info",
+      "businessSubtitle": "Required to verify you as a legitimate service provider.",
+      "shopNameLabel": "Shop / business name",
+      "shopNamePlaceholder": "e.g. Ahmad's Plumbing",
+      "shopDescLabel": "Description (optional)",
+      "shopDescPlaceholder": "e.g. 5 years experience in plumbing and pipe repair",
+      "shopZoneLabel": "Shop zone",
+      "shopZonePlaceholder": "Select zone",
+      "selectZoneTitle": "Select zone",
+      "shopAddressLabel": "Shop address",
+      "shopAddressPlaceholder": "e.g. Street, landmark, house no.",
+      "shopPhotoLabel": "Shop photo",
+      "workLicenseLabel": "Work license",
+      "addPhoto": "Add Photo",
+      "addDocument": "Add Document",
+      "submit": "Submit for Verification",
+      "errorShopName": "Please enter your shop name",
+      "errorShopZone": "Please select your shop zone",
+      "errorShopAddress": "Please enter your shop address",
+      "errorShopPhoto": "Please add a shop photo",
+      "errorWorkLicense": "Please add your work license",
+      "errorMissingUploads": "Please complete all required uploads before submitting.",
+      "errorNetwork": "Something went wrong. Please try again.",
+
+      "submittedTitle": "Application submitted!",
+      "submittedBody": "Our team will review your documents. This usually takes up to 24 hours. We'll notify you once you're verified.",
+      "submittedCta": "Got it"
+    }
   },
   "homeowner": {
     "home": {},

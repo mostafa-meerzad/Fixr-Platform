@@ -1,7 +1,11 @@
 {
   "permissions": {
     "allow": [
-      "Bash(bun run *)"
+      "Bash(bun run *)",
+      "Bash(mkdir -p /Users/mostafa/Desktop/Fixr-Platform/apps/mobile/src/locales /Users/mostafa/Desktop/Fixr-Platform/apps/mobile/src/components/ui /Users/mostafa/Desktop/Fixr-Platform/apps/mobile/app)"
+    ],
+    "additionalDirectories": [
+      "/Users/mostafa/Desktop/Fixr-Platform/apps/mobile/src"
     ]
   }
 }
