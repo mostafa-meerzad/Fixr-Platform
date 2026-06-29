@@ -16,6 +16,7 @@ interface AuthState {
   isLoading: boolean;
   initialize: () => Promise<void>;
   setAuth: (user: AuthUser, accessToken: string, refreshToken: string) => Promise<void>;
+  updateUser: (updates: Partial<AuthUser>) => Promise<void>;
   clearAuth: () => Promise<void>;
 }
 
@@ -51,6 +52,15 @@ export const useAuthStore = create<AuthState>((set) => ({
       SecureStore.setItemAsync(USER_KEY, JSON.stringify(user)),
     ]);
     set({ user, accessToken });
+  },
+
+  updateUser: async (updates) => {
+    set((state) => {
+      if (!state.user) return {};
+      const updated = { ...state.user, ...updates };
+      SecureStore.setItemAsync(USER_KEY, JSON.stringify(updated));
+      return { user: updated };
+    });
   },
 
   clearAuth: async () => {

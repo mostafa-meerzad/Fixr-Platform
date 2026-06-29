@@ -83,22 +83,32 @@ Completed 2026-06-27. Zero TypeScript errors.
 
 ---
 
-## Phase 2 — Expert Onboarding
+## Phase 2 — Expert Onboarding ✅ (screens done; pending state deferred to Phase 4)
 
-- [ ] `(auth)/expert-onboarding/selfie.tsx`
-- [ ] `(auth)/expert-onboarding/tazkira.tsx` — tazkira front + back
-- [ ] `(auth)/expert-onboarding/business.tsx` — shop name + shopZoneId + shopAddress + shop image + work license + submit-verification
-- [ ] `(auth)/expert-onboarding/submitted.tsx`
+- [x] `(auth)/expert-onboarding/selfie.tsx` — camera upload, UploadStatus state machine, progress bar step 1
+- [x] `(auth)/expert-onboarding/tazkira.tsx` — tazkira front + back, two independent upload zones, progress bar step 2
+- [x] `(auth)/expert-onboarding/business.tsx` — shop name + zone picker modal + address + shop_image + work_license + submit-verification, progress bar step 3
+- [x] `(auth)/expert-onboarding/submitted.tsx` — success screen, Android back handler blocked, routes to /(expert)/browse
+- [x] `src/services/users.service.ts` — getMe, updateMe, submitVerification, updateZones, updateAvailability
 - [ ] Expert pending state in Browse tab (verificationStatus = PENDING → "Verification in progress" empty state)
 
 ---
 
-## Phase 3 — Homeowner Tabs
+## Phase 3 — Homeowner Tabs ✅
 
-- [ ] `(homeowner)/home.tsx`
-- [ ] `(homeowner)/my-jobs.tsx`
-- [ ] `(homeowner)/messages.tsx`
-- [ ] `(homeowner)/profile.tsx`
+Completed 2026-06-29. Zero TypeScript errors.
+
+- [x] `(homeowner)/_layout.tsx` — 4-tab Tabs navigator; red-dot badge on Messages via GET /notifications/me
+- [x] `(homeowner)/home.tsx` — greeting header, Post a Job button, up to 3 recent job cards, empty state
+- [x] `(homeowner)/my-jobs.tsx` — toggle pills Active/Past, sort by urgency then recency, pull-to-refresh
+- [x] `(homeowner)/messages.tsx` — flat list of ASSIGNED+ jobs as chat entry points; tap → /(shared)/chat/[id]
+- [x] `(homeowner)/profile.tsx` — stats row, settings sections, edit-name bottom sheet, log out
+
+### Changes made during Phase 3
+- `src/services/jobs.service.ts` — added `Job`, `JobStatus`, `JobUrgency`, `JobListResponse` interfaces
+- `src/components/ui/Button.tsx` — added `leftIcon?: string` prop (MaterialIcons) for Post a Job button
+- `src/stores/auth.store.ts` — added `updateUser(updates)` method for in-place name edit in profile
+- `src/locales/en.json` — added all `homeowner.home.*`, `homeowner.myJobs.*`, `homeowner.messages.*`, `homeowner.profile.*` keys
 
 ---
 

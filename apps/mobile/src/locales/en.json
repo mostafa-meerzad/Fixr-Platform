@@ -97,6 +97,7 @@
       "workLicenseLabel": "Work license",
       "addPhoto": "Add Photo",
       "addDocument": "Add Document",
+      "chooseFromGallery": "Choose from Gallery",
       "submit": "Submit for Verification",
       "errorShopName": "Please enter your shop name",
       "errorShopZone": "Please select your shop zone",
@@ -112,10 +113,53 @@
     }
   },
   "homeowner": {
-    "home": {},
-    "myJobs": {},
-    "messages": {},
-    "profile": {}
+    "home": {
+      "title": "What needs fixing?",
+      "postJob": "Post a Job",
+      "recentActivity": "RECENT ACTIVITY",
+      "seeAll": "See all →",
+      "bids": "bids",
+      "emptyTitle": "Your home is in good hands",
+      "emptySubtitle": "Post your first job and get bids from verified local experts."
+    },
+    "myJobs": {
+      "title": "My Jobs",
+      "active": "Active",
+      "past": "Past",
+      "bids": "bids",
+      "postJob": "Post a Job",
+      "emptyActiveTitle": "No active jobs",
+      "emptyActiveSubtitle": "Post a job to start getting bids from experts.",
+      "emptyPastTitle": "No past jobs yet",
+      "emptyPastSubtitle": "Your completed and cancelled jobs will appear here."
+    },
+    "messages": {
+      "title": "Messages",
+      "subtitle": "Post-acceptance chats",
+      "emptyTitle": "No conversations yet",
+      "emptySubtitle": "Accept a bid to start chatting with an expert."
+    },
+    "profile": {
+      "title": "Profile",
+      "editProfile": "Edit profile",
+      "jobsPosted": "Jobs Posted",
+      "completed": "Completed",
+      "positive": "Positive",
+      "myReviews": "My Reviews",
+      "reportedIssues": "Reported Issues",
+      "notificationSettings": "Notification Settings",
+      "language": "Language",
+      "languageValue": "English",
+      "helpSupport": "Help & Support",
+      "aboutFixr": "About Fixr",
+      "logout": "Log Out",
+      "editNameTitle": "Edit name",
+      "nameLabel": "Full name",
+      "namePlaceholder": "e.g. Ahmad Karimi",
+      "saveChanges": "Save changes",
+      "errorName": "Please enter your name",
+      "errorNetwork": "Something went wrong. Please try again."
+    }
   },
   "expert": {
     "browse": {},

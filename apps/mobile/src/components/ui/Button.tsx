@@ -2,11 +2,13 @@ import React from 'react';
 import {
   TouchableOpacity,
   Text,
+  View,
   ActivityIndicator,
   StyleSheet,
   type ViewStyle,
 } from 'react-native';
-import { Colors, Spacing, Radius } from '@/constants/theme';
+import { MaterialIcons } from '@expo/vector-icons';
+import { Colors, Spacing, Radius, IconSize } from '@/constants/theme';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'destructive' | 'ghost';
 
@@ -16,6 +18,7 @@ interface ButtonProps {
   variant?: ButtonVariant;
   disabled?: boolean;
   loading?: boolean;
+  leftIcon?: string;
   style?: ViewStyle;
 }
 
@@ -32,10 +35,12 @@ export function Button({
   variant = 'primary',
   disabled = false,
   loading = false,
+  leftIcon,
   style,
 }: ButtonProps) {
   const isDisabled = disabled || loading;
   const v = variantMap[variant];
+  const iconColor = isDisabled ? Colors.gray400 : v.text;
 
   return (
     <TouchableOpacity
@@ -56,9 +61,14 @@ export function Button({
           color={variant === 'primary' ? Colors.white : Colors.primary600}
         />
       ) : (
-        <Text style={[styles.text, { color: v.text }, isDisabled ? styles.disabledText : null]}>
-          {label}
-        </Text>
+        <View style={styles.content}>
+          {leftIcon ? (
+            <MaterialIcons name={leftIcon as any} size={IconSize.btn} color={iconColor} />
+          ) : null}
+          <Text style={[styles.text, { color: v.text }, isDisabled ? styles.disabledText : null]}>
+            {label}
+          </Text>
+        </View>
       )}
     </TouchableOpacity>
   );
@@ -72,6 +82,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: Spacing.s6,
     width: '100%',
+  },
+  content: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   text: {
     fontSize: 15,

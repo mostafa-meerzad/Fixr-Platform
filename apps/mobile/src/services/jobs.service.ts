@@ -45,3 +45,33 @@ export interface CreateJobPayload {
   latitude?: number;
   longitude?: number;
 }
+
+export type JobStatus =
+  | 'DRAFT' | 'OPEN' | 'ASSIGNED' | 'EN_ROUTE' | 'ARRIVED'
+  | 'IN_PROGRESS' | 'COMPLETION_REQUESTED' | 'COMPLETED'
+  | 'CANCELLED' | 'DISPUTED';
+
+export type JobUrgency = 'EMERGENCY' | 'TODAY' | 'SCHEDULED';
+
+export interface Job {
+  id: string;
+  title: string;
+  status: JobStatus;
+  urgency: JobUrgency;
+  address: string;
+  description?: string;
+  zone: { id: string; nameEn: string; name: string };
+  category?: { id: string; nameEn: string; name: string };
+  _count: { bids: number };
+  createdAt: string;
+  openedAt?: string;
+  scheduledAt?: string;
+}
+
+export interface JobListResponse {
+  data: Job[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
