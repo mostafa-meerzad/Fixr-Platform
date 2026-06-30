@@ -38,6 +38,10 @@ Thumbs.db
 apps/mobile/.expo/
 apps/mobile/dist/
 
+# Firebase secrets
+google-services.json
+GoogleService-Info.plist
+
 # Prisma
 apps/backend/prisma/migrations/*.sql.bak
 
