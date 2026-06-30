@@ -3,10 +3,25 @@
     "allow": [
       "Bash(bun run *)",
       "Bash(mkdir -p /Users/mostafa/Desktop/Fixr-Platform/apps/mobile/src/locales /Users/mostafa/Desktop/Fixr-Platform/apps/mobile/src/components/ui /Users/mostafa/Desktop/Fixr-Platform/apps/mobile/app)",
-      "Bash(git commit -m ' *)"
+      "Bash(git commit -m ' *)",
+      "Bash(mkdir -p \"/Users/mostafa/Desktop/Fixr-Platform/apps/mobile/app/\\(expert\\)\")",
+      "Bash(mkdir -p \"/Users/mostafa/Desktop/Fixr-Platform/apps/mobile/app/\\(homeowner\\)/job\")",
+      "Bash(mkdir -p \"/Users/mostafa/Desktop/Fixr-Platform/apps/mobile/app/\\(expert\\)/job\")",
+      "Bash(git -C /Users/mostafa/Desktop/Fixr-Platform status)",
+      "Bash(git -C /Users/mostafa/Desktop/Fixr-Platform add PROGRESS.md apps/mobile/src/locales/en.json apps/mobile/src/constants/icons.ts apps/mobile/src/services/media.service.ts apps/mobile/src/services/disputes.service.ts 'apps/mobile/app/\\(expert\\)/' 'apps/mobile/app/\\(homeowner\\)/job/' 'apps/mobile/app/\\(homeowner\\)/post/')",
+      "Bash(git -C /Users/mostafa/Desktop/Fixr-Platform diff --staged --stat)",
+      "Bash(mkdir -p /Users/mostafa/Desktop/Fixr-Platform/apps/mobile/app/\\\\\\(expert\\\\\\)/active-job /Users/mostafa/Desktop/Fixr-Platform/apps/mobile/app/\\\\\\(homeowner\\\\\\)/active-job /Users/mostafa/Desktop/Fixr-Platform/apps/mobile/app/\\\\\\(shared\\\\\\)/dispute)",
+      "Bash(curl -s -X POST http://192.168.100.79:3001/api/v1/auth/otp/send -H \"Content-Type: application/json\" -d '{\"phone\":\"+93701234567\"}')",
+      "Bash(git -C /Users/mostafa/Desktop/Fixr-Platform diff apps/mobile/.env apps/mobile/android/app/src/main/AndroidManifest.xml)",
+      "Bash(git -C /Users/mostafa/Desktop/Fixr-Platform add .gitignore apps/mobile/android/app/build.gradle apps/mobile/android/build.gradle apps/mobile/android/app/src/main/res/drawable-hdpi/splashscreen_logo.png apps/mobile/android/app/src/main/res/drawable-mdpi/splashscreen_logo.png apps/mobile/android/app/src/main/res/drawable-xhdpi/splashscreen_logo.png apps/mobile/android/app/src/main/res/drawable-xxhdpi/splashscreen_logo.png apps/mobile/android/app/src/main/res/drawable-xxxhdpi/splashscreen_logo.png apps/mobile/android/app/src/main/res/drawable-hdpi/notification_icon.png apps/mobile/android/app/src/main/res/drawable-mdpi/notification_icon.png apps/mobile/android/app/src/main/res/drawable-xhdpi/notification_icon.png apps/mobile/android/app/src/main/res/drawable-xxhdpi/notification_icon.png apps/mobile/android/app/src/main/res/drawable-xxxhdpi/notification_icon.png apps/mobile/android/app/src/main/res/mipmap-hdpi/ic_launcher.webp apps/mobile/android/app/src/main/res/mipmap-hdpi/ic_launcher_round.webp apps/mobile/android/app/src/main/res/mipmap-hdpi/ic_launcher_foreground.webp apps/mobile/android/app/src/main/res/mipmap-mdpi/ic_launcher.webp apps/mobile/android/app/src/main/res/mipmap-mdpi/ic_launcher_round.webp apps/mobile/android/app/src/main/res/mipmap-mdpi/ic_launcher_foreground.webp apps/mobile/android/app/src/main/res/mipmap-xhdpi/ic_launcher.webp apps/mobile/android/app/src/main/res/mipmap-xhdpi/ic_launcher_round.webp apps/mobile/android/app/src/main/res/mipmap-xhdpi/ic_launcher_foreground.webp apps/mobile/android/app/src/main/res/mipmap-xxhdpi/ic_launcher.webp apps/mobile/android/app/src/main/res/mipmap-xxhdpi/ic_launcher_round.webp apps/mobile/android/app/src/main/res/mipmap-xxhdpi/ic_launcher_foreground.webp apps/mobile/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.webp apps/mobile/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.webp apps/mobile/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_foreground.webp apps/mobile/android/app/src/main/res/mipmap-anydpi-v26/ apps/mobile/android/app/src/main/res/values/colors.xml apps/mobile/android/app/src/main/res/values/strings.xml apps/mobile/android/app/src/main/res/values/styles.xml apps/mobile/android/app/src/main/res/values-night/)",
+      "Bash(git -C /Users/mostafa/Desktop/Fixr-Platform status --short)",
+      "Bash(git -C /Users/mostafa/Desktop/Fixr-Platform commit -m ' *)",
+      "Bash(git -C /Users/mostafa/Desktop/Fixr-Platform add .claude/settings.json apps/mobile/app.json apps/mobile/package.json apps/mobile/icon.png apps/mobile/assets/icon.png apps/mobile/assets/notification-icon.png apps/mobile/assets/splash.png apps/mobile/ios/ bun.lock patches/@stream-io+flat-list-mvcp+0.10.3.patch)"
     ],
     "additionalDirectories": [
-      "/Users/mostafa/Desktop/Fixr-Platform/apps/mobile/src"
+      "/Users/mostafa/Desktop/Fixr-Platform/apps/mobile/src",
+      "/Users/mostafa/Desktop/Fixr-Platform/apps/mobile/app",
+      "/Users/mostafa/Desktop/Fixr-Platform/apps/mobile/app/(expert)"
     ]
   }
 }
