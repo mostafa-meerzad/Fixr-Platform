@@ -83,6 +83,8 @@ export default function ExpertLayout() {
           tabBarIcon: ({ color }) => <TabIcon name={Icons.tabPerson} color={color} />,
         }}
       />
+      <Tabs.Screen name="job/[id]" options={{ href: null }} />
+      <Tabs.Screen name="active-job/[id]" options={{ href: null }} />
     </Tabs>
   );
 }
