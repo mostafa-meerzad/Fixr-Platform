@@ -96,6 +96,8 @@ PODS:
     - ExpoModulesCore
   - ExpoSymbols (55.0.9):
     - ExpoModulesCore
+  - ExpoSystemUI (55.0.19):
+    - ExpoModulesCore
   - FBLazyVector (0.83.6)
   - hermes-engine (0.14.1):
     - hermes-engine/Pre-built (= 0.14.1)
@@ -2306,6 +2308,7 @@ DEPENDENCIES:
   - ExpoRouter (from `../../../node_modules/expo-router/ios`)
   - ExpoSecureStore (from `../../../node_modules/expo-secure-store/ios`)
   - ExpoSymbols (from `../../../node_modules/expo-symbols/ios`)
+  - ExpoSystemUI (from `../../../node_modules/expo-system-ui/ios`)
   - FBLazyVector (from `../../../node_modules/react-native/Libraries/FBLazyVector`)
   - hermes-engine (from `../../../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec`)
   - RCTDeprecation (from `../../../node_modules/react-native/ReactApple/Libraries/RCTFoundation/RCTDeprecation`)
@@ -2444,6 +2447,8 @@ EXTERNAL SOURCES:
     :path: "../../../node_modules/expo-secure-store/ios"
   ExpoSymbols:
     :path: "../../../node_modules/expo-symbols/ios"
+  ExpoSystemUI:
+    :path: "../../../node_modules/expo-system-ui/ios"
   FBLazyVector:
     :path: "../../../node_modules/react-native/Libraries/FBLazyVector"
   hermes-engine:
@@ -2634,6 +2639,7 @@ SPEC CHECKSUMS:
   ExpoRouter: e0e2aa4b03843e7abfa3e63e0cdd6c642d74780f
   ExpoSecureStore: f495a3e0ab65683be8427a96f694726a88048f46
   ExpoSymbols: 896159288ad708e1a32dc12c92fe5f90bff01126
+  ExpoSystemUI: 1ddcb63fce373d0f597eb248aba2c92c8710737e
   FBLazyVector: 427fa1856a481856091061293ce865a75aa4f20f
   hermes-engine: 32badc5fd152646f42e72c5040aee18fdfe420f5
   libavif: 5f8e715bea24debec477006f21ef9e95432e254d
