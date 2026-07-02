@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   StyleSheet,
@@ -6,16 +6,16 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-} from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useTranslation } from 'react-i18next';
-import { MaterialIcons } from '@expo/vector-icons';
+} from "react-native";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useTranslation } from "react-i18next";
+import { MaterialIcons } from "@expo/vector-icons";
 
-import { ScreenWrapper } from '@/components/ui/ScreenWrapper';
-import { useToast } from '@/components/ui/Toast';
-import { authService } from '@/services/auth.service';
-import { useAuthStore } from '@/stores/auth.store';
-import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
+import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
+import { useToast } from "@/components/ui/Toast";
+import { authService } from "@/services/auth.service";
+import { useAuthStore } from "@/stores/auth.store";
+import { Colors, Radius, Spacing, Typography } from "@/constants/theme";
 
 const CODE_LENGTH = 6;
 const RESEND_SECONDS = 60;
@@ -28,7 +28,7 @@ export default function OtpScreen() {
 
   const { phone } = useLocalSearchParams<{ phone: string }>();
 
-  const [code, setCode] = useState('');
+  const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [secondsLeft, setSecondsLeft] = useState(RESEND_SECONDS);
   const inputRef = useRef<TextInput>(null);
@@ -51,7 +51,7 @@ export default function OtpScreen() {
 
   function handleChange(text: string) {
     if (loading) return;
-    setCode(text.replace(/\D/g, '').slice(0, CODE_LENGTH));
+    setCode(text.replace(/\D/g, "").slice(0, CODE_LENGTH));
   }
 
   async function verify(codeToCheck: string) {
@@ -63,16 +63,24 @@ export default function OtpScreen() {
       const { sessionId, isNewUser } = data;
 
       if (isNewUser) {
-        router.push({ pathname: '/(auth)/register', params: { phone, sessionId } });
+        router.push({
+          pathname: "/(auth)/register",
+          params: { phone, sessionId },
+        });
       } else {
         const { data: loginData } = await authService.login(phone, sessionId);
-        await setAuth(loginData.user, loginData.accessToken, loginData.refreshToken);
-        router.replace('/');
+        await setAuth(
+          loginData.user,
+          loginData.accessToken,
+          loginData.refreshToken,
+        );
+        router.replace("/");
       }
     } catch (err: any) {
-      const message = err?.response?.data?.message ?? t('auth.otp.errorInvalid');
-      toast.show({ message, variant: 'error' });
-      setCode('');
+      const message =
+        err?.response?.data?.message ?? t("auth.otp.errorInvalid");
+      toast.show({ message, variant: "error" });
+      setCode("");
       verifyingRef.current = false;
       inputRef.current?.focus();
     } finally {
@@ -84,19 +92,20 @@ export default function OtpScreen() {
     try {
       await authService.sendOtp(phone);
       setSecondsLeft(RESEND_SECONDS);
-      setCode('');
+      setCode("");
       verifyingRef.current = false;
-      toast.show({ message: t('auth.otp.resendSuccess'), variant: 'success' });
+      toast.show({ message: t("auth.otp.resendSuccess"), variant: "success" });
     } catch (err: any) {
-      const message = err?.response?.data?.message ?? t('auth.otp.errorNetwork');
-      toast.show({ message, variant: 'error' });
+      const message =
+        err?.response?.data?.message ?? t("auth.otp.errorNetwork");
+      toast.show({ message, variant: "error" });
     }
   }
 
   function formatTime(s: number) {
     const m = Math.floor(s / 60);
     const sec = s % 60;
-    return `${m}:${sec.toString().padStart(2, '0')}`;
+    return `${m}:${sec.toString().padStart(2, "0")}`;
   }
 
   return (
@@ -105,10 +114,14 @@ export default function OtpScreen() {
         {/* Header */}
         <View style={styles.headerSection}>
           <View style={styles.iconBox}>
-            <MaterialIcons name="smartphone" size={32} color={Colors.primary600} />
+            <MaterialIcons
+              name="smartphone"
+              size={32}
+              color={Colors.primary600}
+            />
           </View>
-          <Text style={styles.title}>{t('auth.otp.title')}</Text>
-          <Text style={styles.subtitle}>{t('auth.otp.subtitle')}</Text>
+          <Text style={styles.title}>{t("auth.otp.title")}</Text>
+          <Text style={styles.subtitle}>{t("auth.otp.subtitle")}</Text>
           <Text style={styles.phoneText}>{phone}</Text>
         </View>
 
@@ -127,7 +140,7 @@ export default function OtpScreen() {
                 i === code.length && styles.boxActive,
               ]}
             >
-              <Text style={styles.boxDigit}>{code[i] ?? ''}</Text>
+              <Text style={styles.boxDigit}>{code[i] ?? ""}</Text>
             </View>
           ))}
         </TouchableOpacity>
@@ -160,18 +173,20 @@ export default function OtpScreen() {
         <View style={styles.resendRow}>
           {secondsLeft > 0 ? (
             <Text style={styles.resendCountdown}>
-              {t('auth.otp.resendIn')}{' '}
-              <Text style={styles.timerHighlight}>{formatTime(secondsLeft)}</Text>
+              {t("auth.otp.resendIn")}{" "}
+              <Text style={styles.timerHighlight}>
+                {formatTime(secondsLeft)}
+              </Text>
             </Text>
           ) : (
             <TouchableOpacity onPress={handleResend} disabled={loading}>
-              <Text style={styles.resendLink}>{t('auth.otp.resend')}</Text>
+              <Text style={styles.resendLink}>{t("auth.otp.resend")}</Text>
             </TouchableOpacity>
           )}
         </View>
 
         {/* Bottom hint */}
-        <Text style={styles.hint}>{t('auth.otp.hint')}</Text>
+        <Text style={styles.hint}>{t("auth.otp.hint")}</Text>
       </View>
     </ScreenWrapper>
   );
@@ -182,12 +197,12 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: Spacing.s4,
     paddingTop: Spacing.s12,
-    alignItems: 'center',
+    alignItems: "center",
   },
 
   // Header
   headerSection: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: Spacing.s10,
     gap: Spacing.s2,
   },
@@ -198,8 +213,8 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: Colors.primary600,
     backgroundColor: Colors.primary50,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginBottom: Spacing.s3,
   },
   title: {
@@ -211,9 +226,10 @@ const styles = StyleSheet.create({
     fontSize: Typography.body.fontSize,
     fontWeight: Typography.body.fontWeight as any,
     color: Colors.gray400,
-    textAlign: 'center',
+    textAlign: "center",
   },
   phoneText: {
+    direction: "ltr",
     fontSize: Typography.bodyMd.fontSize,
     fontWeight: Typography.bodyMd.fontWeight as any,
     color: Colors.gray900,
@@ -221,7 +237,7 @@ const styles = StyleSheet.create({
 
   // Code boxes
   boxesRow: {
-    flexDirection: 'row',
+    flexDirection: "row-reverse",
     gap: Spacing.s2,
     marginBottom: Spacing.s3,
   },
@@ -232,8 +248,8 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: Colors.gray200,
     backgroundColor: Colors.white,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   boxFilled: {
     borderColor: Colors.primary600,
@@ -247,11 +263,11 @@ const styles = StyleSheet.create({
   },
   boxDigit: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: "600",
     color: Colors.gray900,
   },
   hiddenInput: {
-    position: 'absolute',
+    position: "absolute",
     opacity: 0,
     width: 1,
     height: 1,
@@ -265,8 +281,8 @@ const styles = StyleSheet.create({
   resendRow: {
     marginBottom: Spacing.s6,
     minHeight: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   resendCountdown: {
     fontSize: Typography.body.fontSize,
@@ -274,22 +290,22 @@ const styles = StyleSheet.create({
   },
   timerHighlight: {
     color: Colors.primary600,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   resendLink: {
     fontSize: Typography.body.fontSize,
-    fontWeight: '600',
+    fontWeight: "600",
     color: Colors.primary600,
   },
 
   // Hint
   hint: {
-    position: 'absolute',
+    position: "absolute",
     bottom: Spacing.s6,
     fontSize: Typography.caption.fontSize,
     fontWeight: Typography.caption.fontWeight as any,
     color: Colors.gray400,
-    textAlign: 'center',
+    textAlign: "center",
     paddingHorizontal: Spacing.s4,
   },
 });

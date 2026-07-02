@@ -1,14 +1,14 @@
-import React, { useState } from 'react';
-import { StyleSheet, Text, TextInput, View } from 'react-native';
-import { useRouter } from 'expo-router';
-import { useTranslation } from 'react-i18next';
-import { MaterialIcons } from '@expo/vector-icons';
+import React, { useState } from "react";
+import { StyleSheet, Text, TextInput, View } from "react-native";
+import { useRouter } from "expo-router";
+import { useTranslation } from "react-i18next";
+import { MaterialIcons } from "@expo/vector-icons";
 
-import { ScreenWrapper } from '@/components/ui/ScreenWrapper';
-import { Button } from '@/components/ui/Button';
-import { useToast } from '@/components/ui/Toast';
-import { authService } from '@/services/auth.service';
-import { Colors, Spacing, Radius, Typography } from '@/constants/theme';
+import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
+import { Button } from "@/components/ui/Button";
+import { useToast } from "@/components/ui/Toast";
+import { authService } from "@/services/auth.service";
+import { Colors, Spacing, Radius, Typography } from "@/constants/theme";
 
 const MIN_DIGITS = 9;
 const MAX_DIGITS = 10;
@@ -18,13 +18,13 @@ export default function PhoneScreen() {
   const router = useRouter();
   const toast = useToast();
 
-  const [digits, setDigits] = useState('');
+  const [digits, setDigits] = useState("");
   const [loading, setLoading] = useState(false);
 
   const isValid = digits.length >= MIN_DIGITS && digits.length <= MAX_DIGITS;
 
   function handleChange(text: string) {
-    const numeric = text.replace(/\D/g, '').slice(0, MAX_DIGITS);
+    const numeric = text.replace(/\D/g, "").slice(0, MAX_DIGITS);
     setDigits(numeric);
   }
 
@@ -34,11 +34,11 @@ export default function PhoneScreen() {
     setLoading(true);
     try {
       await authService.sendOtp(phone);
-      router.push({ pathname: '/(auth)/otp', params: { phone } });
+      router.push({ pathname: "/(auth)/otp", params: { phone } });
     } catch (err: any) {
       const message =
-        err?.response?.data?.message ?? t('auth.phone.errorNetwork');
-      toast.show({ message, variant: 'error' });
+        err?.response?.data?.message ?? t("auth.phone.errorNetwork");
+      toast.show({ message, variant: "error" });
     } finally {
       setLoading(false);
     }
@@ -52,11 +52,11 @@ export default function PhoneScreen() {
             <MaterialIcons name="home" size={40} color={Colors.white} />
           </View>
           <Text style={styles.appName}>Fixr</Text>
-          <Text style={styles.tagline}>{t('auth.phone.subtitle')}</Text>
+          <Text style={styles.tagline}>{t("auth.phone.subtitle")}</Text>
         </View>
 
         <View style={styles.inputSection}>
-          <Text style={styles.inputLabel}>{t('auth.phone.label')}</Text>
+          <Text style={styles.inputLabel}>{t("auth.phone.label")}</Text>
           <View style={styles.phoneRow}>
             <View style={styles.prefix}>
               <Text style={styles.flag}>🇦🇫</Text>
@@ -65,10 +65,13 @@ export default function PhoneScreen() {
             <View style={styles.separator} />
             <View style={styles.digitWrapper}>
               <Text
-                style={[styles.digitDisplay, digits.length === 0 && styles.digitPlaceholder]}
+                style={[
+                  styles.digitDisplay,
+                  digits.length === 0 && styles.digitPlaceholder,
+                ]}
                 numberOfLines={1}
               >
-                {digits.length > 0 ? digits : t('auth.phone.placeholder')}
+                {digits.length > 0 ? digits : t("auth.phone.placeholder")}
               </Text>
               {/* Transparent TextInput captures numeric keyboard input */}
               <TextInput
@@ -84,12 +87,12 @@ export default function PhoneScreen() {
               />
             </View>
           </View>
-          <Text style={styles.helperText}>{t('auth.phone.helper')}</Text>
+          <Text style={styles.helperText}>{t("auth.phone.helper")}</Text>
         </View>
 
         <View style={styles.footer}>
           <Button
-            label={t('auth.phone.continue')}
+            label={t("auth.phone.continue")}
             onPress={handleContinue}
             disabled={!isValid}
             loading={loading}
@@ -109,7 +112,7 @@ const styles = StyleSheet.create({
   },
 
   brandSection: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: Spacing.s12,
   },
   logoBox: {
@@ -117,8 +120,8 @@ const styles = StyleSheet.create({
     height: 72,
     borderRadius: 18,
     backgroundColor: Colors.primary600,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginBottom: Spacing.s3,
   },
   appName: {
@@ -135,15 +138,16 @@ const styles = StyleSheet.create({
 
   inputSection: {
     gap: Spacing.s2,
+    direction: "ltr",
   },
   inputLabel: {
     fontSize: 13,
-    fontWeight: '500',
+    fontWeight: "500",
     color: Colors.gray600,
   },
   phoneRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: Colors.white,
     borderWidth: 1.5,
     borderColor: Colors.primary600,
@@ -156,8 +160,8 @@ const styles = StyleSheet.create({
     elevation: 0,
   },
   prefix: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingLeft: Spacing.s4,
     paddingRight: Spacing.s3,
     gap: Spacing.s2,
@@ -167,7 +171,7 @@ const styles = StyleSheet.create({
   },
   prefixText: {
     fontSize: 15,
-    fontWeight: '500',
+    fontWeight: "500",
     color: Colors.gray900,
   },
   separator: {
@@ -178,34 +182,34 @@ const styles = StyleSheet.create({
   digitWrapper: {
     flex: 1,
     paddingHorizontal: Spacing.s4,
-    justifyContent: 'center',
-    overflow: 'hidden',
+    justifyContent: "center",
+    overflow: "hidden",
   },
   digitDisplay: {
     fontSize: 15,
-    fontWeight: '400',
+    fontWeight: "400",
     color: Colors.gray900,
   },
   digitPlaceholder: {
     color: Colors.gray400,
   },
   hiddenInput: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
     opacity: 0,
-    color: 'transparent',
+    color: "transparent",
   },
   helperText: {
     fontSize: 12,
-    fontWeight: '400',
+    fontWeight: "400",
     color: Colors.gray400,
   },
 
   footer: {
-    position: 'absolute',
+    position: "absolute",
     bottom: Spacing.s6,
     left: Spacing.s4,
     right: Spacing.s4,

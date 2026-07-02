@@ -47,3 +47,5 @@ apps/backend/prisma/migrations/*.sql.bak
 
 # Test coverage
 coverage/
+
+SETUP.md
