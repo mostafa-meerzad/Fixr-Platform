@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -9,24 +9,24 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-} from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useTranslation } from 'react-i18next';
-import { MaterialIcons } from '@expo/vector-icons';
+} from "react-native";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useTranslation } from "react-i18next";
+import { MaterialIcons } from "@expo/vector-icons";
 
-import { ScreenWrapper } from '@/components/ui/ScreenWrapper';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { ProgressBar } from '@/components/ui/ProgressBar';
-import { useToast } from '@/components/ui/Toast';
-import { authService } from '@/services/auth.service';
-import { lookupService, type Zone } from '@/services/lookup.service';
-import { useAuthStore } from '@/stores/auth.store';
-import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
-import { Icons } from '@/constants/icons';
+import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import { ProgressBar } from "@/components/ui/ProgressBar";
+import { useToast } from "@/components/ui/Toast";
+import { authService } from "@/services/auth.service";
+import { lookupService, type Zone } from "@/services/lookup.service";
+import { useAuthStore } from "@/stores/auth.store";
+import { Colors, Radius, Spacing, Typography } from "@/constants/theme";
+import { Icons } from "@/constants/icons";
 
-type Step = 'role' | 'name' | 'location';
-type Role = 'HOMEOWNER' | 'EXPERT';
+type Step = "role" | "name" | "location";
+type Role = "HOMEOWNER" | "EXPERT";
 
 export default function RegisterScreen() {
   const { t } = useTranslation();
@@ -34,17 +34,23 @@ export default function RegisterScreen() {
   const toast = useToast();
   const setAuth = useAuthStore((s) => s.setAuth);
 
-  const { phone, sessionId } = useLocalSearchParams<{ phone: string; sessionId: string }>();
+  const { phone, sessionId } = useLocalSearchParams<{
+    phone: string;
+    sessionId: string;
+  }>();
 
-  const [step, setStep] = useState<Step>('role');
+  const [step, setStep] = useState<Step>("role");
   const [role, setRole] = useState<Role | null>(null);
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [firstNameError, setFirstNameError] = useState('');
-  const [selectedZone, setSelectedZone] = useState<{ id: string; nameEn: string } | null>(null);
-  const [zoneError, setZoneError] = useState('');
-  const [address, setAddress] = useState('');
-  const [addressError, setAddressError] = useState('');
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [firstNameError, setFirstNameError] = useState("");
+  const [selectedZone, setSelectedZone] = useState<{
+    id: string;
+    nameEn: string;
+  } | null>(null);
+  const [zoneError, setZoneError] = useState("");
+  const [address, setAddress] = useState("");
+  const [addressError, setAddressError] = useState("");
   const [zones, setZones] = useState<Zone[]>([]);
   const [zonesLoading, setZonesLoading] = useState(false);
   const [zonePickerVisible, setZonePickerVisible] = useState(false);
@@ -54,12 +60,14 @@ export default function RegisterScreen() {
 
   // Fetch zones when entering the location step
   useEffect(() => {
-    if (step === 'location' && zones.length === 0) {
+    if (step === "location" && zones.length === 0) {
       setZonesLoading(true);
       lookupService
         .zones()
         .then(({ data }) => setZones(data))
-        .catch(() => toast.show({ message: t('common.error'), variant: 'error' }))
+        .catch(() =>
+          toast.show({ message: t("common.error"), variant: "error" }),
+        )
         .finally(() => setZonesLoading(false));
     }
   }, [step]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -71,18 +79,18 @@ export default function RegisterScreen() {
   }
 
   function handleRoleContinue() {
-    setStep('name');
+    setStep("name");
   }
 
   function handleNameContinue() {
     if (!firstName.trim()) {
-      setFirstNameError(t('auth.register.errorFirstName'));
+      setFirstNameError(t("auth.register.errorFirstName"));
       return;
     }
-    setFirstNameError('');
+    setFirstNameError("");
 
-    if (role === 'HOMEOWNER') {
-      setStep('location');
+    if (role === "HOMEOWNER") {
+      setStep("location");
     } else {
       submitRegistration();
     }
@@ -91,16 +99,16 @@ export default function RegisterScreen() {
   async function handleLocationSubmit() {
     let hasError = false;
     if (!selectedZone) {
-      setZoneError(t('auth.register.errorZone'));
+      setZoneError(t("auth.register.errorZone"));
       hasError = true;
     } else {
-      setZoneError('');
+      setZoneError("");
     }
     if (!address.trim()) {
-      setAddressError(t('auth.register.errorAddress'));
+      setAddressError(t("auth.register.errorAddress"));
       hasError = true;
     } else {
-      setAddressError('');
+      setAddressError("");
     }
     if (hasError) return;
     submitRegistration();
@@ -109,77 +117,93 @@ export default function RegisterScreen() {
   async function submitRegistration() {
     setSubmitting(true);
     try {
-      const name = [firstName.trim(), lastName.trim()].filter(Boolean).join(' ');
+      const name = [firstName.trim(), lastName.trim()]
+        .filter(Boolean)
+        .join(" ");
       const payload =
-        role === 'HOMEOWNER'
-          ? { phone, name, role: 'HOMEOWNER' as const, sessionId, zoneId: selectedZone!.id, address: address.trim() }
-          : { phone, name, role: 'EXPERT' as const, sessionId };
+        role === "HOMEOWNER"
+          ? {
+              phone,
+              name,
+              role: "HOMEOWNER" as const,
+              sessionId,
+              zoneId: selectedZone!.id,
+              address: address.trim(),
+            }
+          : { phone, name, role: "EXPERT" as const, sessionId };
 
       const { data } = await authService.register(payload);
       await setAuth(data.user, data.accessToken, data.refreshToken);
 
-      if (role === 'EXPERT') {
-        router.replace('/(auth)/expert-onboarding/selfie' as any);
+      if (role === "EXPERT") {
+        router.replace("/(auth)/expert-onboarding/selfie" as any);
       } else {
-        router.replace('/');
+        router.replace("/");
       }
     } catch (err: any) {
-      const message = err?.response?.data?.message ?? t('auth.register.errorNetwork');
-      toast.show({ message, variant: 'error' });
+      const message =
+        err?.response?.data?.message ?? t("auth.register.errorNetwork");
+      toast.show({ message, variant: "error" });
     } finally {
       setSubmitting(false);
     }
   }
 
   function handleBack() {
-    if (step === 'name') setStep('role');
-    else if (step === 'location') setStep('name');
+    if (step === "name") setStep("role");
+    else if (step === "location") setStep("name");
   }
 
   // --- Progress bar values ---
-  const progressStep = step === 'name' ? 1 : 2;
-  const totalSteps = role === 'HOMEOWNER' ? 2 : 1;
+  const progressStep = step === "name" ? 1 : 2;
+  const totalSteps = role === "HOMEOWNER" ? 2 : 1;
 
   // --- Render ---
 
   return (
     <ScreenWrapper scroll keyboardAvoiding>
       {/* ProgressBar at very top — only on name/location steps */}
-      {step !== 'role' && (
+      {step !== "role" && (
         <ProgressBar currentStep={progressStep} totalSteps={totalSteps} />
       )}
 
       <View style={styles.container}>
         {/* --- ROLE STEP --- */}
-        {step === 'role' && (
+        {step === "role" && (
           <>
             <View style={styles.roleHeader}>
-              <Text style={styles.roleTitle}>{t('auth.register.roleTitle')}</Text>
-              <Text style={styles.roleSubtitle}>{t('auth.register.roleSubtitle')}</Text>
+              <Text style={styles.roleTitle}>
+                {t("auth.register.roleTitle")}
+              </Text>
+              <Text style={styles.roleSubtitle}>
+                {t("auth.register.roleSubtitle")}
+              </Text>
             </View>
 
             <View style={styles.roleCards}>
               <RoleCard
                 icon={Icons.tabHome}
-                title={t('auth.register.homeownerTitle')}
-                description={t('auth.register.homeownerDesc')}
-                selected={role === 'HOMEOWNER'}
-                onPress={() => handleRoleSelect('HOMEOWNER')}
+                title={t("auth.register.homeownerTitle")}
+                description={t("auth.register.homeownerDesc")}
+                selected={role === "HOMEOWNER"}
+                onPress={() => handleRoleSelect("HOMEOWNER")}
               />
               <RoleCard
                 icon={Icons.handyman}
-                title={t('auth.register.expertTitle')}
-                description={t('auth.register.expertDesc')}
-                selected={role === 'EXPERT'}
-                onPress={() => handleRoleSelect('EXPERT')}
+                title={t("auth.register.expertTitle")}
+                description={t("auth.register.expertDesc")}
+                selected={role === "EXPERT"}
+                onPress={() => handleRoleSelect("EXPERT")}
               />
             </View>
 
-            <Text style={styles.roleDisclaimer}>{t('auth.register.roleDisclaimer')}</Text>
+            <Text style={styles.roleDisclaimer}>
+              {t("auth.register.roleDisclaimer")}
+            </Text>
 
             <View style={styles.footer}>
               <Button
-                label={t('auth.register.continue')}
+                label={t("auth.register.continue")}
                 onPress={handleRoleContinue}
                 disabled={role === null}
               />
@@ -188,24 +212,34 @@ export default function RegisterScreen() {
         )}
 
         {/* --- NAME STEP --- */}
-        {step === 'name' && (
+        {step === "name" && (
           <>
             <View style={styles.stepHeaderRow}>
               <TouchableOpacity style={styles.backBtn} onPress={handleBack}>
-                <MaterialIcons name={Icons.back as any} size={24} color={Colors.gray600} />
+                <MaterialIcons
+                  name={Icons.back as any}
+                  size={24}
+                  color={Colors.gray600}
+                />
               </TouchableOpacity>
               <Text style={styles.stepLabel}>
-                {t('auth.register.stepLabel', { current: progressStep, total: totalSteps })}
+                {t("auth.register.stepLabel", {
+                  current: progressStep,
+                  total: totalSteps,
+                })}
               </Text>
             </View>
-            <Text style={styles.stepTitle}>{t('auth.register.nameTitle')}</Text>
+            <Text style={styles.stepTitle}>{t("auth.register.nameTitle")}</Text>
 
             <View style={styles.fields}>
               <Input
-                label={t('auth.register.firstNameLabel')}
-                placeholder={t('auth.register.firstNamePlaceholder')}
+                label={t("auth.register.firstNameLabel")}
+                placeholder={t("auth.register.firstNamePlaceholder")}
                 value={firstName}
-                onChangeText={(v) => { setFirstName(v); setFirstNameError(''); }}
+                onChangeText={(v) => {
+                  setFirstName(v);
+                  setFirstNameError("");
+                }}
                 error={firstNameError}
                 autoFocus
                 autoCapitalize="words"
@@ -214,8 +248,8 @@ export default function RegisterScreen() {
               />
               <Input
                 ref={lastNameRef}
-                label={t('auth.register.lastNameLabel')}
-                placeholder={t('auth.register.lastNamePlaceholder')}
+                label={t("auth.register.lastNameLabel")}
+                placeholder={t("auth.register.lastNamePlaceholder")}
                 value={lastName}
                 onChangeText={setLastName}
                 autoCapitalize="words"
@@ -226,9 +260,9 @@ export default function RegisterScreen() {
             <View style={styles.footer}>
               <Button
                 label={
-                  role === 'EXPERT'
-                    ? t('auth.register.createAccount')
-                    : t('auth.register.continue')
+                  role === "EXPERT"
+                    ? t("auth.register.createAccount")
+                    : t("auth.register.continue")
                 }
                 onPress={handleNameContinue}
                 loading={submitting}
@@ -239,25 +273,41 @@ export default function RegisterScreen() {
         )}
 
         {/* --- LOCATION STEP (HOMEOWNER only) --- */}
-        {step === 'location' && (
+        {step === "location" && (
           <>
             <View style={styles.stepHeaderRow}>
               <TouchableOpacity style={styles.backBtn} onPress={handleBack}>
-                <MaterialIcons name={Icons.back as any} size={24} color={Colors.gray600} />
+                <MaterialIcons
+                  name={Icons.back as any}
+                  size={24}
+                  color={Colors.gray600}
+                />
               </TouchableOpacity>
               <Text style={styles.stepLabel}>
-                {t('auth.register.stepLabel', { current: progressStep, total: totalSteps })}
+                {t("auth.register.stepLabel", {
+                  current: progressStep,
+                  total: totalSteps,
+                })}
               </Text>
             </View>
-            <Text style={styles.stepTitle}>{t('auth.register.locationTitle')}</Text>
-            <Text style={styles.locationSubtitle}>{t('auth.register.locationSubtitle')}</Text>
+            <Text style={styles.stepTitle}>
+              {t("auth.register.locationTitle")}
+            </Text>
+            <Text style={styles.locationSubtitle}>
+              {t("auth.register.locationSubtitle")}
+            </Text>
 
             <View style={styles.fields}>
               {/* Zone selector */}
               <View style={styles.fieldGroup}>
-                <Text style={styles.fieldLabel}>{t('auth.register.zoneLabel')}</Text>
+                <Text style={styles.fieldLabel}>
+                  {t("auth.register.zoneLabel")}
+                </Text>
                 <TouchableOpacity
-                  style={[styles.zoneSelector, zoneError ? styles.zoneSelectorError : null]}
+                  style={[
+                    styles.zoneSelector,
+                    zoneError ? styles.zoneSelectorError : null,
+                  ]}
                   onPress={() => setZonePickerVisible(true)}
                   disabled={zonesLoading}
                 >
@@ -271,21 +321,31 @@ export default function RegisterScreen() {
                           !selectedZone && styles.zoneSelectorPlaceholder,
                         ]}
                       >
-                        {selectedZone?.nameEn ?? t('auth.register.zonePlaceholder')}
+                        {selectedZone?.nameEn ??
+                          t("auth.register.zonePlaceholder")}
                       </Text>
-                      <MaterialIcons name={Icons.chevronDown as any} size={20} color={Colors.gray400} />
+                      <MaterialIcons
+                        name={Icons.chevronDown as any}
+                        size={20}
+                        color={Colors.gray400}
+                      />
                     </>
                   )}
                 </TouchableOpacity>
-                {zoneError ? <Text style={styles.fieldError}>{zoneError}</Text> : null}
+                {zoneError ? (
+                  <Text style={styles.fieldError}>{zoneError}</Text>
+                ) : null}
               </View>
 
               {/* Address */}
               <Input
-                label={t('auth.register.addressLabel')}
-                placeholder={t('auth.register.addressPlaceholder')}
+                label={t("auth.register.addressLabel")}
+                placeholder={t("auth.register.addressPlaceholder")}
                 value={address}
-                onChangeText={(v) => { setAddress(v); setAddressError(''); }}
+                onChangeText={(v) => {
+                  setAddress(v);
+                  setAddressError("");
+                }}
                 error={addressError}
                 multiline
               />
@@ -293,7 +353,7 @@ export default function RegisterScreen() {
 
             <View style={styles.footer}>
               <Button
-                label={t('auth.register.createAccount')}
+                label={t("auth.register.createAccount")}
                 onPress={handleLocationSubmit}
                 loading={submitting}
                 disabled={submitting}
@@ -311,10 +371,15 @@ export default function RegisterScreen() {
         onRequestClose={() => setZonePickerVisible(false)}
       >
         <View style={styles.modalContainer}>
-          <Pressable style={StyleSheet.absoluteFillObject} onPress={() => setZonePickerVisible(false)} />
+          <Pressable
+            style={StyleSheet.absoluteFillObject}
+            onPress={() => setZonePickerVisible(false)}
+          />
           <View style={styles.modalSheet}>
             <View style={styles.sheetHandle} />
-            <Text style={styles.sheetTitle}>{t('auth.register.selectZoneTitle')}</Text>
+            <Text style={styles.sheetTitle}>
+              {t("auth.register.selectZoneTitle")}
+            </Text>
             <FlatList
               data={zones}
               keyExtractor={(z) => z.id}
@@ -322,14 +387,23 @@ export default function RegisterScreen() {
                 <TouchableOpacity
                   style={styles.zoneRow}
                   onPress={() => {
-                    setSelectedZone({ id: item.id, nameEn: item.nameEn ?? item.name });
-                    setZoneError('');
+                    setSelectedZone({
+                      id: item.id,
+                      nameEn: item.nameEn ?? item.name,
+                    });
+                    setZoneError("");
                     setZonePickerVisible(false);
                   }}
                 >
-                  <Text style={styles.zoneRowText}>{item.nameEn ?? item.name}</Text>
+                  <Text style={styles.zoneRowText}>
+                    {item.nameEn ?? item.name}
+                  </Text>
                   {selectedZone?.id === item.id && (
-                    <MaterialIcons name="check" size={20} color={Colors.primary600} />
+                    <MaterialIcons
+                      name="check"
+                      size={20}
+                      color={Colors.primary600}
+                    />
                   )}
                 </TouchableOpacity>
               )}
@@ -352,14 +426,22 @@ interface RoleCardProps {
   onPress: () => void;
 }
 
-function RoleCard({ icon, title, description, selected, onPress }: RoleCardProps) {
+function RoleCard({
+  icon,
+  title,
+  description,
+  selected,
+  onPress,
+}: RoleCardProps) {
   return (
     <TouchableOpacity
       style={[styles.roleCard, selected && styles.roleCardSelected]}
       onPress={onPress}
       activeOpacity={0.8}
     >
-      <View style={[styles.roleIconBox, selected && styles.roleIconBoxSelected]}>
+      <View
+        style={[styles.roleIconBox, selected && styles.roleIconBoxSelected]}
+      >
         <MaterialIcons
           name={icon as any}
           size={28}
@@ -367,14 +449,23 @@ function RoleCard({ icon, title, description, selected, onPress }: RoleCardProps
         />
       </View>
       <View style={styles.roleCardText}>
-        <Text style={[styles.roleCardTitle, selected && styles.roleCardTitleSelected]}>
+        <Text
+          style={[
+            styles.roleCardTitle,
+            selected && styles.roleCardTitleSelected,
+          ]}
+        >
           {title}
         </Text>
         <Text style={styles.roleCardDesc}>{description}</Text>
       </View>
       <View style={styles.roleCardCheck}>
         {selected && (
-          <MaterialIcons name={Icons.checkCircle as any} size={24} color={Colors.primary600} />
+          <MaterialIcons
+            name={Icons.checkCircle as any}
+            size={24}
+            color={Colors.primary600}
+          />
         )}
       </View>
     </TouchableOpacity>
@@ -412,8 +503,8 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.s4,
   },
   roleCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: Colors.white,
     borderWidth: 1.5,
     borderColor: Colors.gray200,
@@ -430,8 +521,8 @@ const styles = StyleSheet.create({
     height: 48,
     borderRadius: Radius.md,
     backgroundColor: Colors.gray100,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   roleIconBoxSelected: {
     backgroundColor: Colors.primary100,
@@ -455,20 +546,20 @@ const styles = StyleSheet.create({
   },
   roleCardCheck: {
     width: 24,
-    alignItems: 'center',
+    alignItems: "center",
   },
   roleDisclaimer: {
     fontSize: Typography.caption.fontSize,
     fontWeight: Typography.caption.fontWeight as any,
     color: Colors.gray400,
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: Spacing.s4,
   },
 
   // Name / Location step header
   stepHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginTop: Spacing.s4,
     marginBottom: Spacing.s4,
     gap: Spacing.s3,
@@ -478,8 +569,8 @@ const styles = StyleSheet.create({
     height: 32,
     borderRadius: Radius.full,
     backgroundColor: Colors.gray100,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   stepLabel: {
     fontSize: Typography.label.fontSize,
@@ -510,7 +601,7 @@ const styles = StyleSheet.create({
   },
   fieldLabel: {
     fontSize: 13,
-    fontWeight: '500',
+    fontWeight: "500",
     color: Colors.gray600,
   },
   fieldError: {
@@ -520,8 +611,8 @@ const styles = StyleSheet.create({
 
   // Zone selector
   zoneSelector: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: Colors.white,
     borderWidth: 1.5,
     borderColor: Colors.gray200,
@@ -535,7 +626,7 @@ const styles = StyleSheet.create({
   zoneSelectorText: {
     flex: 1,
     fontSize: 15,
-    fontWeight: '400',
+    fontWeight: "400",
     color: Colors.gray900,
   },
   zoneSelectorPlaceholder: {
@@ -544,14 +635,14 @@ const styles = StyleSheet.create({
 
   // Footer
   footer: {
-    marginTop: 'auto',
+    marginTop: "auto",
   },
 
   // Zone picker modal
   modalContainer: {
     flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: "flex-end",
+    backgroundColor: "rgba(0,0,0,0.5)",
   },
   modalSheet: {
     backgroundColor: Colors.white,
@@ -559,14 +650,14 @@ const styles = StyleSheet.create({
     borderTopRightRadius: Radius.xl,
     paddingHorizontal: Spacing.s6,
     paddingBottom: Spacing.s8,
-    maxHeight: '70%',
+    maxHeight: "70%",
   },
   sheetHandle: {
     width: 32,
     height: 4,
     backgroundColor: Colors.gray200,
     borderRadius: Radius.full,
-    alignSelf: 'center',
+    alignSelf: "center",
     marginTop: Spacing.s3,
     marginBottom: Spacing.s4,
   },
@@ -577,10 +668,10 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.s4,
   },
   zoneRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingVertical: Spacing.s4,
-    justifyContent: 'space-between',
+    justifyContent: "space-between",
   },
   zoneRowText: {
     fontSize: Typography.bodyMd.fontSize,
