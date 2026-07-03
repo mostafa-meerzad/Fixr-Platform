@@ -1,11 +1,17 @@
 import { create } from 'zustand';
 import * as SecureStore from 'expo-secure-store';
+import * as Localization from 'expo-localization';
 import { I18nManager, NativeModules } from 'react-native';
 import i18n from '@/i18n';
 
 export type Lang = 'en' | 'fa';
 
 const LANG_KEY = 'fixr_lang';
+
+function detectDeviceLang(): Lang {
+  const locale = Localization.getLocales()[0]?.languageCode ?? 'en';
+  return locale === 'fa' || locale === 'prs' || locale === 'dar' ? 'fa' : 'en';
+}
 
 interface LangState {
   lang: Lang;
@@ -22,7 +28,7 @@ export const useLangStore = create<LangState>((set) => ({
 
   initialize: async () => {
     const stored = (await SecureStore.getItemAsync(LANG_KEY)) as Lang | null;
-    const lang: Lang = stored === 'fa' ? 'fa' : 'en';
+    const lang: Lang = stored === 'fa' ? 'fa' : stored === 'en' ? 'en' : detectDeviceLang();
     const isRTL = lang === 'fa';
 
     await i18n.changeLanguage(lang);
