@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import * as SecureStore from 'expo-secure-store';
-import { I18nManager } from 'react-native';
+import { I18nManager, NativeModules } from 'react-native';
 import i18n from '@/i18n';
 
 export type Lang = 'en' | 'fa';
@@ -41,10 +41,10 @@ export const useLangStore = create<LangState>((set) => ({
     await SecureStore.setItemAsync(LANG_KEY, lang);
     await i18n.changeLanguage(lang);
 
-    // Text content and textAlign changes take effect immediately.
-    // Native layout flip (flex row reversal in nav bars etc.) needs a restart.
     if (I18nManager.isRTL !== isRTL) {
       I18nManager.forceRTL(isRTL);
+      // forceRTL requires a JS reload to flip native layout direction
+      NativeModules.DevSettings?.reload();
     }
 
     set({ lang, isRTL });
