@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -7,27 +7,27 @@ import {
   Text,
   TouchableOpacity,
   View,
-} from 'react-native';
-import { router } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import * as SecureStore from 'expo-secure-store';
-import { useTranslation } from 'react-i18next';
-import { MaterialIcons } from '@expo/vector-icons';
-import type { BottomSheetModal } from '@gorhom/bottom-sheet';
-import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
-import { Icons } from '@/constants/icons';
-import { Avatar } from '@/components/ui/Avatar';
-import { BottomSheet } from '@/components/ui/BottomSheet';
-import { Button } from '@/components/ui/Button';
-import { Divider } from '@/components/ui/Divider';
-import { Input } from '@/components/ui/Input';
-import { Pill } from '@/components/ui/Pill';
-import { useToast } from '@/components/ui/Toast';
-import { useAuthStore } from '@/stores/auth.store';
-import { useLangStore, type Lang } from '@/stores/lang.store';
-import { authService } from '@/services/auth.service';
-import { usersService, type UserProfile } from '@/services/users.service';
-import { lookupService, type Zone } from '@/services/lookup.service';
+} from "react-native";
+import { router } from "expo-router";
+import { SafeAreaView } from "react-native-safe-area-context";
+import * as SecureStore from "expo-secure-store";
+import { useTranslation } from "react-i18next";
+import { MaterialIcons } from "@expo/vector-icons";
+import type { BottomSheetModal } from "@gorhom/bottom-sheet";
+import { Colors, Radius, Spacing, Typography } from "@/constants/theme";
+import { Icons } from "@/constants/icons";
+import { Avatar } from "@/components/ui/Avatar";
+import { BottomSheet } from "@/components/ui/BottomSheet";
+import { Button } from "@/components/ui/Button";
+import { Divider } from "@/components/ui/Divider";
+import { Input } from "@/components/ui/Input";
+import { Pill } from "@/components/ui/Pill";
+import { useToast } from "@/components/ui/Toast";
+import { useAuthStore } from "@/stores/auth.store";
+import { useLangStore, type Lang } from "@/stores/lang.store";
+import { authService } from "@/services/auth.service";
+import { usersService, type UserProfile } from "@/services/users.service";
+import { lookupService, type Zone } from "@/services/lookup.service";
 
 interface SettingRow {
   key: string;
@@ -37,18 +37,20 @@ interface SettingRow {
   onPress?: () => void;
 }
 
-function getVerificationVariant(status?: string): 'success' | 'warning' | 'danger' | 'gray' {
-  if (status === 'VERIFIED') return 'success';
-  if (status === 'PENDING') return 'warning';
-  if (status === 'REJECTED') return 'danger';
-  return 'gray';
+function getVerificationVariant(
+  status?: string,
+): "success" | "warning" | "danger" | "gray" {
+  if (status === "VERIFIED") return "success";
+  if (status === "PENDING") return "warning";
+  if (status === "REJECTED") return "danger";
+  return "gray";
 }
 
 function getVerificationLabel(status?: string): string {
-  if (status === 'VERIFIED') return 'Verified';
-  if (status === 'PENDING') return 'Pending';
-  if (status === 'REJECTED') return 'Rejected';
-  return 'Unverified';
+  if (status === "VERIFIED") return "Verified";
+  if (status === "PENDING") return "Pending";
+  if (status === "REJECTED") return "Rejected";
+  return "Unverified";
 }
 
 export default function ExpertProfileScreen() {
@@ -69,8 +71,8 @@ export default function ExpertProfileScreen() {
   const [allZones, setAllZones] = useState<Zone[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const [editName, setEditName] = useState('');
-  const [editNameError, setEditNameError] = useState('');
+  const [editName, setEditName] = useState("");
+  const [editNameError, setEditNameError] = useState("");
   const [saving, setSaving] = useState(false);
   const [zonesLoading, setZonesLoading] = useState(false);
 
@@ -94,14 +96,14 @@ export default function ExpertProfileScreen() {
   }, [load]);
 
   const openEditSheet = () => {
-    setEditName(user?.name ?? '');
-    setEditNameError('');
+    setEditName(user?.name ?? "");
+    setEditNameError("");
     editSheetRef.current?.present();
   };
 
   const handleSaveName = async () => {
     if (!editName.trim()) {
-      setEditNameError(t('expert.profile.errorName'));
+      setEditNameError(t("expert.profile.errorName"));
       return;
     }
     setSaving(true);
@@ -109,9 +111,12 @@ export default function ExpertProfileScreen() {
       await usersService.updateMe({ name: editName.trim() });
       await updateUser({ name: editName.trim() });
       editSheetRef.current?.dismiss();
-      toast.show({ message: t('expert.profile.savedToast'), variant: 'success' });
+      toast.show({
+        message: t("expert.profile.savedToast"),
+        variant: "success",
+      });
     } catch {
-      toast.show({ message: t('common.error'), variant: 'error' });
+      toast.show({ message: t("common.error"), variant: "error" });
     } finally {
       setSaving(false);
     }
@@ -119,7 +124,8 @@ export default function ExpertProfileScreen() {
 
   const handleToggleZone = async (zone: Zone) => {
     const expertProfile = profile?.expertProfile;
-    const currentZoneIds = expertProfile?.serviceZones?.map((sz) => sz.zone.id) ?? [];
+    const currentZoneIds =
+      expertProfile?.serviceZones?.map((sz) => sz.zone.id) ?? [];
     let newZoneIds: string[];
     if (currentZoneIds.includes(zone.id)) {
       newZoneIds = currentZoneIds.filter((id) => id !== zone.id);
@@ -132,7 +138,7 @@ export default function ExpertProfileScreen() {
       const profileRes = await usersService.getMe();
       setProfile(profileRes.data);
     } catch {
-      toast.show({ message: t('common.error'), variant: 'error' });
+      toast.show({ message: t("common.error"), variant: "error" });
     } finally {
       setZonesLoading(false);
     }
@@ -140,11 +146,11 @@ export default function ExpertProfileScreen() {
 
   const handleLogout = async () => {
     try {
-      const refreshToken = await SecureStore.getItemAsync('fixr_refresh_token');
+      const refreshToken = await SecureStore.getItemAsync("fixr_refresh_token");
       if (refreshToken) await authService.logout(refreshToken);
     } catch {}
     await clearAuth();
-    router.replace('/(auth)/phone');
+    router.replace("/(auth)/phone");
   };
 
   const expertProfile = profile?.expertProfile;
@@ -158,35 +164,47 @@ export default function ExpertProfileScreen() {
 
   const settingsSections: SettingRow[][] = [
     [
-      { key: 'reviews', label: t('expert.profile.myReviews'), icon: Icons.star },
-      { key: 'verifyDocs', label: t('expert.profile.verifyDocs'), icon: Icons.verified },
       {
-        key: 'zones',
-        label: t('expert.profile.serviceZones'),
+        key: "reviews",
+        label: t("expert.profile.myReviews"),
+        icon: Icons.star,
+      },
+      {
+        key: "verifyDocs",
+        label: t("expert.profile.verifyDocs"),
+        icon: Icons.verified,
+      },
+      {
+        key: "zones",
+        label: t("expert.profile.serviceZones"),
         icon: Icons.location,
         onPress: () => zonesSheetRef.current?.present(),
       },
     ],
     [
-      { key: 'notifications', label: t('expert.profile.notificationSettings'), icon: Icons.notifs },
       {
-        key: 'language',
-        label: t('expert.profile.language'),
+        key: "notifications",
+        label: t("expert.profile.notificationSettings"),
+        icon: Icons.notifs,
+      },
+      {
+        key: "language",
+        label: t("expert.profile.language"),
         icon: Icons.language,
         rightLabel: t(`common.language.${lang}`),
         onPress: () => langSheetRef.current?.present(),
       },
     ],
     [
-      { key: 'help', label: t('expert.profile.helpSupport'), icon: Icons.help },
-      { key: 'about', label: t('expert.profile.aboutFixr'), icon: Icons.about },
+      { key: "help", label: t("expert.profile.helpSupport"), icon: Icons.help },
+      { key: "about", label: t("expert.profile.aboutFixr"), icon: Icons.about },
     ],
   ];
 
   return (
-    <SafeAreaView style={styles.safe} edges={['top']}>
+    <SafeAreaView style={styles.safe} edges={["top"]}>
       <View style={styles.header}>
-        <Text style={styles.title}>{t('expert.profile.title')}</Text>
+        <Text style={styles.title}>{t("expert.profile.title")}</Text>
       </View>
 
       {loading ? (
@@ -207,55 +225,82 @@ export default function ExpertProfileScreen() {
                     variant={getVerificationVariant(verificationStatus)}
                   />
                 </View>
-                <Text style={styles.profilePhone}>{'\u200E'}{user?.phone}</Text>
+                <Text style={styles.profilePhone}>
+                  {"\u200E"}
+                  {user?.phone}
+                </Text>
               </View>
               <TouchableOpacity onPress={openEditSheet} style={styles.editBtn}>
-                <Text style={styles.editBtnText}>{t('expert.profile.edit')}</Text>
+                <Text style={styles.editBtnText}>
+                  {t("expert.profile.edit")}
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
 
           {/* Credits card */}
           <View style={styles.creditsCard}>
-            <Text style={styles.creditsSectionLabel}>{t('expert.profile.yourCredits')}</Text>
+            <Text style={styles.creditsSectionLabel}>
+              {t("expert.profile.yourCredits")}
+            </Text>
             <View style={styles.creditsRow}>
               <Text style={styles.creditCount}>{creditBalance}</Text>
-              <Text style={styles.creditsAvailable}>{t('expert.profile.creditsAvailable')}</Text>
+              <Text style={styles.creditsAvailable}>
+                {t("expert.profile.creditsAvailable")}
+              </Text>
             </View>
             <Button
-              label={t('expert.profile.buyCredits')}
-              onPress={() => toast.show({ message: t('expert.profile.comingSoon') })}
+              label={t("expert.profile.buyCredits")}
+              onPress={() =>
+                toast.show({ message: t("expert.profile.comingSoon") })
+              }
               style={styles.buyBtn}
             />
-            <Text style={styles.creditsCaption}>{t('expert.profile.creditsCaption')}</Text>
+            <Text style={styles.creditsCaption}>
+              {t("expert.profile.creditsCaption")}
+            </Text>
           </View>
 
           {/* Stats row */}
           <View style={styles.statsCard}>
             <View style={styles.statItem}>
               <Text style={styles.statValue}>{completedJobs}</Text>
-              <Text style={styles.statLabel}>{t('expert.profile.completed')}</Text>
+              <Text style={styles.statLabel}>
+                {t("expert.profile.completed")}
+              </Text>
             </View>
             <View style={styles.statSep} />
             <View style={styles.statItem}>
-              <Text style={styles.statValue}>{Math.round(completionRate * 100)}%</Text>
-              <Text style={styles.statLabel}>{t('expert.profile.completion')}</Text>
+              <Text style={styles.statValue}>
+                {Math.round(completionRate * 100)}%
+              </Text>
+              <Text style={styles.statLabel}>
+                {t("expert.profile.completion")}
+              </Text>
             </View>
             <View style={styles.statSep} />
             <View style={styles.statItem}>
-              <Text style={[styles.statValue, styles.statRating]}>★ {rating.toFixed(1)}</Text>
-              <Text style={styles.statLabel}>{t('expert.profile.rating')}</Text>
+              <Text style={[styles.statValue, styles.statRating]}>
+                ★ {rating.toFixed(1)}
+              </Text>
+              <Text style={styles.statLabel}>{t("expert.profile.rating")}</Text>
             </View>
             {noShowCount > 0 && (
               <>
                 <View style={styles.statSep} />
                 <View style={styles.statItem}>
                   <View style={styles.noShowRow}>
-                    <MaterialIcons name="cancel" size={14} color={Colors.danger600} />
-                    <Text style={[styles.statValue, styles.statDanger]}>{noShowCount}</Text>
+                    <MaterialIcons
+                      name="cancel"
+                      size={14}
+                      color={Colors.danger600}
+                    />
+                    <Text style={[styles.statValue, styles.statDanger]}>
+                      {noShowCount}
+                    </Text>
                   </View>
                   <Text style={[styles.statLabel, styles.statLabelDanger]}>
-                    {t('expert.profile.noShows')}
+                    {t("expert.profile.noShows")}
                   </Text>
                 </View>
               </>
@@ -272,10 +317,16 @@ export default function ExpertProfileScreen() {
                     onPress={row.onPress}
                     activeOpacity={0.7}
                   >
-                    <MaterialIcons name={row.icon as any} size={22} color={Colors.gray600} />
+                    <MaterialIcons
+                      name={row.icon as any}
+                      size={22}
+                      color={Colors.gray600}
+                    />
                     <Text style={styles.settingLabel}>{row.label}</Text>
                     {row.rightLabel ? (
-                      <Text style={styles.settingRightLabel}>{row.rightLabel}</Text>
+                      <Text style={styles.settingRightLabel}>
+                        {row.rightLabel}
+                      </Text>
                     ) : (
                       <MaterialIcons
                         name={Icons.chevronRight as any}
@@ -284,7 +335,9 @@ export default function ExpertProfileScreen() {
                       />
                     )}
                   </TouchableOpacity>
-                  {rIdx < section.length - 1 ? <Divider style={styles.rowDivider} /> : null}
+                  {rIdx < section.length - 1 ? (
+                    <Divider style={styles.rowDivider} />
+                  ) : null}
                 </View>
               ))}
             </View>
@@ -292,8 +345,14 @@ export default function ExpertProfileScreen() {
 
           {/* Log out */}
           <View style={styles.section}>
-            <TouchableOpacity style={styles.logoutRow} onPress={handleLogout} activeOpacity={0.7}>
-              <Text style={styles.logoutText}>{t('expert.profile.logout')}</Text>
+            <TouchableOpacity
+              style={styles.logoutRow}
+              onPress={handleLogout}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.logoutText}>
+                {t("expert.profile.logout")}
+              </Text>
             </TouchableOpacity>
           </View>
 
@@ -302,32 +361,35 @@ export default function ExpertProfileScreen() {
       )}
 
       {/* Edit name sheet */}
-      <BottomSheet ref={editSheetRef} snapPoints={['40%']}>
-        <Text style={styles.sheetTitle}>{t('expert.profile.editNameTitle')}</Text>
+      <BottomSheet ref={editSheetRef} snapPoints={["40%"]}>
+        <Text style={styles.sheetTitle}>
+          {t("expert.profile.editNameTitle")}
+        </Text>
         <Input
-          label={t('expert.profile.nameLabel')}
-          placeholder={t('expert.profile.namePlaceholder')}
+          label={t("expert.profile.nameLabel")}
+          placeholder={t("expert.profile.namePlaceholder")}
           value={editName}
           onChangeText={setEditName}
           error={editNameError}
           onBlur={() => {
-            if (!editName.trim()) setEditNameError(t('expert.profile.errorName'));
-            else setEditNameError('');
+            if (!editName.trim())
+              setEditNameError(t("expert.profile.errorName"));
+            else setEditNameError("");
           }}
           autoCapitalize="words"
           style={styles.sheetInput}
         />
         <Button
-          label={t('expert.profile.saveChanges')}
+          label={t("expert.profile.saveChanges")}
           onPress={handleSaveName}
           loading={saving}
         />
       </BottomSheet>
 
       {/* Language picker sheet */}
-      <BottomSheet ref={langSheetRef} snapPoints={['28%']}>
-        <Text style={styles.sheetTitle}>{t('common.language.title')}</Text>
-        {(['en', 'fa'] as Lang[]).map((option, idx, arr) => (
+      <BottomSheet ref={langSheetRef} snapPoints={["28%"]}>
+        <Text style={styles.sheetTitle}>{t("common.language.title")}</Text>
+        {(["en", "fa"] as Lang[]).map((option, idx, arr) => (
           <View key={option}>
             <TouchableOpacity
               style={styles.langRow}
@@ -337,11 +399,20 @@ export default function ExpertProfileScreen() {
               }}
               activeOpacity={0.7}
             >
-              <Text style={[styles.langLabel, lang === option && styles.langLabelActive]}>
+              <Text
+                style={[
+                  styles.langLabel,
+                  lang === option && styles.langLabelActive,
+                ]}
+              >
                 {t(`common.language.${option}`)}
               </Text>
               {lang === option && (
-                <MaterialIcons name="check" size={20} color={Colors.primary600} />
+                <MaterialIcons
+                  name="check"
+                  size={20}
+                  color={Colors.primary600}
+                />
               )}
             </TouchableOpacity>
             {idx < arr.length - 1 && <Divider style={styles.zoneDivider} />}
@@ -350,8 +421,10 @@ export default function ExpertProfileScreen() {
       </BottomSheet>
 
       {/* Service zones sheet */}
-      <BottomSheet ref={zonesSheetRef} snapPoints={['60%']}>
-        <Text style={styles.sheetTitle}>{t('expert.profile.serviceZonesTitle')}</Text>
+      <BottomSheet ref={zonesSheetRef} snapPoints={["60%"]}>
+        <Text style={styles.sheetTitle}>
+          {t("expert.profile.serviceZonesTitle")}
+        </Text>
         {zonesLoading ? (
           <View style={styles.zonesLoading}>
             <ActivityIndicator color={Colors.primary600} />
@@ -361,7 +434,9 @@ export default function ExpertProfileScreen() {
             data={allZones}
             keyExtractor={(z) => z.id}
             renderItem={({ item: zone, index }) => {
-              const isSelected = serviceZones.some((sz) => sz.zone.id === zone.id);
+              const isSelected = serviceZones.some(
+                (sz) => sz.zone.id === zone.id,
+              );
               return (
                 <View>
                   <TouchableOpacity
@@ -369,20 +444,31 @@ export default function ExpertProfileScreen() {
                     onPress={() => handleToggleZone(zone)}
                     activeOpacity={0.7}
                   >
-                    <Text style={[styles.zoneName, isSelected && styles.zoneNameSelected]}>
+                    <Text
+                      style={[
+                        styles.zoneName,
+                        isSelected && styles.zoneNameSelected,
+                      ]}
+                    >
                       {zone.nameEn ?? zone.name}
                     </Text>
                     {isSelected ? (
-                      <MaterialIcons name={"check_box" as any} size={22} color={Colors.primary600} />
+                      <MaterialIcons
+                        name={"check-box" as any}
+                        size={22}
+                        color={Colors.primary600}
+                      />
                     ) : (
                       <MaterialIcons
-                        name={"check_box_outline_blank" as any}
+                        name={"check-box-outline-blank" as any}
                         size={22}
                         color={Colors.gray400}
                       />
                     )}
                   </TouchableOpacity>
-                  {index < allZones.length - 1 && <Divider style={styles.zoneDivider} />}
+                  {index < allZones.length - 1 && (
+                    <Divider style={styles.zoneDivider} />
+                  )}
                 </View>
               );
             }}
@@ -412,8 +498,8 @@ const styles = StyleSheet.create({
   },
   centered: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   // Profile card
   profileCard: {
@@ -426,8 +512,8 @@ const styles = StyleSheet.create({
     borderColor: Colors.gray200,
   },
   profileRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    alignItems: "flex-start",
     gap: Spacing.s3,
   },
   profileInfo: {
@@ -438,11 +524,11 @@ const styles = StyleSheet.create({
     ...Typography.heading2,
   },
   verifyRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
   },
   profilePhone: {
     ...Typography.caption,
-    writingDirection: 'ltr',
+    writingDirection: "ltr",
   },
   editBtn: {
     borderWidth: 1.5,
@@ -450,11 +536,11 @@ const styles = StyleSheet.create({
     borderRadius: Radius.full,
     paddingHorizontal: 12,
     paddingVertical: 6,
-    alignSelf: 'flex-start',
+    alignSelf: "flex-start",
   },
   editBtnText: {
     fontSize: 13,
-    fontWeight: '500',
+    fontWeight: "500",
     color: Colors.primary600,
   },
   // Credits card
@@ -469,21 +555,21 @@ const styles = StyleSheet.create({
   },
   creditsSectionLabel: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: "600",
     color: Colors.primary600,
     letterSpacing: 0.72,
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
     marginBottom: Spacing.s2,
   },
   creditsRow: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
+    flexDirection: "row",
+    alignItems: "baseline",
     gap: Spacing.s2,
     marginBottom: Spacing.s3,
   },
   creditCount: {
     fontSize: 22,
-    fontWeight: '700',
+    fontWeight: "700",
     color: Colors.primary600,
   },
   creditsAvailable: {
@@ -496,12 +582,12 @@ const styles = StyleSheet.create({
   creditsCaption: {
     ...Typography.caption,
     color: Colors.gray600,
-    textAlign: 'center',
+    textAlign: "center",
     marginTop: Spacing.s1,
   },
   // Stats
   statsCard: {
-    flexDirection: 'row',
+    flexDirection: "row",
     backgroundColor: Colors.white,
     marginHorizontal: Spacing.s4,
     marginTop: Spacing.s3,
@@ -509,16 +595,16 @@ const styles = StyleSheet.create({
     padding: Spacing.s4,
     borderWidth: 1,
     borderColor: Colors.gray200,
-    alignItems: 'center',
+    alignItems: "center",
   },
   statItem: {
     flex: 1,
-    alignItems: 'center',
+    alignItems: "center",
     gap: 2,
   },
   statValue: {
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: "700",
     color: Colors.gray900,
   },
   statRating: {
@@ -530,9 +616,9 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     fontSize: 11,
-    fontWeight: '400',
+    fontWeight: "400",
     color: Colors.gray600,
-    textAlign: 'center',
+    textAlign: "center",
   },
   statLabelDanger: {
     color: Colors.danger600,
@@ -543,8 +629,8 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.gray200,
   },
   noShowRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 2,
   },
   // Settings
@@ -555,11 +641,11 @@ const styles = StyleSheet.create({
     borderRadius: Radius.md,
     borderWidth: 1,
     borderColor: Colors.gray200,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   settingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     height: 52,
     paddingHorizontal: Spacing.s4,
     gap: Spacing.s3,
@@ -575,12 +661,12 @@ const styles = StyleSheet.create({
   },
   logoutRow: {
     height: 52,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   logoutText: {
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: "600",
     color: Colors.danger600,
   },
   bottomPad: {
@@ -588,7 +674,7 @@ const styles = StyleSheet.create({
   },
   settingRightLabel: {
     fontSize: 13,
-    fontWeight: '500' as const,
+    fontWeight: "500" as const,
     color: Colors.gray400,
   },
   // Bottom sheets
@@ -601,9 +687,9 @@ const styles = StyleSheet.create({
   },
   // Language picker
   langRow: {
-    flexDirection: 'row' as const,
-    alignItems: 'center' as const,
-    justifyContent: 'space-between' as const,
+    flexDirection: "row" as const,
+    alignItems: "center" as const,
+    justifyContent: "space-between" as const,
     height: 52,
   },
   langLabel: {
@@ -612,17 +698,17 @@ const styles = StyleSheet.create({
   },
   langLabelActive: {
     color: Colors.primary600,
-    fontWeight: '600' as const,
+    fontWeight: "600" as const,
   },
   zonesLoading: {
     height: 120,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   zoneRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     height: 48,
   },
   zoneName: {
@@ -631,7 +717,7 @@ const styles = StyleSheet.create({
   },
   zoneNameSelected: {
     color: Colors.primary600,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   zoneDivider: {
     marginVertical: 0,
