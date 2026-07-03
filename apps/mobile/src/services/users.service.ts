@@ -18,6 +18,7 @@ export interface ExpertProfile {
   noShowCount: number;
   positivePoints: number;
   negativePoints: number;
+  selfieUrl?: string | null;
   shopName?: string;
   description?: string;
   shopZoneId?: string;

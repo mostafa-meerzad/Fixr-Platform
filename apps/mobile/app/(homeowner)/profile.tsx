@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as SecureStore from "expo-secure-store";
@@ -25,6 +26,7 @@ import { useAuthStore } from "@/stores/auth.store";
 import { useLangStore, type Lang } from "@/stores/lang.store";
 import { authService } from "@/services/auth.service";
 import { jobsService, type JobListResponse } from "@/services/jobs.service";
+import { mediaService } from "@/services/media.service";
 import { usersService, type UserProfile } from "@/services/users.service";
 
 interface SettingRow {
@@ -55,6 +57,28 @@ export default function ProfileScreen() {
   const [editName, setEditName] = useState("");
   const [editNameError, setEditNameError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [avatarUploading, setAvatarUploading] = useState(false);
+
+  const handleAvatarChange = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+    if (result.canceled) return;
+    const asset = result.assets[0];
+    setAvatarUploading(true);
+    try {
+      const { url } = await mediaService.uploadAvatar(asset.uri, asset.mimeType ?? undefined);
+      setProfile((prev) => prev ? { ...prev, avatarUrl: url } : prev);
+      await updateUser({ avatarUrl: url });
+    } catch {
+      toast.show({ message: t("common.error"), variant: "error" });
+    } finally {
+      setAvatarUploading(false);
+    }
+  };
 
   const load = useCallback(async () => {
     try {
@@ -62,14 +86,16 @@ export default function ProfileScreen() {
         usersService.getMe(),
         jobsService.list({ limit: 1, page: 1 }),
       ]);
-      setProfile(profileRes.data);
+      const p = profileRes.data;
+      setProfile(p);
       setTotalJobs((jobsRes.data as JobListResponse).total);
+      if (p.avatarUrl) await updateUser({ avatarUrl: p.avatarUrl });
     } catch {
       // show what we have from auth store
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [updateUser]);
 
   useEffect(() => {
     load();
@@ -169,7 +195,18 @@ export default function ProfileScreen() {
           {/* Profile card */}
           <View style={styles.profileCard}>
             <View style={styles.profileRow}>
-              <Avatar size={56} name={user?.name} />
+              <TouchableOpacity onPress={handleAvatarChange} disabled={avatarUploading} style={styles.avatarWrap}>
+                <Avatar size={56} name={user?.name} uri={profile?.avatarUrl ?? user?.avatarUrl} />
+                {avatarUploading ? (
+                  <View style={styles.avatarOverlay}>
+                    <ActivityIndicator size="small" color={Colors.white} />
+                  </View>
+                ) : (
+                  <View style={styles.avatarOverlay}>
+                    <MaterialIcons name="photo-camera" size={16} color={Colors.white} />
+                  </View>
+                )}
+              </TouchableOpacity>
               <View style={styles.profileInfo}>
                 <Text style={styles.profileName}>{user?.name}</Text>
                 <Text style={styles.profilePhone}>{'\u200E'}{user?.phone}</Text>
@@ -359,6 +396,22 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: Spacing.s3,
+  },
+  avatarWrap: {
+    position: "relative",
+    width: 56,
+    height: 56,
+  },
+  avatarOverlay: {
+    position: "absolute",
+    bottom: 0,
+    right: 0,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: Colors.primary600,
+    alignItems: "center",
+    justifyContent: "center",
   },
   profileInfo: {
     flex: 1,

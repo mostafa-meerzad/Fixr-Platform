@@ -33,6 +33,23 @@ export const mediaService = {
     await api.delete(`/media/jobs/media/${mediaId}`);
   },
 
+  async uploadAvatar(uri: string, mimeType?: string): Promise<{ url: string }> {
+    const ext = mimeType?.split('/')[1] ?? 'jpg';
+    const formData = new FormData();
+    formData.append('file', {
+      uri,
+      name: `avatar.${ext}`,
+      type: mimeType ?? 'image/jpeg',
+    } as any);
+
+    const { data } = await api.post<{ url: string }>(
+      '/media/avatar',
+      formData,
+      { headers: { 'Content-Type': 'multipart/form-data' } },
+    );
+    return data;
+  },
+
   async uploadExpert(
     target: ExpertMediaTarget,
     uri: string,

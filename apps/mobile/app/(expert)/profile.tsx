@@ -82,14 +82,17 @@ export default function ExpertProfileScreen() {
         usersService.getMe(),
         lookupService.zones(),
       ]);
-      setProfile(profileRes.data);
+      const p = profileRes.data;
+      setProfile(p);
       setAllZones(zonesRes.data ?? []);
+      const resolvedAvatar = p.avatarUrl ?? p.expertProfile?.selfieUrl ?? undefined;
+      if (resolvedAvatar) await updateUser({ avatarUrl: resolvedAvatar });
     } catch {
       // show what we have from auth store
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [updateUser]);
 
   useEffect(() => {
     load();
@@ -216,7 +219,7 @@ export default function ExpertProfileScreen() {
           {/* Profile card */}
           <View style={styles.profileCard}>
             <View style={styles.profileRow}>
-              <Avatar size={56} name={user?.name} />
+              <Avatar size={56} name={user?.name} uri={profile?.avatarUrl ?? profile?.expertProfile?.selfieUrl ?? user?.avatarUrl} />
               <View style={styles.profileInfo}>
                 <Text style={styles.profileName}>{user?.name}</Text>
                 <View style={styles.verifyRow}>

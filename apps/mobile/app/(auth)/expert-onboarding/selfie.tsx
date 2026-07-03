@@ -17,6 +17,7 @@ import { Button } from '@/components/ui/Button';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { useToast } from '@/components/ui/Toast';
 import { mediaService } from '@/services/media.service';
+import { useAuthStore } from '@/stores/auth.store';
 import { Colors, IconSize, Radius, Spacing, Typography } from '@/constants/theme';
 import { Icons } from '@/constants/icons';
 
@@ -26,6 +27,7 @@ export default function SelfieScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const toast = useToast();
+  const updateUser = useAuthStore((s) => s.updateUser);
 
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [mime, setMime] = useState<string | undefined>(undefined);
@@ -52,6 +54,8 @@ export default function SelfieScreen() {
     setStatus('uploading');
     try {
       await mediaService.uploadExpert('selfie', uri, mimeType);
+      const { url } = await mediaService.uploadAvatar(uri, mimeType);
+      await updateUser({ avatarUrl: url });
       setStatus('done');
     } catch {
       setStatus('error');
