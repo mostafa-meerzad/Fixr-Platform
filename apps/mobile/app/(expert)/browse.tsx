@@ -250,6 +250,17 @@ export default function BrowseScreen() {
           />
           <Text style={styles.emptyTitle}>{emptyTitle}</Text>
           <Text style={styles.emptySubtitle}>{emptySubtitle}</Text>
+          {isPending && (
+            <Button
+              label={t("expert.browse.completeVerification")}
+              onPress={() =>
+                router.navigate(
+                  "/(auth)/expert-onboarding/selfie" as any,
+                )
+              }
+              style={{ marginTop: Spacing.s6, width: 240 }}
+            />
+          )}
         </View>
       </SafeAreaView>
     );

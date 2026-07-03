@@ -343,6 +343,7 @@
       "rejectedBanner": "Your verification was rejected. Please our support team.",
       "pendingTitle": "Verification in progress",
       "pendingSubtitle": "Once approved, jobs in your zone will appear here.",
+      "completeVerification": "Complete Verification",
       "rejectedTitle": "Verification failed",
       "rejectedSubtitle": "Go to your profile to resubmit.",
       "emptyTitle": "No jobs in this zone",
