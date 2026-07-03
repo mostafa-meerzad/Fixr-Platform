@@ -45,6 +45,31 @@ export interface ExpertProfile {
   workLicenseUrl?: string | null;
 }
 
+export interface PendingExpert {
+  id: string;
+  userId: string;
+  selfieUrl: string | null;
+  tazkiraFrontUrl: string | null;
+  tazkiraBackUrl: string | null;
+  shopName: string | null;
+  shopImageUrl: string | null;
+  workLicenseUrl: string | null;
+  shopZoneId: string | null;
+  shopZone: Zone | null;
+  shopAddress: string | null;
+  description: string | null;
+  verificationStatus: VerificationStatus;
+  verificationNote: string | null;
+  createdAt: string;
+  user: {
+    id: string;
+    name: string;
+    phone: string;
+    createdAt: string;
+  };
+  serviceZones: Array<{ zone: Zone }>;
+}
+
 export interface Zone {
   id: string;
   name: string;

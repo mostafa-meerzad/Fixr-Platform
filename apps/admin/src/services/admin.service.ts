@@ -1,6 +1,6 @@
 import { api } from '@/lib/api';
 import type {
-  DashboardStats, User, ExpertProfile, Dispute,
+  DashboardStats, User, ExpertProfile, PendingExpert, Dispute,
   CreditTx, CreditRate, Zone, Category, Paginated,
 } from '@/types';
 
@@ -23,7 +23,7 @@ export const adjustExpertPoints = (id: string, data: { positivePoints?: number; 
 
 // Verification
 export const getPendingVerifications = () =>
-  api.get<User[]>('/admin/verification/pending').then((r) => r.data);
+  api.get<PendingExpert[]>('/admin/verification/pending').then((r) => r.data);
 
 export const setVerificationStatus = (userId: string, status: 'VERIFIED' | 'REJECTED', note?: string | null) =>
   api.post(`/admin/verification/${userId}`, { status, note }).then((r) => r.data);

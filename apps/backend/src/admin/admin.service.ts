@@ -71,6 +71,7 @@ export class AdminService {
       include: {
         user: { select: { id: true, name: true, phone: true, createdAt: true } },
         serviceZones: { include: { zone: true } },
+        shopZone: true,
       },
       orderBy: { createdAt: 'asc' },
     });
