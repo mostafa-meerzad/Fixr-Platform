@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   ScrollView,
@@ -6,26 +6,26 @@ import {
   Text,
   TouchableOpacity,
   View,
-} from 'react-native';
-import { router } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import * as SecureStore from 'expo-secure-store';
-import { useTranslation } from 'react-i18next';
-import type { BottomSheetModal } from '@gorhom/bottom-sheet';
-import { MaterialIcons } from '@expo/vector-icons';
-import { Colors, Spacing, Typography } from '@/constants/theme';
-import { Icons } from '@/constants/icons';
-import { Avatar } from '@/components/ui/Avatar';
-import { BottomSheet } from '@/components/ui/BottomSheet';
-import { Button } from '@/components/ui/Button';
-import { Divider } from '@/components/ui/Divider';
-import { Input } from '@/components/ui/Input';
-import { useToast } from '@/components/ui/Toast';
-import { useAuthStore } from '@/stores/auth.store';
-import { useLangStore, type Lang } from '@/stores/lang.store';
-import { authService } from '@/services/auth.service';
-import { jobsService, type JobListResponse } from '@/services/jobs.service';
-import { usersService, type UserProfile } from '@/services/users.service';
+} from "react-native";
+import { router } from "expo-router";
+import { SafeAreaView } from "react-native-safe-area-context";
+import * as SecureStore from "expo-secure-store";
+import { useTranslation } from "react-i18next";
+import type { BottomSheetModal } from "@gorhom/bottom-sheet";
+import { MaterialIcons } from "@expo/vector-icons";
+import { Colors, Spacing, Typography } from "@/constants/theme";
+import { Icons } from "@/constants/icons";
+import { Avatar } from "@/components/ui/Avatar";
+import { BottomSheet } from "@/components/ui/BottomSheet";
+import { Button } from "@/components/ui/Button";
+import { Divider } from "@/components/ui/Divider";
+import { Input } from "@/components/ui/Input";
+import { useToast } from "@/components/ui/Toast";
+import { useAuthStore } from "@/stores/auth.store";
+import { useLangStore, type Lang } from "@/stores/lang.store";
+import { authService } from "@/services/auth.service";
+import { jobsService, type JobListResponse } from "@/services/jobs.service";
+import { usersService, type UserProfile } from "@/services/users.service";
 
 interface SettingRow {
   key: string;
@@ -52,8 +52,8 @@ export default function ProfileScreen() {
   const [totalJobs, setTotalJobs] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  const [editName, setEditName] = useState('');
-  const [editNameError, setEditNameError] = useState('');
+  const [editName, setEditName] = useState("");
+  const [editNameError, setEditNameError] = useState("");
   const [saving, setSaving] = useState(false);
 
   const load = useCallback(async () => {
@@ -76,14 +76,14 @@ export default function ProfileScreen() {
   }, [load]);
 
   const openEditSheet = () => {
-    setEditName(user?.name ?? '');
-    setEditNameError('');
+    setEditName(user?.name ?? "");
+    setEditNameError("");
     editSheetRef.current?.present();
   };
 
   const handleSaveName = async () => {
     if (!editName.trim()) {
-      setEditNameError(t('homeowner.profile.errorName'));
+      setEditNameError(t("homeowner.profile.errorName"));
       return;
     }
     setSaving(true);
@@ -91,9 +91,12 @@ export default function ProfileScreen() {
       await usersService.updateMe({ name: editName.trim() });
       await updateUser({ name: editName.trim() });
       editSheetRef.current?.dismiss();
-      toast.show({ message: 'Profile updated', variant: 'success' });
+      toast.show({ message: "Profile updated", variant: "success" });
     } catch {
-      toast.show({ message: t('homeowner.profile.errorNetwork'), variant: 'error' });
+      toast.show({
+        message: t("homeowner.profile.errorNetwork"),
+        variant: "error",
+      });
     } finally {
       setSaving(false);
     }
@@ -101,40 +104,60 @@ export default function ProfileScreen() {
 
   const handleLogout = async () => {
     try {
-      const refreshToken = await SecureStore.getItemAsync('fixr_refresh_token');
+      const refreshToken = await SecureStore.getItemAsync("fixr_refresh_token");
       if (refreshToken) await authService.logout(refreshToken);
     } catch {}
     await clearAuth();
-    router.replace('/(auth)/phone');
+    router.replace("/(auth)/phone");
   };
 
   const settingsSections: SettingRow[][] = [
     [
-      { key: 'reviews', label: t('homeowner.profile.myReviews'), icon: Icons.star },
-      { key: 'issues', label: t('homeowner.profile.reportedIssues'), icon: Icons.warning },
+      {
+        key: "reviews",
+        label: t("homeowner.profile.myReviews"),
+        icon: Icons.star,
+      },
+      {
+        key: "issues",
+        label: t("homeowner.profile.reportedIssues"),
+        icon: Icons.warning,
+      },
     ],
     [
-      { key: 'notifications', label: t('homeowner.profile.notificationSettings'), icon: Icons.notifs },
       {
-        key: 'language',
-        label: t('homeowner.profile.language'),
+        key: "notifications",
+        label: t("homeowner.profile.notificationSettings"),
+        icon: Icons.notifs,
+      },
+      {
+        key: "language",
+        label: t("homeowner.profile.language"),
         icon: Icons.language,
         rightLabel: t(`common.language.${lang}`),
         onPress: () => langSheetRef.current?.present(),
       },
     ],
     [
-      { key: 'help', label: t('homeowner.profile.helpSupport'), icon: Icons.help },
-      { key: 'about', label: t('homeowner.profile.aboutFixr'), icon: Icons.about },
+      {
+        key: "help",
+        label: t("homeowner.profile.helpSupport"),
+        icon: Icons.help,
+      },
+      {
+        key: "about",
+        label: t("homeowner.profile.aboutFixr"),
+        icon: Icons.about,
+      },
     ],
   ];
 
   const positivePoints = profile?.homeownerProfile?.positivePoints ?? 0;
 
   return (
-    <SafeAreaView style={styles.safe} edges={['top']}>
+    <SafeAreaView style={styles.safe} edges={["top"]}>
       <View style={styles.header}>
-        <Text style={styles.title}>{t('homeowner.profile.title')}</Text>
+        <Text style={styles.title}>{t("homeowner.profile.title")}</Text>
       </View>
 
       {loading ? (
@@ -149,10 +172,12 @@ export default function ProfileScreen() {
               <Avatar size={56} name={user?.name} />
               <View style={styles.profileInfo}>
                 <Text style={styles.profileName}>{user?.name}</Text>
-                <Text style={styles.profilePhone}>{user?.phone}</Text>
+                <Text style={styles.profilePhone}>{'\u200E'}{user?.phone}</Text>
               </View>
               <TouchableOpacity onPress={openEditSheet} style={styles.editBtn}>
-                <Text style={styles.editBtnText}>{t('homeowner.profile.editProfile')}</Text>
+                <Text style={styles.editBtnText}>
+                  {t("homeowner.profile.editProfile")}
+                </Text>
               </TouchableOpacity>
             </View>
 
@@ -161,19 +186,25 @@ export default function ProfileScreen() {
             <View style={styles.statsRow}>
               <View style={styles.statItem}>
                 <Text style={styles.statValue}>{totalJobs}</Text>
-                <Text style={styles.statLabel}>{t('homeowner.profile.jobsPosted')}</Text>
+                <Text style={styles.statLabel}>
+                  {t("homeowner.profile.jobsPosted")}
+                </Text>
               </View>
               <View style={styles.statSep} />
               <View style={styles.statItem}>
                 <Text style={styles.statValue}>0</Text>
-                <Text style={styles.statLabel}>{t('homeowner.profile.completed')}</Text>
+                <Text style={styles.statLabel}>
+                  {t("homeowner.profile.completed")}
+                </Text>
               </View>
               <View style={styles.statSep} />
               <View style={styles.statItem}>
                 <Text style={[styles.statValue, styles.statPositive]}>
                   {positivePoints > 0 ? `+${positivePoints}` : positivePoints}
                 </Text>
-                <Text style={styles.statLabel}>{t('homeowner.profile.positive')}</Text>
+                <Text style={styles.statLabel}>
+                  {t("homeowner.profile.positive")}
+                </Text>
               </View>
             </View>
           </View>
@@ -183,16 +214,32 @@ export default function ProfileScreen() {
             <View key={sIdx} style={styles.section}>
               {section.map((row, rIdx) => (
                 <View key={row.key}>
-                  <TouchableOpacity style={styles.settingRow} onPress={row.onPress} activeOpacity={0.7}>
-                    <MaterialIcons name={row.icon as any} size={22} color={Colors.gray600} />
+                  <TouchableOpacity
+                    style={styles.settingRow}
+                    onPress={row.onPress}
+                    activeOpacity={0.7}
+                  >
+                    <MaterialIcons
+                      name={row.icon as any}
+                      size={22}
+                      color={Colors.gray600}
+                    />
                     <Text style={styles.settingLabel}>{row.label}</Text>
                     {row.rightLabel ? (
-                      <Text style={styles.settingRightLabel}>{row.rightLabel}</Text>
+                      <Text style={styles.settingRightLabel}>
+                        {row.rightLabel}
+                      </Text>
                     ) : (
-                      <MaterialIcons name={Icons.chevronRight as any} size={20} color={Colors.gray400} />
+                      <MaterialIcons
+                        name={Icons.chevronRight as any}
+                        size={20}
+                        color={Colors.gray400}
+                      />
                     )}
                   </TouchableOpacity>
-                  {rIdx < section.length - 1 ? <Divider style={styles.rowDivider} /> : null}
+                  {rIdx < section.length - 1 ? (
+                    <Divider style={styles.rowDivider} />
+                  ) : null}
                 </View>
               ))}
             </View>
@@ -200,8 +247,14 @@ export default function ProfileScreen() {
 
           {/* Log out */}
           <View style={styles.section}>
-            <TouchableOpacity style={styles.logoutRow} onPress={handleLogout} activeOpacity={0.7}>
-              <Text style={styles.logoutText}>{t('homeowner.profile.logout')}</Text>
+            <TouchableOpacity
+              style={styles.logoutRow}
+              onPress={handleLogout}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.logoutText}>
+                {t("homeowner.profile.logout")}
+              </Text>
             </TouchableOpacity>
           </View>
 
@@ -209,32 +262,35 @@ export default function ProfileScreen() {
         </ScrollView>
       )}
 
-      <BottomSheet ref={editSheetRef} snapPoints={['40%']}>
-        <Text style={styles.sheetTitle}>{t('homeowner.profile.editNameTitle')}</Text>
+      <BottomSheet ref={editSheetRef} snapPoints={["40%"]}>
+        <Text style={styles.sheetTitle}>
+          {t("homeowner.profile.editNameTitle")}
+        </Text>
         <Input
-          label={t('homeowner.profile.nameLabel')}
-          placeholder={t('homeowner.profile.namePlaceholder')}
+          label={t("homeowner.profile.nameLabel")}
+          placeholder={t("homeowner.profile.namePlaceholder")}
           value={editName}
           onChangeText={setEditName}
           error={editNameError}
           onBlur={() => {
-            if (!editName.trim()) setEditNameError(t('homeowner.profile.errorName'));
-            else setEditNameError('');
+            if (!editName.trim())
+              setEditNameError(t("homeowner.profile.errorName"));
+            else setEditNameError("");
           }}
           autoCapitalize="words"
           style={styles.sheetInput}
         />
         <Button
-          label={t('homeowner.profile.saveChanges')}
+          label={t("homeowner.profile.saveChanges")}
           onPress={handleSaveName}
           loading={saving}
           style={styles.sheetBtn}
         />
       </BottomSheet>
 
-      <BottomSheet ref={langSheetRef} snapPoints={['28%']}>
-        <Text style={styles.sheetTitle}>{t('common.language.title')}</Text>
-        {(['en', 'fa'] as Lang[]).map((option, idx, arr) => (
+      <BottomSheet ref={langSheetRef} snapPoints={["28%"]}>
+        <Text style={styles.sheetTitle}>{t("common.language.title")}</Text>
+        {(["en", "fa"] as Lang[]).map((option, idx, arr) => (
           <View key={option}>
             <TouchableOpacity
               style={styles.langRow}
@@ -244,11 +300,20 @@ export default function ProfileScreen() {
               }}
               activeOpacity={0.7}
             >
-              <Text style={[styles.langLabel, lang === option && styles.langLabelActive]}>
+              <Text
+                style={[
+                  styles.langLabel,
+                  lang === option && styles.langLabelActive,
+                ]}
+              >
                 {t(`common.language.${option}`)}
               </Text>
               {lang === option && (
-                <MaterialIcons name="check" size={20} color={Colors.primary600} />
+                <MaterialIcons
+                  name="check"
+                  size={20}
+                  color={Colors.primary600}
+                />
               )}
             </TouchableOpacity>
             {idx < arr.length - 1 && <Divider style={styles.rowDivider} />}
@@ -277,8 +342,8 @@ const styles = StyleSheet.create({
   },
   centered: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   // Profile card
   profileCard: {
@@ -291,8 +356,8 @@ const styles = StyleSheet.create({
     borderColor: Colors.gray200,
   },
   profileRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: Spacing.s3,
   },
   profileInfo: {
@@ -304,6 +369,7 @@ const styles = StyleSheet.create({
   },
   profilePhone: {
     ...Typography.caption,
+    writingDirection: "ltr",
   },
   editBtn: {
     borderWidth: 1.5,
@@ -314,24 +380,24 @@ const styles = StyleSheet.create({
   },
   editBtnText: {
     fontSize: 13,
-    fontWeight: '500',
+    fontWeight: "500",
     color: Colors.primary600,
   },
   statsDivider: {
     marginVertical: Spacing.s3,
   },
   statsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   statItem: {
     flex: 1,
-    alignItems: 'center',
+    alignItems: "center",
     gap: 2,
   },
   statValue: {
     fontSize: 20,
-    fontWeight: '700',
+    fontWeight: "700",
     color: Colors.gray900,
   },
   statPositive: {
@@ -339,9 +405,9 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     fontSize: 12,
-    fontWeight: '400',
+    fontWeight: "400",
     color: Colors.gray600,
-    textAlign: 'center',
+    textAlign: "center",
   },
   statSep: {
     width: 1,
@@ -356,11 +422,11 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     borderColor: Colors.gray200,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   settingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     height: 52,
     paddingHorizontal: Spacing.s4,
     gap: Spacing.s3,
@@ -380,12 +446,12 @@ const styles = StyleSheet.create({
   },
   logoutRow: {
     height: 52,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   logoutText: {
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: "600",
     color: Colors.danger600,
   },
   bottomPad: {
@@ -402,9 +468,9 @@ const styles = StyleSheet.create({
   sheetBtn: {},
   // Language picker
   langRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     height: 52,
   },
   langLabel: {
@@ -413,6 +479,6 @@ const styles = StyleSheet.create({
   },
   langLabelActive: {
     color: Colors.primary600,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 });

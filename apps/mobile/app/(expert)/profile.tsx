@@ -207,7 +207,7 @@ export default function ExpertProfileScreen() {
                     variant={getVerificationVariant(verificationStatus)}
                   />
                 </View>
-                <Text style={styles.profilePhone}>{user?.phone}</Text>
+                <Text style={styles.profilePhone}>{'\u200E'}{user?.phone}</Text>
               </View>
               <TouchableOpacity onPress={openEditSheet} style={styles.editBtn}>
                 <Text style={styles.editBtnText}>{t('expert.profile.edit')}</Text>
@@ -442,6 +442,7 @@ const styles = StyleSheet.create({
   },
   profilePhone: {
     ...Typography.caption,
+    writingDirection: 'ltr',
   },
   editBtn: {
     borderWidth: 1.5,
