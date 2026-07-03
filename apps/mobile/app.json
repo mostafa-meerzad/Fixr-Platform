@@ -24,6 +24,11 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0D9488"
       },
+      "splash": {
+        "image": "./assets/splash.png",
+        "resizeMode": "cover",
+        "backgroundColor": "#F9FAFB"
+      },
       "package": "com.fixr.app",
       "permissions": [
         "CAMERA",

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import {
@@ -11,7 +11,7 @@ import {
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, View, Image } from 'react-native';
 import '@/i18n';
 import { useAuthStore } from '@/stores/auth.store';
 import { useLangStore } from '@/stores/lang.store';
@@ -19,10 +19,14 @@ import { ToastProvider } from '@/components/ui/Toast';
 
 SplashScreen.preventAutoHideAsync();
 
+const SPLASH_MIN_MS = 2000;
+
 export default function RootLayout() {
   const initialize = useAuthStore((s) => s.initialize);
   const initializeLang = useLangStore((s) => s.initialize);
   const langLoaded = useLangStore((s) => s.langLoaded);
+  const startTime = useRef(Date.now());
+  const [ready, setReady] = useState(false);
 
   const [fontsLoaded] = useFonts({
     Inter_400Regular,
@@ -39,10 +43,24 @@ export default function RootLayout() {
   useEffect(() => {
     if (fontsLoaded && langLoaded) {
       SplashScreen.hideAsync();
+      const elapsed = Date.now() - startTime.current;
+      const remaining = Math.max(0, SPLASH_MIN_MS - elapsed);
+      const timer = setTimeout(() => setReady(true), remaining);
+      return () => clearTimeout(timer);
     }
   }, [fontsLoaded, langLoaded]);
 
-  if (!fontsLoaded || !langLoaded) return null;
+  if (!ready) {
+    return (
+      <View style={styles.splash}>
+        <Image
+          source={require('../assets/splash.png')}
+          style={styles.splashImage}
+          resizeMode="cover"
+        />
+      </View>
+    );
+  }
 
   return (
     <GestureHandlerRootView style={styles.root}>
@@ -59,4 +77,6 @@ export default function RootLayout() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
+  splash: { flex: 1, backgroundColor: '#F9FAFB' },
+  splashImage: { width: '100%', height: '100%' },
 });
