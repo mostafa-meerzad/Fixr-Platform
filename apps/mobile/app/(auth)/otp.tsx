@@ -240,6 +240,7 @@ const styles = StyleSheet.create({
     flexDirection: "row-reverse",
     gap: Spacing.s2,
     marginBottom: Spacing.s3,
+    direction: "rtl",
   },
   box: {
     width: 48,

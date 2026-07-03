@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { StyleSheet, Text, TextInput, View } from "react-native";
+import { I18nManager, StyleSheet, Text, TextInput, View } from "react-native";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/Button";
 import { useToast } from "@/components/ui/Toast";
 import { authService } from "@/services/auth.service";
 import { Colors, Spacing, Radius, Typography } from "@/constants/theme";
+import { useRTL } from "@/hooks/useRTL";
 
 const MIN_DIGITS = 9;
 const MAX_DIGITS = 10;
@@ -18,6 +19,9 @@ export default function PhoneScreen() {
   const router = useRouter();
   const toast = useToast();
 
+  const { isRTL } = useRTL();
+  const rtl = isRTL || I18nManager.isRTL;
+  const textAlign = rtl ? ("right" as const) : ("left" as const);
   const [digits, setDigits] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -56,7 +60,9 @@ export default function PhoneScreen() {
         </View>
 
         <View style={styles.inputSection}>
-          <Text style={styles.inputLabel}>{t("auth.phone.label")}</Text>
+          <Text style={[styles.inputLabel, { textAlign }]}>
+            {t("auth.phone.label")}
+          </Text>
           <View style={styles.phoneRow}>
             <View style={styles.prefix}>
               <Text style={styles.flag}>🇦🇫</Text>
@@ -87,7 +93,9 @@ export default function PhoneScreen() {
               />
             </View>
           </View>
-          <Text style={styles.helperText}>{t("auth.phone.helper")}</Text>
+          <Text style={[styles.helperText, { textAlign }]}>
+            {t("auth.phone.helper")}
+          </Text>
         </View>
 
         <View style={styles.footer}>
@@ -138,7 +146,6 @@ const styles = StyleSheet.create({
 
   inputSection: {
     gap: Spacing.s2,
-    direction: "ltr",
   },
   inputLabel: {
     fontSize: 13,
@@ -148,6 +155,7 @@ const styles = StyleSheet.create({
   phoneRow: {
     flexDirection: "row",
     alignItems: "center",
+    direction: "ltr",
     backgroundColor: Colors.white,
     borderWidth: 1.5,
     borderColor: Colors.primary600,
