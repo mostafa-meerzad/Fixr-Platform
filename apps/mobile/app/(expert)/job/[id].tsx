@@ -525,6 +525,7 @@ export default function ExpertJobDetailScreen() {
                 value={price}
                 onChangeText={setPrice}
                 keyboardType="numeric"
+                ltrText
                 error={priceError}
                 onBlur={() => {
                   if (!price.trim() || isNaN(Number(price)) || Number(price) <= 0) {
@@ -544,6 +545,7 @@ export default function ExpertJobDetailScreen() {
                   value={arrivalMinutes}
                   onChangeText={setArrivalMinutes}
                   keyboardType="numeric"
+                  ltrText
                   error={arrivalError}
                   onBlur={() => {
                     if (!arrivalMinutes.trim() || isNaN(Number(arrivalMinutes)) || Number(arrivalMinutes) <= 0) {
@@ -561,6 +563,7 @@ export default function ExpertJobDetailScreen() {
                   value={durationHours}
                   onChangeText={setDurationHours}
                   keyboardType="numeric"
+                  ltrText
                   error={durationError}
                   onBlur={() => {
                     if (!durationHours.trim() || isNaN(Number(durationHours)) || Number(durationHours) <= 0) {

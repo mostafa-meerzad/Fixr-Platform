@@ -14,12 +14,15 @@ import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { StyleSheet } from 'react-native';
 import '@/i18n';
 import { useAuthStore } from '@/stores/auth.store';
+import { useLangStore } from '@/stores/lang.store';
 import { ToastProvider } from '@/components/ui/Toast';
 
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const initialize = useAuthStore((s) => s.initialize);
+  const initializeLang = useLangStore((s) => s.initialize);
+  const langLoaded = useLangStore((s) => s.langLoaded);
 
   const [fontsLoaded] = useFonts({
     Inter_400Regular,
@@ -30,15 +33,16 @@ export default function RootLayout() {
 
   useEffect(() => {
     initialize();
+    initializeLang();
   }, []);
 
   useEffect(() => {
-    if (fontsLoaded) {
+    if (fontsLoaded && langLoaded) {
       SplashScreen.hideAsync();
     }
-  }, [fontsLoaded]);
+  }, [fontsLoaded, langLoaded]);
 
-  if (!fontsLoaded) return null;
+  if (!fontsLoaded || !langLoaded) return null;
 
   return (
     <GestureHandlerRootView style={styles.root}>

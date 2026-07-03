@@ -390,6 +390,7 @@ export default function CreateJobScreen() {
                   value={scheduledAt}
                   onChangeText={setScheduledAt}
                   keyboardType="numbers-and-punctuation"
+                  ltrText
                 />
               )}
             </View>

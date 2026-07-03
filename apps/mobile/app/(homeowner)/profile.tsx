@@ -22,6 +22,7 @@ import { Divider } from '@/components/ui/Divider';
 import { Input } from '@/components/ui/Input';
 import { useToast } from '@/components/ui/Toast';
 import { useAuthStore } from '@/stores/auth.store';
+import { useLangStore, type Lang } from '@/stores/lang.store';
 import { authService } from '@/services/auth.service';
 import { jobsService, type JobListResponse } from '@/services/jobs.service';
 import { usersService, type UserProfile } from '@/services/users.service';
@@ -41,7 +42,11 @@ export default function ProfileScreen() {
   const updateUser = useAuthStore((s) => s.updateUser);
   const clearAuth = useAuthStore((s) => s.clearAuth);
 
+  const lang = useLangStore((s) => s.lang);
+  const setLang = useLangStore((s) => s.setLang);
+
   const editSheetRef = useRef<BottomSheetModal>(null);
+  const langSheetRef = useRef<BottomSheetModal>(null);
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [totalJobs, setTotalJobs] = useState(0);
@@ -114,7 +119,8 @@ export default function ProfileScreen() {
         key: 'language',
         label: t('homeowner.profile.language'),
         icon: Icons.language,
-        rightLabel: t('homeowner.profile.languageValue'),
+        rightLabel: t(`common.language.${lang}`),
+        onPress: () => langSheetRef.current?.present(),
       },
     ],
     [
@@ -224,6 +230,30 @@ export default function ProfileScreen() {
           loading={saving}
           style={styles.sheetBtn}
         />
+      </BottomSheet>
+
+      <BottomSheet ref={langSheetRef} snapPoints={['28%']}>
+        <Text style={styles.sheetTitle}>{t('common.language.title')}</Text>
+        {(['en', 'fa'] as Lang[]).map((option, idx, arr) => (
+          <View key={option}>
+            <TouchableOpacity
+              style={styles.langRow}
+              onPress={async () => {
+                await setLang(option);
+                langSheetRef.current?.dismiss();
+              }}
+              activeOpacity={0.7}
+            >
+              <Text style={[styles.langLabel, lang === option && styles.langLabelActive]}>
+                {t(`common.language.${option}`)}
+              </Text>
+              {lang === option && (
+                <MaterialIcons name="check" size={20} color={Colors.primary600} />
+              )}
+            </TouchableOpacity>
+            {idx < arr.length - 1 && <Divider style={styles.rowDivider} />}
+          </View>
+        ))}
       </BottomSheet>
     </SafeAreaView>
   );
@@ -370,4 +400,19 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.s4,
   },
   sheetBtn: {},
+  // Language picker
+  langRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    height: 52,
+  },
+  langLabel: {
+    ...Typography.bodyMd,
+    color: Colors.gray900,
+  },
+  langLabelActive: {
+    color: Colors.primary600,
+    fontWeight: '600',
+  },
 });

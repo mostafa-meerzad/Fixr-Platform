@@ -9,6 +9,7 @@ import {
   type ReturnKeyTypeOptions,
 } from 'react-native';
 import { Colors, Spacing, Radius } from '@/constants/theme';
+import { useRTL } from '@/hooks/useRTL';
 
 interface InputProps {
   label?: string;
@@ -27,6 +28,8 @@ interface InputProps {
   onSubmitEditing?: () => void;
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
   style?: ViewStyle;
+  /** Force LTR text alignment regardless of language — use for phone numbers, prices, numeric codes */
+  ltrText?: boolean;
 }
 
 export const Input = forwardRef<TextInput, InputProps>(function Input(
@@ -47,14 +50,21 @@ export const Input = forwardRef<TextInput, InputProps>(function Input(
     onSubmitEditing,
     autoCapitalize,
     style,
+    ltrText = false,
   },
   ref,
 ) {
   const [focused, setFocused] = useState(false);
+  const { textAlign } = useRTL();
+
+  // Numeric/phone/OTP fields are always LTR regardless of language
+  const resolvedTextAlign = ltrText ? 'left' : textAlign;
 
   return (
     <View style={[styles.container, style]}>
-      {label ? <Text style={styles.label}>{label}</Text> : null}
+      {label ? (
+        <Text style={[styles.label, { textAlign: resolvedTextAlign }]}>{label}</Text>
+      ) : null}
       <TextInput
         ref={ref}
         value={value}
@@ -77,13 +87,16 @@ export const Input = forwardRef<TextInput, InputProps>(function Input(
         }}
         style={[
           styles.input,
+          { textAlign: resolvedTextAlign },
           multiline ? styles.textarea : null,
           focused ? styles.focused : null,
           error ? styles.inputError : null,
           !editable ? styles.disabled : null,
         ]}
       />
-      {error ? <Text style={styles.errorText}>{error}</Text> : null}
+      {error ? (
+        <Text style={[styles.errorText, { textAlign: resolvedTextAlign }]}>{error}</Text>
+      ) : null}
     </View>
   );
 });

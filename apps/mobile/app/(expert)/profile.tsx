@@ -24,6 +24,7 @@ import { Input } from '@/components/ui/Input';
 import { Pill } from '@/components/ui/Pill';
 import { useToast } from '@/components/ui/Toast';
 import { useAuthStore } from '@/stores/auth.store';
+import { useLangStore, type Lang } from '@/stores/lang.store';
 import { authService } from '@/services/auth.service';
 import { usersService, type UserProfile } from '@/services/users.service';
 import { lookupService, type Zone } from '@/services/lookup.service';
@@ -32,6 +33,7 @@ interface SettingRow {
   key: string;
   label: string;
   icon: string;
+  rightLabel?: string;
   onPress?: () => void;
 }
 
@@ -56,8 +58,12 @@ export default function ExpertProfileScreen() {
   const updateUser = useAuthStore((s) => s.updateUser);
   const clearAuth = useAuthStore((s) => s.clearAuth);
 
+  const lang = useLangStore((s) => s.lang);
+  const setLang = useLangStore((s) => s.setLang);
+
   const editSheetRef = useRef<BottomSheetModal>(null);
   const zonesSheetRef = useRef<BottomSheetModal>(null);
+  const langSheetRef = useRef<BottomSheetModal>(null);
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [allZones, setAllZones] = useState<Zone[]>([]);
@@ -163,7 +169,13 @@ export default function ExpertProfileScreen() {
     ],
     [
       { key: 'notifications', label: t('expert.profile.notificationSettings'), icon: Icons.notifs },
-      { key: 'language', label: t('expert.profile.language'), icon: Icons.language },
+      {
+        key: 'language',
+        label: t('expert.profile.language'),
+        icon: Icons.language,
+        rightLabel: t(`common.language.${lang}`),
+        onPress: () => langSheetRef.current?.present(),
+      },
     ],
     [
       { key: 'help', label: t('expert.profile.helpSupport'), icon: Icons.help },
@@ -262,11 +274,15 @@ export default function ExpertProfileScreen() {
                   >
                     <MaterialIcons name={row.icon as any} size={22} color={Colors.gray600} />
                     <Text style={styles.settingLabel}>{row.label}</Text>
-                    <MaterialIcons
-                      name={Icons.chevronRight as any}
-                      size={20}
-                      color={Colors.gray400}
-                    />
+                    {row.rightLabel ? (
+                      <Text style={styles.settingRightLabel}>{row.rightLabel}</Text>
+                    ) : (
+                      <MaterialIcons
+                        name={Icons.chevronRight as any}
+                        size={20}
+                        color={Colors.gray400}
+                      />
+                    )}
                   </TouchableOpacity>
                   {rIdx < section.length - 1 ? <Divider style={styles.rowDivider} /> : null}
                 </View>
@@ -306,6 +322,31 @@ export default function ExpertProfileScreen() {
           onPress={handleSaveName}
           loading={saving}
         />
+      </BottomSheet>
+
+      {/* Language picker sheet */}
+      <BottomSheet ref={langSheetRef} snapPoints={['28%']}>
+        <Text style={styles.sheetTitle}>{t('common.language.title')}</Text>
+        {(['en', 'fa'] as Lang[]).map((option, idx, arr) => (
+          <View key={option}>
+            <TouchableOpacity
+              style={styles.langRow}
+              onPress={async () => {
+                await setLang(option);
+                langSheetRef.current?.dismiss();
+              }}
+              activeOpacity={0.7}
+            >
+              <Text style={[styles.langLabel, lang === option && styles.langLabelActive]}>
+                {t(`common.language.${option}`)}
+              </Text>
+              {lang === option && (
+                <MaterialIcons name="check" size={20} color={Colors.primary600} />
+              )}
+            </TouchableOpacity>
+            {idx < arr.length - 1 && <Divider style={styles.zoneDivider} />}
+          </View>
+        ))}
       </BottomSheet>
 
       {/* Service zones sheet */}
@@ -544,6 +585,11 @@ const styles = StyleSheet.create({
   bottomPad: {
     height: Spacing.s6,
   },
+  settingRightLabel: {
+    fontSize: 13,
+    fontWeight: '500' as const,
+    color: Colors.gray400,
+  },
   // Bottom sheets
   sheetTitle: {
     ...Typography.heading2,
@@ -551,6 +597,21 @@ const styles = StyleSheet.create({
   },
   sheetInput: {
     marginBottom: Spacing.s4,
+  },
+  // Language picker
+  langRow: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    justifyContent: 'space-between' as const,
+    height: 52,
+  },
+  langLabel: {
+    ...Typography.bodyMd,
+    color: Colors.gray900,
+  },
+  langLabelActive: {
+    color: Colors.primary600,
+    fontWeight: '600' as const,
   },
   zonesLoading: {
     height: 120,
