@@ -163,7 +163,13 @@ export default function BrowseScreen() {
     }
   };
 
-  if (loading) {
+  useEffect(() => {
+    if (!loading && !error && verificationStatus === 'NOT_SUBMITTED') {
+      router.replace('/(auth)/expert-onboarding/selfie' as any);
+    }
+  }, [loading, error, verificationStatus]);
+
+  if (loading || (!error && verificationStatus === 'NOT_SUBMITTED')) {
     return (
       <SafeAreaView style={styles.safe} edges={["top"]}>
         <View style={styles.loadingHeader}>
@@ -250,17 +256,6 @@ export default function BrowseScreen() {
           />
           <Text style={styles.emptyTitle}>{emptyTitle}</Text>
           <Text style={styles.emptySubtitle}>{emptySubtitle}</Text>
-          {isPending && (
-            <Button
-              label={t("expert.browse.completeVerification")}
-              onPress={() =>
-                router.navigate(
-                  "/(auth)/expert-onboarding/selfie" as any,
-                )
-              }
-              style={{ marginTop: Spacing.s6, width: 240 }}
-            />
-          )}
         </View>
       </SafeAreaView>
     );

@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import {
-  ActivityIndicator,
   FlatList,
   Image,
   Modal,
@@ -20,61 +19,43 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { useToast } from '@/components/ui/Toast';
-import { mediaService, type ExpertMediaTarget } from '@/services/media.service';
+import { mediaService } from '@/services/media.service';
 import { lookupService, type Zone } from '@/services/lookup.service';
 import { usersService } from '@/services/users.service';
+import { useOnboardingStore } from '@/stores/onboarding.store';
+import { useAuthStore } from '@/stores/auth.store';
 import { Colors, IconSize, Radius, Spacing, Typography } from '@/constants/theme';
 import { Icons } from '@/constants/icons';
-
-type UploadStatus = 'idle' | 'uploading' | 'done' | 'error';
 
 interface CompactUploadCardProps {
   label: string;
   idleLabel: string;
   uri: string | null;
-  status: UploadStatus;
   onPress: () => void;
   onRetake: () => void;
+  disabled?: boolean;
 }
 
-function CompactUploadCard({ label, idleLabel, uri, status, onPress, onRetake }: CompactUploadCardProps) {
+function CompactUploadCard({ label, idleLabel, uri, onPress, onRetake, disabled }: CompactUploadCardProps) {
   const { t } = useTranslation();
-  const disabled = status === 'uploading' || status === 'done';
 
   return (
     <View style={styles.uploadCardWrapper}>
       <Text style={styles.uploadCardLabel}>{label}</Text>
       <TouchableOpacity
-        style={[
-          styles.uploadCard,
-          status === 'done' && styles.uploadCardDone,
-          status === 'error' && styles.uploadCardError,
-        ]}
-        onPress={onPress}
-        disabled={disabled}
+        style={[styles.uploadCard, uri ? styles.uploadCardDone : null]}
+        onPress={uri ? undefined : onPress}
+        disabled={uri !== null || disabled}
         activeOpacity={0.75}
       >
         {uri ? (
           <View style={styles.imageWrap}>
             <Image source={{ uri }} style={styles.image} />
-            {status === 'uploading' && (
-              <View style={styles.overlay}>
-                <ActivityIndicator size="small" color={Colors.white} />
+            <View style={styles.overlay}>
+              <View style={styles.checkCircle}>
+                <MaterialIcons name="check" size={20} color={Colors.white} />
               </View>
-            )}
-            {status === 'done' && (
-              <View style={styles.overlay}>
-                <View style={styles.checkCircle}>
-                  <MaterialIcons name="check" size={20} color={Colors.white} />
-                </View>
-              </View>
-            )}
-            {status === 'error' && (
-              <View style={styles.overlay}>
-                <MaterialIcons name={Icons.warning as any} size={24} color={Colors.white} />
-                <Text style={styles.retryText}>{t('common.retry')}</Text>
-              </View>
-            )}
+            </View>
           </View>
         ) : (
           <View style={styles.idlePlaceholder}>
@@ -83,7 +64,7 @@ function CompactUploadCard({ label, idleLabel, uri, status, onPress, onRetake }:
           </View>
         )}
       </TouchableOpacity>
-      {uri !== null && status !== 'uploading' && (
+      {uri !== null && !disabled && (
         <TouchableOpacity style={styles.retakeBtn} onPress={onRetake}>
           <MaterialIcons name={Icons.camera as any} size={IconSize.status} color={Colors.primary600} />
           <Text style={styles.retakeBtnLabel}>{t('auth.onboarding.retake')}</Text>
@@ -97,6 +78,17 @@ export default function BusinessScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const toast = useToast();
+  const updateUser = useAuthStore((s) => s.updateUser);
+
+  const {
+    selfieUri,
+    selfieMime,
+    tazkiraFrontUri,
+    tazkiraFrontMime,
+    tazkiraBackUri,
+    tazkiraBackMime,
+    clear: clearOnboarding,
+  } = useOnboardingStore();
 
   const [shopName, setShopName] = useState('');
   const [shopNameError, setShopNameError] = useState('');
@@ -112,11 +104,9 @@ export default function BusinessScreen() {
 
   const [shopPhotoUri, setShopPhotoUri] = useState<string | null>(null);
   const [shopPhotoMime, setShopPhotoMime] = useState<string | undefined>(undefined);
-  const [shopPhotoStatus, setShopPhotoStatus] = useState<UploadStatus>('idle');
 
   const [licenseUri, setLicenseUri] = useState<string | null>(null);
   const [licenseMime, setLicenseMime] = useState<string | undefined>(undefined);
-  const [licenseStatus, setLicenseStatus] = useState<UploadStatus>('idle');
   const [licensePickerVisible, setLicensePickerVisible] = useState(false);
 
   const [submitting, setSubmitting] = useState(false);
@@ -125,8 +115,11 @@ export default function BusinessScreen() {
     shopName.trim().length > 0 &&
     selectedZone !== null &&
     shopAddress.trim().length > 0 &&
-    shopPhotoStatus === 'done' &&
-    licenseStatus === 'done' &&
+    shopPhotoUri !== null &&
+    licenseUri !== null &&
+    Boolean(selfieUri) &&
+    Boolean(tazkiraFrontUri) &&
+    Boolean(tazkiraBackUri) &&
     !submitting;
 
   useEffect(() => {
@@ -138,27 +131,9 @@ export default function BusinessScreen() {
       .finally(() => setZonesLoading(false));
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  async function doUpload(
-    target: ExpertMediaTarget,
-    uri: string,
-    mimeType: string | undefined,
-    setStatus: (v: UploadStatus) => void,
-  ) {
-    setStatus('uploading');
-    try {
-      await mediaService.uploadExpert(target, uri, mimeType);
-      setStatus('done');
-    } catch {
-      setStatus('error');
-      toast.show({ message: t('auth.onboarding.uploadError'), variant: 'error' });
-    }
-  }
-
   async function pickWithCamera(
-    target: ExpertMediaTarget,
     setUri: (v: string | null) => void,
     setMime: (v: string | undefined) => void,
-    setStatus: (v: UploadStatus) => void,
   ) {
     const perm = await ImagePicker.requestCameraPermissionsAsync();
     if (perm.status !== 'granted') {
@@ -173,14 +148,11 @@ export default function BusinessScreen() {
     const asset = result.assets[0];
     setUri(asset.uri);
     setMime(asset.mimeType ?? undefined);
-    await doUpload(target, asset.uri, asset.mimeType ?? undefined, setStatus);
   }
 
   async function pickFromLibrary(
-    target: ExpertMediaTarget,
     setUri: (v: string | null) => void,
     setMime: (v: string | undefined) => void,
-    setStatus: (v: UploadStatus) => void,
   ) {
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (perm.status !== 'granted') {
@@ -195,7 +167,6 @@ export default function BusinessScreen() {
     const asset = result.assets[0];
     setUri(asset.uri);
     setMime(asset.mimeType ?? undefined);
-    await doUpload(target, asset.uri, asset.mimeType ?? undefined, setStatus);
   }
 
   async function handleSubmit() {
@@ -214,14 +185,30 @@ export default function BusinessScreen() {
     }
     if (hasError) return;
 
+    // Guard: if user somehow reached this screen without completing earlier steps
+    if (!selfieUri || !tazkiraFrontUri || !tazkiraBackUri) {
+      toast.show({ message: t('auth.onboarding.errorMissingUploads'), variant: 'error' });
+      router.replace('/(auth)/expert-onboarding/selfie' as any);
+      return;
+    }
+
     setSubmitting(true);
     try {
+      // Upload all 5 verification files then avatar — nothing hits the server before this point
+      await mediaService.uploadExpert('selfie', selfieUri, selfieMime);
+      await mediaService.uploadExpert('tazkira_front', tazkiraFrontUri, tazkiraFrontMime);
+      await mediaService.uploadExpert('tazkira_back', tazkiraBackUri, tazkiraBackMime);
+      await mediaService.uploadExpert('shop_image', shopPhotoUri!, shopPhotoMime);
+      await mediaService.uploadExpert('work_license', licenseUri!, licenseMime);
+      const { url } = await mediaService.uploadAvatar(selfieUri, selfieMime);
+      await updateUser({ avatarUrl: url });
       await usersService.submitVerification({
         shopName: shopName.trim(),
         description: description.trim() || undefined,
         shopZoneId: selectedZone!.id,
         shopAddress: shopAddress.trim(),
       });
+      clearOnboarding();
       router.replace('/(auth)/expert-onboarding/submitted' as any);
     } catch (err: any) {
       const message = err?.response?.data?.message ?? t('auth.onboarding.errorNetwork');
@@ -237,9 +224,6 @@ export default function BusinessScreen() {
 
       <View style={styles.container}>
         <View style={styles.headerRow}>
-          <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-            <MaterialIcons name={Icons.back as any} size={24} color={Colors.gray600} />
-          </TouchableOpacity>
           <Text style={styles.stepLabel}>
             {t('auth.onboarding.stepLabel', { current: 3, total: 3 })}
           </Text>
@@ -270,17 +254,14 @@ export default function BusinessScreen() {
             style={styles.textarea}
           />
 
-          {/* Shop zone */}
           <View style={styles.fieldGroup}>
             <Text style={styles.fieldLabel}>{t('auth.onboarding.shopZoneLabel')}</Text>
             <TouchableOpacity
               style={[styles.zoneSelector, zoneError ? styles.zoneSelectorError : null]}
               onPress={() => setZonePickerVisible(true)}
-              disabled={zonesLoading}
+              disabled={zonesLoading || submitting}
             >
-              {zonesLoading ? (
-                <ActivityIndicator size="small" color={Colors.gray400} />
-              ) : (
+              {zonesLoading ? null : (
                 <>
                   <Text
                     style={[
@@ -313,19 +294,12 @@ export default function BusinessScreen() {
             label={t('auth.onboarding.shopPhotoLabel')}
             idleLabel={t('auth.onboarding.addPhoto')}
             uri={shopPhotoUri}
-            status={shopPhotoStatus}
-            onPress={() => {
-              if (shopPhotoStatus === 'idle') {
-                pickWithCamera('shop_image', setShopPhotoUri, setShopPhotoMime, setShopPhotoStatus);
-              } else if (shopPhotoStatus === 'error' && shopPhotoUri) {
-                doUpload('shop_image', shopPhotoUri, shopPhotoMime, setShopPhotoStatus);
-              }
-            }}
+            disabled={submitting}
+            onPress={() => pickWithCamera(setShopPhotoUri, setShopPhotoMime)}
             onRetake={() => {
               setShopPhotoUri(null);
               setShopPhotoMime(undefined);
-              setShopPhotoStatus('idle');
-              pickWithCamera('shop_image', setShopPhotoUri, setShopPhotoMime, setShopPhotoStatus);
+              pickWithCamera(setShopPhotoUri, setShopPhotoMime);
             }}
           />
 
@@ -333,18 +307,11 @@ export default function BusinessScreen() {
             label={t('auth.onboarding.workLicenseLabel')}
             idleLabel={t('auth.onboarding.addDocument')}
             uri={licenseUri}
-            status={licenseStatus}
-            onPress={() => {
-              if (licenseStatus === 'idle') {
-                setLicensePickerVisible(true);
-              } else if (licenseStatus === 'error' && licenseUri) {
-                doUpload('work_license', licenseUri, licenseMime, setLicenseStatus);
-              }
-            }}
+            disabled={submitting}
+            onPress={() => setLicensePickerVisible(true)}
             onRetake={() => {
               setLicenseUri(null);
               setLicenseMime(undefined);
-              setLicenseStatus('idle');
               setLicensePickerVisible(true);
             }}
           />
@@ -412,7 +379,7 @@ export default function BusinessScreen() {
               style={styles.actionRow}
               onPress={() => {
                 setLicensePickerVisible(false);
-                pickWithCamera('work_license', setLicenseUri, setLicenseMime, setLicenseStatus);
+                pickWithCamera(setLicenseUri, setLicenseMime);
               }}
             >
               <MaterialIcons name={Icons.camera as any} size={IconSize.inline} color={Colors.gray900} />
@@ -423,7 +390,7 @@ export default function BusinessScreen() {
               style={styles.actionRow}
               onPress={() => {
                 setLicensePickerVisible(false);
-                pickFromLibrary('work_license', setLicenseUri, setLicenseMime, setLicenseStatus);
+                pickFromLibrary(setLicenseUri, setLicenseMime);
               }}
             >
               <MaterialIcons name={Icons.image as any} size={IconSize.inline} color={Colors.gray900} />
@@ -442,19 +409,8 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.s8,
   },
   headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
     marginTop: Spacing.s4,
     marginBottom: Spacing.s4,
-    gap: Spacing.s3,
-  },
-  backBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: Radius.full,
-    backgroundColor: Colors.gray100,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   stepLabel: {
     fontSize: Typography.label.fontSize,
@@ -540,11 +496,6 @@ const styles = StyleSheet.create({
     borderColor: Colors.success600,
     borderWidth: 2,
   },
-  uploadCardError: {
-    borderStyle: 'solid',
-    borderColor: Colors.danger600,
-    borderWidth: 1.5,
-  },
   imageWrap: {
     width: '100%',
     height: '100%',
@@ -559,7 +510,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.45)',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: Spacing.s1,
   },
   checkCircle: {
     width: 40,
@@ -568,11 +518,6 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.success600,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  retryText: {
-    color: Colors.white,
-    fontSize: 13,
-    fontWeight: '600',
   },
   idlePlaceholder: {
     alignItems: 'center',

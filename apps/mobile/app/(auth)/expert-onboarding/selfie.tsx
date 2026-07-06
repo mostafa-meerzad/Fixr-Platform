@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import {
-  ActivityIndicator,
   Image,
   StyleSheet,
   Text,
@@ -16,24 +15,19 @@ import { ScreenWrapper } from '@/components/ui/ScreenWrapper';
 import { Button } from '@/components/ui/Button';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { useToast } from '@/components/ui/Toast';
-import { mediaService } from '@/services/media.service';
-import { useAuthStore } from '@/stores/auth.store';
+import { useOnboardingStore } from '@/stores/onboarding.store';
 import { Colors, IconSize, Radius, Spacing, Typography } from '@/constants/theme';
 import { Icons } from '@/constants/icons';
-
-type UploadStatus = 'idle' | 'uploading' | 'done' | 'error';
 
 export default function SelfieScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const toast = useToast();
-  const updateUser = useAuthStore((s) => s.updateUser);
+  const { setSelfie } = useOnboardingStore();
 
   const [imageUri, setImageUri] = useState<string | null>(null);
-  const [mime, setMime] = useState<string | undefined>(undefined);
-  const [status, setStatus] = useState<UploadStatus>('idle');
 
-  async function pickAndUpload() {
+  async function pickImage() {
     const perm = await ImagePicker.requestCameraPermissionsAsync();
     if (perm.status !== 'granted') {
       toast.show({ message: t('auth.onboarding.permissionDenied'), variant: 'error' });
@@ -46,50 +40,15 @@ export default function SelfieScreen() {
     if (result.canceled || !result.assets?.[0]) return;
     const asset = result.assets[0];
     setImageUri(asset.uri);
-    setMime(asset.mimeType ?? undefined);
-    await doUpload(asset.uri, asset.mimeType ?? undefined);
+    setSelfie(asset.uri, asset.mimeType ?? undefined);
   }
-
-  async function doUpload(uri: string, mimeType?: string) {
-    setStatus('uploading');
-    try {
-      await mediaService.uploadExpert('selfie', uri, mimeType);
-      const { url } = await mediaService.uploadAvatar(uri, mimeType);
-      await updateUser({ avatarUrl: url });
-      setStatus('done');
-    } catch {
-      setStatus('error');
-      toast.show({ message: t('auth.onboarding.uploadError'), variant: 'error' });
-    }
-  }
-
-  function handleZonePress() {
-    if (status === 'idle') {
-      pickAndUpload();
-    } else if (status === 'error' && imageUri) {
-      doUpload(imageUri, mime);
-    }
-  }
-
-  async function handleRetake() {
-    setImageUri(null);
-    setMime(undefined);
-    setStatus('idle');
-    await pickAndUpload();
-  }
-
-  const zoneDisabled = status === 'uploading' || status === 'done';
 
   return (
     <ScreenWrapper>
       <ProgressBar currentStep={1} totalSteps={3} />
 
       <View style={styles.container}>
-        {/* Header */}
         <View style={styles.headerRow}>
-          <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-            <MaterialIcons name={Icons.back as any} size={24} color={Colors.gray600} />
-          </TouchableOpacity>
           <Text style={styles.stepLabel}>
             {t('auth.onboarding.stepLabel', { current: 1, total: 3 })}
           </Text>
@@ -98,38 +57,20 @@ export default function SelfieScreen() {
         <Text style={styles.title}>{t('auth.onboarding.selfieTitle')}</Text>
         <Text style={styles.subtitle}>{t('auth.onboarding.selfieSubtitle')}</Text>
 
-        {/* Upload zone */}
         <TouchableOpacity
-          style={[
-            styles.uploadZone,
-            status === 'done' && styles.uploadZoneDone,
-            status === 'error' && styles.uploadZoneError,
-          ]}
-          onPress={handleZonePress}
-          disabled={zoneDisabled}
+          style={[styles.uploadZone, imageUri ? styles.uploadZoneDone : null]}
+          onPress={imageUri ? undefined : pickImage}
+          disabled={imageUri !== null}
           activeOpacity={0.75}
         >
           {imageUri ? (
             <View style={styles.imageWrap}>
               <Image source={{ uri: imageUri }} style={styles.image} />
-              {status === 'uploading' && (
-                <View style={styles.overlay}>
-                  <ActivityIndicator size="large" color={Colors.white} />
+              <View style={styles.overlay}>
+                <View style={styles.checkCircle}>
+                  <MaterialIcons name="check" size={28} color={Colors.white} />
                 </View>
-              )}
-              {status === 'done' && (
-                <View style={styles.overlay}>
-                  <View style={styles.checkCircle}>
-                    <MaterialIcons name="check" size={28} color={Colors.white} />
-                  </View>
-                </View>
-              )}
-              {status === 'error' && (
-                <View style={styles.overlay}>
-                  <MaterialIcons name={Icons.warning as any} size={36} color={Colors.white} />
-                  <Text style={styles.retryText}>{t('common.retry')}</Text>
-                </View>
-              )}
+              </View>
             </View>
           ) : (
             <View style={styles.idlePlaceholder}>
@@ -139,15 +80,13 @@ export default function SelfieScreen() {
           )}
         </TouchableOpacity>
 
-        {/* Retake — visible when image is picked and not mid-upload */}
-        {imageUri !== null && status !== 'uploading' && (
-          <TouchableOpacity style={styles.retakeBtn} onPress={handleRetake}>
+        {imageUri !== null && (
+          <TouchableOpacity style={styles.retakeBtn} onPress={pickImage}>
             <MaterialIcons name={Icons.camera as any} size={IconSize.status} color={Colors.primary600} />
             <Text style={styles.retakeBtnLabel}>{t('auth.onboarding.retake')}</Text>
           </TouchableOpacity>
         )}
 
-        {/* Tips */}
         <View style={styles.tips}>
           <TipRow label={t('auth.onboarding.selfieTip1')} />
           <TipRow label={t('auth.onboarding.selfieTip2')} />
@@ -157,7 +96,7 @@ export default function SelfieScreen() {
           <Button
             label={t('common.next')}
             onPress={() => router.push('/(auth)/expert-onboarding/tazkira' as any)}
-            disabled={status !== 'done'}
+            disabled={imageUri === null}
           />
         </View>
       </View>
@@ -181,39 +120,26 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.s6,
   },
   headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
     marginTop: Spacing.s4,
     marginBottom: Spacing.s4,
-    gap: Spacing.s3,
-  },
-  backBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: Radius.full,
-    backgroundColor: Colors.gray100,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   stepLabel: {
     fontSize: Typography.label.fontSize,
-    fontWeight: Typography.label.fontWeight,
+    fontWeight: Typography.label.fontWeight as any,
     color: Colors.gray400,
   },
   title: {
     fontSize: Typography.heading1.fontSize,
-    fontWeight: Typography.heading1.fontWeight,
+    fontWeight: Typography.heading1.fontWeight as any,
     color: Colors.primary600,
     marginBottom: Spacing.s2,
   },
   subtitle: {
     fontSize: Typography.body.fontSize,
-    fontWeight: Typography.body.fontWeight,
+    fontWeight: Typography.body.fontWeight as any,
     color: Colors.gray600,
     marginBottom: Spacing.s6,
   },
-
-  // Upload zone
   uploadZone: {
     height: 220,
     borderWidth: 1.5,
@@ -230,11 +156,6 @@ const styles = StyleSheet.create({
     borderColor: Colors.success600,
     borderWidth: 2,
   },
-  uploadZoneError: {
-    borderStyle: 'solid',
-    borderColor: Colors.danger600,
-    borderWidth: 1.5,
-  },
   imageWrap: {
     width: '100%',
     height: '100%',
@@ -249,7 +170,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.45)',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: Spacing.s2,
   },
   checkCircle: {
     width: 56,
@@ -259,22 +179,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  retryText: {
-    color: Colors.white,
-    fontSize: 14,
-    fontWeight: '600',
-  },
   idlePlaceholder: {
     alignItems: 'center',
     gap: Spacing.s3,
   },
   idleLabel: {
     fontSize: Typography.bodyMd.fontSize,
-    fontWeight: Typography.bodyMd.fontWeight,
+    fontWeight: Typography.bodyMd.fontWeight as any,
     color: Colors.primary600,
   },
-
-  // Retake button
   retakeBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -288,8 +201,6 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: Colors.primary600,
   },
-
-  // Tips
   tips: {
     flexDirection: 'row',
     gap: Spacing.s6,
@@ -303,10 +214,9 @@ const styles = StyleSheet.create({
   },
   tipText: {
     fontSize: Typography.label.fontSize,
-    fontWeight: Typography.label.fontWeight,
+    fontWeight: Typography.label.fontWeight as any,
     color: Colors.gray600,
   },
-
   footer: {
     marginTop: 'auto',
   },
