@@ -9,7 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -36,6 +36,7 @@ import {
   type Zone,
 } from "@/services/lookup.service";
 import { formatRelativeTime } from "@/utils/format";
+import { useAuthStore } from "@/stores/auth.store";
 
 interface BrowseJob {
   id: string;
@@ -66,6 +67,7 @@ function getUrgencyVariant(urgency: string) {
 
 export default function BrowseScreen() {
   const { t } = useTranslation();
+  const profileRefreshKey = useAuthStore((s) => s.profileRefreshKey);
   const zoneSheetRef = useRef<BottomSheetModal>(null);
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -130,9 +132,13 @@ export default function BrowseScreen() {
     }
   }, [selectedCategoryId]);
 
+  // Reload whenever the tab is focused (catches tab navigation)
+  useFocusEffect(useCallback(() => { load(); }, [load]));
+
+  // Reload when AppState/notification triggers a profile refresh (catches verification approval)
   useEffect(() => {
-    load();
-  }, [load]);
+    if (profileRefreshKey > 0) load();
+  }, [profileRefreshKey]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);

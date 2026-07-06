@@ -61,4 +61,6 @@ export const usersService = {
     api.patch('/users/me/categories', { categoryIds }),
   updateAvailability: (isAvailable: boolean) =>
     api.patch('/users/me/availability', { isAvailable }),
+  updateFcmToken: (fcmToken: string) =>
+    api.patch('/users/me/fcm-token', { fcmToken }),
 };

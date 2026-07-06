@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Tabs } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors, IconSize } from '@/constants/theme';
 import { Icons } from '@/constants/icons';
-import { notificationsService } from '@/services/notifications.service';
+import { useNotifStore } from '@/stores/notif.store';
 
 function TabIcon({
   name,
@@ -26,16 +26,7 @@ function TabIcon({
 
 export default function HomeownerLayout() {
   const insets = useSafeAreaInsets();
-  const [hasUnread, setHasUnread] = useState(false);
-
-  useEffect(() => {
-    notificationsService
-      .list(1, 1)
-      .then((res) => {
-        setHasUnread((res.data?.unreadCount ?? 0) > 0);
-      })
-      .catch(() => {});
-  }, []);
+  const hasUnread = useNotifStore((s) => s.unreadCount > 0);
 
   return (
     <Tabs

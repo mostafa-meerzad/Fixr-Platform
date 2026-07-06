@@ -1,6 +1,8 @@
+import { Platform } from 'react-native';
 import { api } from './api';
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
+import { usersService } from './users.service';
 
 export const notificationsService = {
   list: (page = 1, limit = 30) =>
@@ -15,6 +17,16 @@ export const notificationsService = {
   async registerPushToken(): Promise<string | null> {
     if (!Device.isDevice) return null;
 
+    if (Platform.OS === 'android') {
+      await Notifications.setNotificationChannelAsync('fixr_default', {
+        name: 'Fixr',
+        importance: Notifications.AndroidImportance.MAX,
+        vibrationPattern: [0, 250, 250, 250],
+        lightColor: '#0D9488',
+        sound: 'default',
+      });
+    }
+
     const { status: existing } = await Notifications.getPermissionsAsync();
     let finalStatus = existing;
 
@@ -25,7 +37,12 @@ export const notificationsService = {
 
     if (finalStatus !== 'granted') return null;
 
-    const { data: token } = await Notifications.getExpoPushTokenAsync();
-    return token;
+    try {
+      const { data: token } = await Notifications.getDevicePushTokenAsync();
+      await usersService.updateFcmToken(token);
+      return token;
+    } catch {
+      return null;
+    }
   },
 };

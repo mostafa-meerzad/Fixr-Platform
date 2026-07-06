@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as SecureStore from "expo-secure-store";
 import { useTranslation } from "react-i18next";
@@ -94,9 +94,7 @@ export default function ExpertProfileScreen() {
     }
   }, [updateUser]);
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  useFocusEffect(useCallback(() => { load(); }, [load]));
 
   const openEditSheet = () => {
     setEditName(user?.name ?? "");

@@ -14,10 +14,12 @@ interface AuthState {
   user: AuthUser | null;
   accessToken: string | null;
   isLoading: boolean;
+  profileRefreshKey: number;
   initialize: () => Promise<void>;
   setAuth: (user: AuthUser, accessToken: string, refreshToken: string) => Promise<void>;
   updateUser: (updates: Partial<AuthUser>) => Promise<void>;
   clearAuth: () => Promise<void>;
+  bumpProfileRefresh: () => void;
 }
 
 const ACCESS_TOKEN_KEY = 'fixr_access_token';
@@ -28,6 +30,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   accessToken: null,
   isLoading: true,
+  profileRefreshKey: 0,
 
   initialize: async () => {
     try {
@@ -71,4 +74,6 @@ export const useAuthStore = create<AuthState>((set) => ({
     ]);
     set({ user: null, accessToken: null });
   },
+
+  bumpProfileRefresh: () => set((s) => ({ profileRefreshKey: s.profileRefreshKey + 1 })),
 }));
