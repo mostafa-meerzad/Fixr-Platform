@@ -28,6 +28,13 @@ export class UpdateExpertZonesDto {
   zoneIds: string[];
 }
 
+export class UpdateExpertCategoriesDto {
+  @ApiPropertyOptional({ type: [String] })
+  @IsArray()
+  @IsString({ each: true })
+  categoryIds: string[];
+}
+
 export class SubmitVerificationDto {
   @ApiPropertyOptional()
   @IsOptional()

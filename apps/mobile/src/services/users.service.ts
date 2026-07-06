@@ -26,6 +26,7 @@ export interface ExpertProfile {
   shopZone?: { id: string; nameEn: string };
   creditBalance: { balance: number };
   serviceZones: { zone: { id: string; name: string; nameEn: string } }[];
+  serviceCategories: { category: { id: string; nameEn: string } }[];
 }
 
 export interface HomeownerProfile {
@@ -56,6 +57,8 @@ export const usersService = {
     api.post('/users/me/submit-verification', data),
   updateZones: (zoneIds: string[]) =>
     api.patch('/users/me/zones', { zoneIds }),
+  updateCategories: (categoryIds: string[]) =>
+    api.patch('/users/me/categories', { categoryIds }),
   updateAvailability: (isAvailable: boolean) =>
     api.patch('/users/me/availability', { isAvailable }),
 };

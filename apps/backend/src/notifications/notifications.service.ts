@@ -48,12 +48,17 @@ export class NotificationsService {
     }
   }
 
-  async notifyExpertsInZone(zoneId: string, payload: NotifyPayload): Promise<void> {
+  async notifyExpertsInZone(
+    zoneId: string,
+    payload: NotifyPayload,
+    categoryId?: string,
+  ): Promise<void> {
     const experts = await this.prisma.expertProfile.findMany({
       where: {
         verificationStatus: 'VERIFIED',
         isAvailable: true,
         serviceZones: { some: { zoneId } },
+        ...(categoryId && { serviceCategories: { some: { categoryId } } }),
         user: { isSuspended: false },
       },
       select: { userId: true },

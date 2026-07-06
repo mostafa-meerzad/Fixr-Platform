@@ -45,12 +45,12 @@ export default function SelfieScreen() {
 
   return (
     <ScreenWrapper>
-      <ProgressBar currentStep={1} totalSteps={3} />
+      <ProgressBar currentStep={1} totalSteps={4} />
 
       <View style={styles.container}>
         <View style={styles.headerRow}>
           <Text style={styles.stepLabel}>
-            {t('auth.onboarding.stepLabel', { current: 1, total: 3 })}
+            {t('auth.onboarding.stepLabel', { current: 1, total: 4 })}
           </Text>
         </View>
 

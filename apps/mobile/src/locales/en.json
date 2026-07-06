@@ -105,6 +105,12 @@
       "tazkiraFrontDone": "Front uploaded",
       "tazkiraBackDone": "Back uploaded",
 
+      "categoriesTitle": "Your services",
+      "categoriesSubtitle": "Select the services you offer. You'll only see jobs that match.",
+      "categoriesError": "Please select at least one service.",
+      "categoriesLoadError": "Failed to load services. Please try again.",
+      "categoriesSaving": "Saving…",
+
       "businessTitle": "Business info",
       "businessSubtitle": "Required to verify you as a legitimate service provider.",
       "shopNameLabel": "Shop / business name",

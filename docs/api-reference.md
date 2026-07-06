@@ -195,7 +195,8 @@ Admin email + password login. No OTP.
     "shopAddress": "12th Street, Shop No. 4",
     "shopZone": { "id": "clx_zone2", "nameEn": "Shahr-e-Naw" },
     "creditBalance": { "balance": 0 },
-    "serviceZones": []
+    "serviceZones": [],
+    "serviceCategories": []
   }
 }
 
@@ -278,6 +279,30 @@ Replaces all zone assignments atomically. Min 1, max 10.
 
 ---
 
+### PATCH /users/me/categories
+🔒 Expert only  
+Replaces all service category assignments atomically. Min 1, no upper limit.  
+Called during onboarding step 3 (categories screen). Returns updated expert profile.
+
+```json
+// Request
+{ "categoryIds": ["clx_cat1", "clx_cat3"] }
+
+// Response 200 — updated expertProfile including serviceCategories
+{
+  "serviceCategories": [
+    { "category": { "id": "clx_cat1", "nameEn": "Plumbing" } },
+    { "category": { "id": "clx_cat3", "nameEn": "Electrical" } }
+  ]
+}
+```
+
+Errors:
+- `400` — `categoryIds` is empty
+- `400` — one or more IDs are invalid or inactive
+
+---
+
 ### POST /users/me/submit-verification
 🔒 Expert only  
 Requires all 5 media uploads before submission: selfie, tazkira_front, tazkira_back, shop_image, work_license.
@@ -325,7 +350,8 @@ Requires all 5 media uploads before submission: selfie, tazkira_front, tazkira_b
   "positivePoints": 18,
   "negativePoints": 1,
   "verificationStatus": "VERIFIED",
-  "serviceZones": [{ "zone": { "id": "...", "name": "کارته سه", "nameEn": "Karte Seh" } }]
+  "serviceZones": [{ "zone": { "id": "...", "name": "کارته سه", "nameEn": "Karte Seh" } }],
+  "serviceCategories": [{ "category": { "id": "...", "nameEn": "Plumbing" } }]
 }
 ```
 

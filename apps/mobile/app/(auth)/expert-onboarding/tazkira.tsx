@@ -94,12 +94,12 @@ export default function TazkiraScreen() {
 
   return (
     <ScreenWrapper>
-      <ProgressBar currentStep={2} totalSteps={3} />
+      <ProgressBar currentStep={2} totalSteps={4} />
 
       <View style={styles.container}>
         <View style={styles.headerRow}>
           <Text style={styles.stepLabel}>
-            {t('auth.onboarding.stepLabel', { current: 2, total: 3 })}
+            {t('auth.onboarding.stepLabel', { current: 2, total: 4 })}
           </Text>
         </View>
 
@@ -131,7 +131,7 @@ export default function TazkiraScreen() {
         <View style={styles.footer}>
           <Button
             label={t('common.next')}
-            onPress={() => router.push('/(auth)/expert-onboarding/business' as any)}
+            onPress={() => router.push('/(auth)/expert-onboarding/categories' as any)}
             disabled={frontUri === null || backUri === null}
           />
         </View>

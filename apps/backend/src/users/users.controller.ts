@@ -8,6 +8,7 @@ import {
   UpdateExpertProfileDto,
   UpdateExpertAvailabilityDto,
   UpdateExpertZonesDto,
+  UpdateExpertCategoriesDto,
   SubmitVerificationDto,
 } from './dto/update-expert-profile.dto';
 import { UpdateFcmTokenDto } from './dto/update-fcm-token.dto';
@@ -63,6 +64,13 @@ export class UsersController {
   @ApiOperation({ summary: 'Replace service zone assignments (1–10 zones)' })
   updateServiceZones(@CurrentUser() user: User, @Body() dto: UpdateExpertZonesDto) {
     return this.usersService.updateServiceZones(user, dto);
+  }
+
+  @Patch('me/categories')
+  @Roles(UserRole.EXPERT)
+  @ApiOperation({ summary: 'Replace service category assignments (1 or more)' })
+  updateServiceCategories(@CurrentUser() user: User, @Body() dto: UpdateExpertCategoriesDto) {
+    return this.usersService.updateServiceCategories(user, dto);
   }
 
   @Post('me/submit-verification')

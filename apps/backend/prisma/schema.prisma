@@ -165,9 +165,10 @@ model ExpertProfile {
   updatedAt DateTime @updatedAt
 
   // Relations
-  serviceZones     ExpertZone[]
-  bids             Bid[]
-  creditBalance    CreditBalance?
+  serviceZones      ExpertZone[]
+  serviceCategories ExpertCategory[]
+  bids              Bid[]
+  creditBalance     CreditBalance?
   creditTransactions CreditTransaction[]
 
   @@map("expert_profiles")
@@ -200,6 +201,16 @@ model ExpertZone {
   @@map("expert_zones")
 }
 
+model ExpertCategory {
+  expertId    String
+  categoryId  String
+  expert      ExpertProfile @relation(fields: [expertId], references: [id], onDelete: Cascade)
+  category    Category      @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([expertId, categoryId])
+  @@map("expert_categories")
+}
+
 model Category {
   id        String   @id @default(cuid())
   name      String   @unique
@@ -208,7 +219,8 @@ model Category {
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
 
-  jobs      Job[]
+  jobs     Job[]
+  experts  ExpertCategory[]
 
   @@map("categories")
 }

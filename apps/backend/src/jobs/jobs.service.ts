@@ -125,14 +125,18 @@ export class JobsService {
       include: { ...JOB_INCLUDE, zone: true },
     });
 
-    // Notify all verified experts in this zone who are available
-    await this.notifications.notifyExpertsInZone(updated.zoneId, {
-      type: 'JOB_POSTED',
-      title: 'کار جدید در منطقه شما',
-      titleEn: 'New job in your zone',
-      body: updated.title,
-      data: { jobId: updated.id, urgency: updated.urgency },
-    });
+    // Notify verified, available experts who serve this zone and match the job's category
+    await this.notifications.notifyExpertsInZone(
+      updated.zoneId,
+      {
+        type: 'JOB_POSTED',
+        title: 'کار جدید در منطقه شما',
+        titleEn: 'New job in your zone',
+        body: updated.title,
+        data: { jobId: updated.id, urgency: updated.urgency },
+      },
+      updated.categoryId,
+    );
 
     return updated;
   }

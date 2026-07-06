@@ -220,12 +220,12 @@ export default function BusinessScreen() {
 
   return (
     <ScreenWrapper scroll keyboardAvoiding>
-      <ProgressBar currentStep={3} totalSteps={3} />
+      <ProgressBar currentStep={4} totalSteps={4} />
 
       <View style={styles.container}>
         <View style={styles.headerRow}>
           <Text style={styles.stepLabel}>
-            {t('auth.onboarding.stepLabel', { current: 3, total: 3 })}
+            {t('auth.onboarding.stepLabel', { current: 4, total: 4 })}
           </Text>
         </View>
 
