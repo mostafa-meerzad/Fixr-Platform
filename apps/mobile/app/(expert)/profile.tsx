@@ -455,13 +455,13 @@ export default function ExpertProfileScreen() {
                     </Text>
                     {isSelected ? (
                       <MaterialIcons
-                        name={"check-box" as any}
+                        name={"check_box" as any}
                         size={22}
                         color={Colors.primary600}
                       />
                     ) : (
                       <MaterialIcons
-                        name={"check-box-outline-blank" as any}
+                        name={"check_box_outline_blank" as any}
                         size={22}
                         color={Colors.gray400}
                       />

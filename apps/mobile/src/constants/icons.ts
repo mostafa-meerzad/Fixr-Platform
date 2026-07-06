@@ -8,8 +8,8 @@ export const Icons = {
   tabBids: "gavel",
 
   // Navigation
-  back: "arrow-back",
-  chevronRight: "chevron-right",
+  back: "arrow_back",
+  chevronRight: "chevron_right",
   close: "close",
   menu: "menu",
 
@@ -57,7 +57,7 @@ export const Icons = {
 
   // Misc
   chevronDown: "expand_more",
-  checkCircle: "check-circle",
+  checkCircle: "check_circle",
   warning: "warning",
   info: "info",
   phone: "phone",

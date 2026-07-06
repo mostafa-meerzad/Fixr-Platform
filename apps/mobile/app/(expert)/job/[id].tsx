@@ -235,7 +235,8 @@ export default function ExpertJobDetailScreen() {
       }
       await load();
     } catch (err: any) {
-      const msg: string = err?.response?.data?.message ?? '';
+      const raw = err?.response?.data?.message;
+      const msg = Array.isArray(raw) ? raw.join(' ') : (raw ?? '');
       if (msg.toLowerCase().includes('insufficient')) {
         show({ message: t('expert.jobDetail.insufficientCredits'), variant: 'error' });
       } else if (msg.toLowerCase().includes('already')) {

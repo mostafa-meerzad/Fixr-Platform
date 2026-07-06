@@ -288,7 +288,7 @@ export default function BrowseScreen() {
               activeOpacity={0.7}
             >
               <MaterialIcons
-                name={"location_on" as any}
+                name={Icons.location as any}
                 size={IconSize.inline}
                 color={Colors.primary600}
               />
