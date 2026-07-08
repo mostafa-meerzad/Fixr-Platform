@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
   RefreshControl,
@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
@@ -106,12 +106,13 @@ export default function HomeownerActiveJobScreen() {
     }
   }, [fetchJob]);
 
-  useEffect(() => { load(); }, [load]);
+  useFocusEffect(useCallback(() => { load(); }, [load]));
 
   const handleConfirmCompletion = useCallback(async () => {
     try {
       setConfirmLoading(true);
       await jobsService.confirmCompletion(id);
+      await fetchJob();
       show({ message: t('homeowner.activeJob.completionSuccess'), variant: 'success' });
       router.push(`/(shared)/review/${id}` as any);
     } catch {
@@ -119,7 +120,7 @@ export default function HomeownerActiveJobScreen() {
     } finally {
       setConfirmLoading(false);
     }
-  }, [id, show, t]);
+  }, [id, fetchJob, show, t]);
 
   // ── Loading ────────────────────────────────────────────────────────────────
 
