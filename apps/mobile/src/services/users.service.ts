@@ -49,8 +49,25 @@ export interface UserProfile {
   homeownerProfile?: HomeownerProfile;
 }
 
+export interface PublicExpertProfile {
+  id: string;
+  user: { id: string; name: string; avatarUrl: string | null };
+  shopName?: string;
+  description?: string;
+  rating: number;
+  completedJobs: number;
+  noShowCount: number;
+  positivePoints: number;
+  negativePoints: number;
+  verificationStatus: 'PENDING' | 'VERIFIED' | 'REJECTED';
+  serviceZones: { zone: { id: string; name: string; nameEn: string } }[];
+  serviceCategories: { category: { id: string; nameEn: string } }[];
+}
+
 export const usersService = {
   getMe: () => api.get<UserProfile>('/users/me'),
+  getExpertProfile: (userId: string) =>
+    api.get<PublicExpertProfile>(`/users/experts/${userId}`),
   updateMe: (data: { name?: string; language?: string }) =>
     api.patch('/users/me', data),
   submitVerification: (data: SubmitVerificationPayload) =>

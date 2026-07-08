@@ -166,7 +166,13 @@
       "cancelReason": "Reason (optional)",
       "cancelReasonPlaceholder": "Tell us why you're cancelling...",
       "cancelConfirm": "Cancel Job",
-      "cancelSuccess": "Job cancelled"
+      "cancelSuccess": "Job cancelled",
+      "pendingVerification": "Pending Verification",
+      "shopLabel": "SHOP",
+      "aboutLabel": "ABOUT",
+      "servicesLabel": "SERVICES",
+      "zonesLabel": "ZONES",
+      "noShowCount": "{{count}} no-show(s)"
     },
     "post": {
       "stepLabel": "Step {{current}} of {{total}}",

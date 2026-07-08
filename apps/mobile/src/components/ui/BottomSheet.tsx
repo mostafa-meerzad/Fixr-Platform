@@ -2,6 +2,7 @@ import React, { forwardRef, useCallback } from 'react';
 import {
   BottomSheetModal as RNBottomSheetModal,
   BottomSheetView,
+  BottomSheetScrollView,
   BottomSheetBackdrop,
   type BottomSheetBackdropProps,
 } from '@gorhom/bottom-sheet';
@@ -12,10 +13,11 @@ interface BottomSheetProps {
   children: React.ReactNode;
   snapPoints?: (string | number)[];
   onDismiss?: () => void;
+  scrollable?: boolean;
 }
 
 export const BottomSheet = forwardRef<RNBottomSheetModal, BottomSheetProps>(
-  ({ children, snapPoints = ['50%'], onDismiss }, ref) => {
+  ({ children, snapPoints = ['50%'], onDismiss, scrollable = false }, ref) => {
     const renderBackdrop = useCallback(
       (props: BottomSheetBackdropProps) => (
         <BottomSheetBackdrop
@@ -38,9 +40,15 @@ export const BottomSheet = forwardRef<RNBottomSheetModal, BottomSheetProps>(
         onDismiss={onDismiss}
         enablePanDownToClose
       >
-        <BottomSheetView style={styles.content}>
-          {children}
-        </BottomSheetView>
+        {scrollable ? (
+          <BottomSheetScrollView contentContainerStyle={styles.content}>
+            {children}
+          </BottomSheetScrollView>
+        ) : (
+          <BottomSheetView style={styles.content}>
+            {children}
+          </BottomSheetView>
+        )}
       </RNBottomSheetModal>
     );
   },
