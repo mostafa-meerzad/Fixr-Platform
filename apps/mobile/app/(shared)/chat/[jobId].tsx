@@ -30,8 +30,31 @@ import { useAuthStore } from '@/stores/auth.store';
 
 const STREAM_THEME = {
   colors: {
-    accent_blue: Colors.primary600,   // send button, links, @ mentions
-    blue_alice: Colors.primary100,    // own message bubble background
+    accent_blue: Colors.primary600,
+    blue_alice: Colors.primary100,
+    white_snow: Colors.bgApp,
+    bg_gradient_start: Colors.bgApp,
+    bg_gradient_end: Colors.bgApp,
+  },
+  messageList: {
+    container: { backgroundColor: Colors.bgApp },
+    listContainer: { backgroundColor: Colors.bgApp },
+  },
+  messageInput: {
+    container: {
+      backgroundColor: Colors.white,
+      borderTopWidth: 1,
+      borderTopColor: Colors.gray200,
+      paddingVertical: Spacing.s2,
+    },
+    inputBoxContainer: {
+      backgroundColor: Colors.gray100,
+      borderRadius: Radius.full,
+      borderWidth: 0,
+    },
+    inputBox: {
+      color: Colors.gray900,
+    },
   },
 };
 
@@ -216,6 +239,7 @@ export default function ChatScreen() {
               disableKeyboardCompatibleView
               DateHeader={CustomDateHeader}
               InlineDateSeparator={CustomInlineDateSeparator}
+              InputButtons={() => null}
             >
               <MessageList />
               <MessageInput />
