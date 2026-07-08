@@ -1,7 +1,10 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Keyboard,
   Linking,
+  Modal,
+  Pressable,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -13,10 +16,8 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import type { BottomSheetModal } from '@gorhom/bottom-sheet';
-import { Colors, IconSize, Spacing, Typography } from '@/constants/theme';
+import { Colors, IconSize, Radius, Spacing, Typography } from '@/constants/theme';
 import { Icons } from '@/constants/icons';
-import { BottomSheet } from '@/components/ui/BottomSheet';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Divider } from '@/components/ui/Divider';
@@ -70,15 +71,22 @@ export default function ExpertActiveJobScreen() {
   const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { show } = useToast();
-  const completionSheetRef = useRef<BottomSheetModal>(null);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [job, setJob] = useState<ActiveJobDetail | null>(null);
   const [transitionLoading, setTransitionLoading] = useState(false);
+  const [completionVisible, setCompletionVisible] = useState(false);
   const [completionNotes, setCompletionNotes] = useState('');
   const [completionLoading, setCompletionLoading] = useState(false);
+  const [kbHeight, setKbHeight] = useState(0);
+
+  useEffect(() => {
+    const show = Keyboard.addListener('keyboardDidShow', (e) => setKbHeight(e.endCoordinates.height));
+    const hide = Keyboard.addListener('keyboardDidHide', () => setKbHeight(0));
+    return () => { show.remove(); hide.remove(); };
+  }, []);
 
   const fetchJob = useCallback(async () => {
     const res = await jobsService.get(id);
@@ -129,7 +137,8 @@ export default function ExpertActiveJobScreen() {
     try {
       setCompletionLoading(true);
       await jobsService.requestCompletion(id);
-      completionSheetRef.current?.dismiss();
+      setCompletionVisible(false);
+      setCompletionNotes('');
       await fetchJob();
     } catch {
       show({ message: t('common.error'), variant: 'error' });
@@ -211,7 +220,7 @@ export default function ExpertActiveJobScreen() {
         return (
           <Button
             label={t('expert.activeJob.requestCompletion')}
-            onPress={() => completionSheetRef.current?.present()}
+            onPress={() => setCompletionVisible(true)}
           />
         );
       case 'COMPLETION_REQUESTED':
@@ -330,9 +339,29 @@ export default function ExpertActiveJobScreen() {
         </View>
       </SafeAreaView>
 
-      {/* Request Completion bottom sheet */}
-      <BottomSheet ref={completionSheetRef} snapPoints={['55%']}>
-        <View style={styles.sheetContent}>
+      {/* Request Completion modal — plain RN Modal so we can use the same
+          Keyboard.addListener + marginBottom pattern as the Chat screen */}
+      <Modal
+        visible={completionVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => {
+          Keyboard.dismiss();
+          setCompletionVisible(false);
+        }}
+      >
+        <Pressable
+          style={styles.modalBackdrop}
+          onPress={() => {
+            Keyboard.dismiss();
+            setCompletionVisible(false);
+          }}
+        />
+       <View style={{ backgroundColor: "rgba(0,0,0,0.5)"}}>
+         <View style={[styles.modalSheet, { marginBottom: kbHeight }]}>
+          {/* Handle */}
+          <View style={styles.modalHandle} />
+
           <Text style={styles.sheetTitle}>{t('expert.activeJob.completionSheetTitle')}</Text>
           <Text style={styles.sheetSubtitle}>{t('expert.activeJob.completionSheetSubtitle')}</Text>
 
@@ -356,11 +385,15 @@ export default function ExpertActiveJobScreen() {
           <Button
             label={t('expert.activeJob.notYet')}
             variant="ghost"
-            onPress={() => completionSheetRef.current?.dismiss()}
+            onPress={() => {
+              Keyboard.dismiss();
+              setCompletionVisible(false);
+            }}
             style={styles.sheetBtnSecondary}
           />
         </View>
-      </BottomSheet>
+       </View>
+      </Modal>
     </>
   );
 }
@@ -476,9 +509,28 @@ const styles = StyleSheet.create({
     padding: Spacing.s4,
   },
 
-  // ── Bottom sheet ────────────────────────────────────────────────────────────
-  sheetContent: {
+  // ── Completion modal ────────────────────────────────────────────────────────
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  modalSheet: {
+    backgroundColor: Colors.white,
+    borderTopLeftRadius: Radius.xl,
+    borderTopRightRadius: Radius.xl,
+    overflow: 'hidden',
+    paddingHorizontal: Spacing.s6,
+    paddingBottom: Spacing.s6,
     gap: Spacing.s3,
+  },
+  modalHandle: {
+    width: 32,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: Colors.gray200,
+    alignSelf: 'center',
+    marginTop: Spacing.s3,
+    marginBottom: Spacing.s1,
   },
   sheetTitle: {
     ...Typography.heading2,
