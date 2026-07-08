@@ -49,7 +49,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     paddingHorizontal: Spacing.s3 - 2, // 10px
     borderRadius: Radius.full,
-    alignSelf: 'flex-start',
+    // alignSelf: 'flex-start',
   },
   label: {
     fontSize: 12,

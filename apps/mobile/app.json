@@ -30,6 +30,7 @@
         "backgroundColor": "#F9FAFB"
       },
       "package": "com.fixr.app",
+      "softwareKeyboardLayoutMode": "resize",
       "permissions": [
         "CAMERA",
         "READ_EXTERNAL_STORAGE",

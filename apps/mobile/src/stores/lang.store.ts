@@ -1,17 +1,11 @@
 import { create } from 'zustand';
 import * as SecureStore from 'expo-secure-store';
-import * as Localization from 'expo-localization';
 import { I18nManager, NativeModules } from 'react-native';
 import i18n from '@/i18n';
 
 export type Lang = 'en' | 'fa';
 
 const LANG_KEY = 'fixr_lang';
-
-function detectDeviceLang(): Lang {
-  const locale = Localization.getLocales()[0]?.languageCode ?? 'en';
-  return locale === 'fa' || locale === 'prs' || locale === 'dar' ? 'fa' : 'en';
-}
 
 interface LangState {
   lang: Lang;
@@ -27,18 +21,16 @@ export const useLangStore = create<LangState>((set) => ({
   langLoaded: false,
 
   initialize: async () => {
-    const stored = (await SecureStore.getItemAsync(LANG_KEY)) as Lang | null;
-    const lang: Lang = stored === 'fa' ? 'fa' : stored === 'en' ? 'en' : detectDeviceLang();
-    const isRTL = lang === 'fa';
+    // Dari phase not yet active — always lock to English regardless of device
+    // locale or stored preference. RTL deferred (see CLAUDE.md).
+    const lang: Lang = 'en';
+    const isRTL = false;
 
-    await i18n.changeLanguage(lang);
-
-    // forceRTL at startup so native layout is correct from first render.
-    // This has no effect mid-session; a restart is needed for layout to flip.
-    if (I18nManager.isRTL !== isRTL) {
-      I18nManager.forceRTL(isRTL);
+    if (I18nManager.isRTL) {
+      I18nManager.forceRTL(false);
     }
 
+    await i18n.changeLanguage(lang);
     set({ lang, isRTL, langLoaded: true });
   },
 

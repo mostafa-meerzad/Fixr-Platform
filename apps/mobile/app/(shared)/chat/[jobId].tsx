@@ -1,13 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Keyboard,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { StreamChat } from 'stream-chat';
@@ -37,18 +38,41 @@ const STREAM_THEME = {
 
 type ScreenState = 'loading' | 'forbidden' | 'error' | 'ready';
 
+// ─── Header ───────────────────────────────────────────────────────────────────
+
+function Header({ onBack, title }: { onBack: () => void; title: string }) {
+  return (
+    // direction: 'ltr' prevents Android RTL system setting from mirroring the header
+    <View style={styles.header}>
+      <TouchableOpacity style={styles.backCircle} onPress={onBack}>
+        <MaterialIcons name={Icons.back as any} size={24} color={Colors.gray900} />
+      </TouchableOpacity>
+      <Text style={styles.headerTitle}>{title}</Text>
+      <View style={styles.headerSpacer} />
+    </View>
+  );
+}
+
 // ─── Screen ──────────────────────────────────────────────────────────────────
 
 export default function ChatScreen() {
   const { t } = useTranslation();
   const { jobId } = useLocalSearchParams<{ jobId: string }>();
   const user = useAuthStore((s) => s.user);
+  const insets = useSafeAreaInsets();
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const clientRef = useRef<any>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [channel, setChannel] = useState<any>(null);
   const [state, setState] = useState<ScreenState>('loading');
+  const [kbHeight, setKbHeight] = useState(0);
+
+  useEffect(() => {
+    const show = Keyboard.addListener('keyboardDidShow', (e) => setKbHeight(e.endCoordinates.height + 20));
+    const hide = Keyboard.addListener('keyboardDidHide', () => setKbHeight(0));
+    return () => { show.remove(); hide.remove(); };
+  }, []);
 
   async function connect() {
     setState('loading');
@@ -87,26 +111,12 @@ export default function ChatScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [jobId]);
 
-  // ── Header ─────────────────────────────────────────────────────────────────
-
-  function Header() {
-    return (
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backCircle} onPress={() => router.back()}>
-          <MaterialIcons name={Icons.back as any} size={24} color={Colors.gray900} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>{t('shared.chat.title')}</Text>
-        <View style={styles.headerSpacer} />
-      </View>
-    );
-  }
-
-  // ── Loading ─────────────────────────────────────────────────────────────────
+  // ── Loading ──────────────────────────────────────────────────────────────────
 
   if (state === 'loading') {
     return (
-      <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-        <Header />
+      <SafeAreaView style={styles.safe} edges={['top']}>
+        <Header onBack={() => router.back()} title={t('shared.chat.title')} />
         <View style={styles.center}>
           <ActivityIndicator size="large" color={Colors.primary600} />
           <Text style={styles.loadingText}>{t('common.loading')}</Text>
@@ -115,12 +125,12 @@ export default function ChatScreen() {
     );
   }
 
-  // ── Forbidden (chat not yet unlocked) ───────────────────────────────────────
+  // ── Forbidden (chat not yet unlocked) ────────────────────────────────────────
 
   if (state === 'forbidden') {
     return (
-      <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-        <Header />
+      <SafeAreaView style={styles.safe} edges={['top']}>
+        <Header onBack={() => router.back()} title={t('shared.chat.title')} />
         <EmptyState
           icon="chat_bubble"
           title={t('shared.chat.lockedTitle')}
@@ -131,12 +141,12 @@ export default function ChatScreen() {
     );
   }
 
-  // ── Error ───────────────────────────────────────────────────────────────────
+  // ── Error ────────────────────────────────────────────────────────────────────
 
   if (state === 'error') {
     return (
-      <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-        <Header />
+      <SafeAreaView style={styles.safe} edges={['top']}>
+        <Header onBack={() => router.back()} title={t('shared.chat.title')} />
         <View style={styles.center}>
           <Text style={styles.errorText}>{t('common.error')}</Text>
           <Button
@@ -150,33 +160,52 @@ export default function ChatScreen() {
     );
   }
 
-  // ── Chat ────────────────────────────────────────────────────────────────────
+  // ── Chat ─────────────────────────────────────────────────────────────────────
 
   return (
-    <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-      <Header />
-      <OverlayProvider value={{ style: STREAM_THEME }}>
-        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-        <Chat client={clientRef.current as any}>
+    <OverlayProvider value={{ style: STREAM_THEME }}>
+      <View style={styles.fullScreen}>
+        <SafeAreaView edges={['top']} style={styles.headerSafe}>
+          <Header onBack={() => router.back()} title={t('shared.chat.title')} />
+        </SafeAreaView>
+
+        {/* paddingBottom = keyboard height while open, safe-area inset when closed.
+            Using Keyboard events directly avoids KeyboardAvoidingView's Android
+            bug where it doesn't reset paddingBottom to 0 after dismissal. */}
+        <View style={[styles.chatArea, { paddingBottom: kbHeight > 0 ? kbHeight : insets.bottom }]}>
           {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-          <Channel channel={channel as any}>
-            <View style={styles.chatContainer}>
+          <Chat client={clientRef.current as any}>
+            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+            <Channel channel={channel as any} disableKeyboardCompatibleView>
               <MessageList />
               <MessageInput />
-            </View>
-          </Channel>
-        </Chat>
-      </OverlayProvider>
-    </SafeAreaView>
+            </Channel>
+          </Chat>
+        </View>
+      </View>
+    </OverlayProvider>
   );
 }
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
+  // Non-chat states
   safe: {
     flex: 1,
     backgroundColor: Colors.bgApp,
+  },
+
+  // Chat ready state — full screen so OverlayProvider has correct bounds
+  fullScreen: {
+    flex: 1,
+    backgroundColor: Colors.white,
+  },
+  headerSafe: {
+    backgroundColor: Colors.white,
+  },
+  chatArea: {
+    flex: 1,
   },
 
   // ── Header ──────────────────────────────────────────────────────────────────
@@ -189,6 +218,8 @@ const styles = StyleSheet.create({
     borderBottomColor: Colors.gray200,
     paddingHorizontal: Spacing.s4,
     gap: Spacing.s3,
+    // Force LTR layout regardless of device RTL system setting
+    direction: 'ltr',
   },
   backCircle: {
     width: 32,
@@ -206,7 +237,7 @@ const styles = StyleSheet.create({
     width: 32,
   },
 
-  // ── States ──────────────────────────────────────────────────────────────────
+  // ── Non-chat state helpers ───────────────────────────────────────────────────
   center: {
     flex: 1,
     alignItems: 'center',
@@ -224,10 +255,5 @@ const styles = StyleSheet.create({
   },
   retryBtn: {
     width: 160,
-  },
-
-  // ── Chat container ──────────────────────────────────────────────────────────
-  chatContainer: {
-    flex: 1,
   },
 });
