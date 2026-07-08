@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Keyboard,
@@ -19,7 +19,7 @@ import {
   MessageInput,
   OverlayProvider,
 } from 'stream-chat-react-native';
-import { Colors, Spacing, Typography } from '@/constants/theme';
+import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
 import { Icons } from '@/constants/icons';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Button } from '@/components/ui/Button';
@@ -30,9 +30,44 @@ import { useAuthStore } from '@/stores/auth.store';
 
 const STREAM_THEME = {
   colors: {
-    accent_blue: Colors.primary600,
+    accent_blue: Colors.primary600,   // send button, links, @ mentions
+    blue_alice: Colors.primary100,    // own message bubble background
   },
 };
+
+// ─── Custom date badge (shared by DateHeader + InlineDateSeparator) ───────────
+
+function formatDateLabel(date: Date): string {
+  const now = new Date();
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const startOfYesterday = new Date(startOfToday.getTime() - 86_400_000);
+  const startOfDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  if (startOfDate.getTime() === startOfToday.getTime()) return 'Today';
+  if (startOfDate.getTime() === startOfYesterday.getTime()) return 'Yesterday';
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function DateBadge({ label }: { label: string }) {
+  return (
+    <View style={dateBadgeStyles.container}>
+      <Text style={dateBadgeStyles.text}>{label}</Text>
+    </View>
+  );
+}
+
+function CustomDateHeader({ dateString }: { dateString?: string | number }) {
+  const label = useMemo(() => {
+    if (!dateString) return '';
+    const d = new Date(dateString);
+    return isNaN(d.getTime()) ? String(dateString) : formatDateLabel(d);
+  }, [dateString]);
+  return <DateBadge label={label} />;
+}
+
+function CustomInlineDateSeparator({ date }: { date?: Date }) {
+  const label = useMemo(() => (date ? formatDateLabel(date) : ''), [date]);
+  return <DateBadge label={label} />;
+}
 
 // ─── Screen states ────────────────────────────────────────────────────────────
 
@@ -132,7 +167,7 @@ export default function ChatScreen() {
       <SafeAreaView style={styles.safe} edges={['top']}>
         <Header onBack={() => router.back()} title={t('shared.chat.title')} />
         <EmptyState
-          icon="chat_bubble"
+          icon="chat-bubble"
           title={t('shared.chat.lockedTitle')}
           subtitle={t('shared.chat.lockedSubtitle')}
           action={{ label: t('common.back'), onPress: () => router.back() }}
@@ -176,7 +211,12 @@ export default function ChatScreen() {
           {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
           <Chat client={clientRef.current as any}>
             {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-            <Channel channel={channel as any} disableKeyboardCompatibleView>
+            <Channel
+              channel={channel as any}
+              disableKeyboardCompatibleView
+              DateHeader={CustomDateHeader}
+              InlineDateSeparator={CustomInlineDateSeparator}
+            >
               <MessageList />
               <MessageInput />
             </Channel>
@@ -255,5 +295,21 @@ const styles = StyleSheet.create({
   },
   retryBtn: {
     width: 160,
+  },
+});
+
+const dateBadgeStyles = StyleSheet.create({
+  container: {
+    alignSelf: 'center',
+    backgroundColor: Colors.primary100,
+    borderRadius: Radius.full,
+    paddingVertical: Spacing.s1,
+    paddingHorizontal: Spacing.s3,
+    marginVertical: Spacing.s2,
+  },
+  text: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: Colors.primary600,
   },
 });
