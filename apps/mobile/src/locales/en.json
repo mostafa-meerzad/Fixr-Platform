@@ -248,7 +248,14 @@
       "emptyActiveTitle": "No active jobs",
       "emptyActiveSubtitle": "Post a job to start getting bids from experts.",
       "emptyPastTitle": "No past jobs yet",
-      "emptyPastSubtitle": "Your completed and cancelled jobs will appear here."
+      "emptyPastSubtitle": "Your completed and cancelled jobs will appear here.",
+      "drafts": "DRAFTS",
+      "continueDraft": "Continue",
+      "deleteDraft": "Delete",
+      "deleteConfirmTitle": "Delete draft?",
+      "deleteConfirmMessage": "This job will be permanently deleted.",
+      "deleteConfirmBtn": "Delete",
+      "deletedToast": "Draft deleted"
     },
     "messages": {
       "title": "Messages",
@@ -304,7 +311,11 @@
       "postedBy": "Posted by",
       "positiveReviews": "positive reviews",
       "jobsPosted": "jobs posted",
-      "placeBid": "Place Bid · 1 credit",
+      "bids": "bids",
+      "placeBid": "Place Bid",
+      "credit": "credit",
+      "video": "Video",
+      "positivePoints": "positive points",
       "creditsRemaining": "credits remaining",
       "formTitle": "Place a Bid",
       "priceLabel": "Your price (AFN)",

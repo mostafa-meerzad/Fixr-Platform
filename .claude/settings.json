@@ -18,7 +18,8 @@
       "Bash(git -C /Users/mostafa/Desktop/Fixr-Platform commit -m ' *)",
       "Bash(git -C /Users/mostafa/Desktop/Fixr-Platform add .claude/settings.json apps/mobile/app.json apps/mobile/package.json apps/mobile/icon.png apps/mobile/assets/icon.png apps/mobile/assets/notification-icon.png apps/mobile/assets/splash.png apps/mobile/ios/ bun.lock patches/@stream-io+flat-list-mvcp+0.10.3.patch)",
       "Bash(git -C /Users/mostafa/Desktop/Fixr-Platform diff)",
-      "Bash(git -C /Users/mostafa/Desktop/Fixr-Platform log --oneline -5)"
+      "Bash(git -C /Users/mostafa/Desktop/Fixr-Platform log --oneline -5)",
+      "Bash(git -C /Users/mostafa/Desktop/Fixr-Platform show 8f062f9 --stat)"
     ],
     "additionalDirectories": [
       "/Users/mostafa/Desktop/Fixr-Platform/apps/mobile/src",

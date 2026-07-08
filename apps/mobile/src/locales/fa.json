@@ -238,7 +238,14 @@
       "emptyActiveTitle": "هیچ کار فعالی وجود ندارد",
       "emptyActiveSubtitle": "یک کار ثبت کنید تا پیشنهادهایی از متخصصان دریافت کنید.",
       "emptyPastTitle": "هنوز هیچ کار گذشته‌ای وجود ندارد",
-      "emptyPastSubtitle": "کارهای تکمیل‌شده و لغوشده شما اینجا نمایش داده می‌شوند."
+      "emptyPastSubtitle": "کارهای تکمیل‌شده و لغوشده شما اینجا نمایش داده می‌شوند.",
+      "drafts": "پیش‌نویس‌ها",
+      "continueDraft": "ادامه",
+      "deleteDraft": "حذف",
+      "deleteConfirmTitle": "پیش‌نویس حذف شود؟",
+      "deleteConfirmMessage": "این کار به صورت دائمی حذف خواهد شد.",
+      "deleteConfirmBtn": "حذف",
+      "deletedToast": "پیش‌نویس حذف شد"
     },
     "messages": {
       "title": "پیام‌ها",

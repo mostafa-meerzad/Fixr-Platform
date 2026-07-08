@@ -4,6 +4,8 @@ import {
   Dimensions,
   Image,
   KeyboardAvoidingView,
+  Linking,
+  Modal,
   Platform,
   ScrollView,
   StyleSheet,
@@ -35,10 +37,11 @@ import { jobsService, type JobStatus, type JobUrgency } from '@/services/jobs.se
 import { usersService } from '@/services/users.service';
 import { formatRelativeTime } from '@/utils/format';
 
-const SCREEN_W = Dimensions.get('window').width;
+const { width: SCREEN_W } = Dimensions.get('window');
+const HERO_H = 270;
 const BID_SHEET_SNAP = ['85%'];
 
-// ─── Local types ───────────────────────────────────────────────────────────────
+// ─── Types ─────────────────────────────────────────────────────────────────────
 
 interface JobMedia {
   id: string;
@@ -55,11 +58,6 @@ interface MyBid {
   expertMessage?: string;
   isWithdrawn: boolean;
   status?: string;
-  expert: {
-    id: string;
-    verificationStatus: string;
-    user: { id: string; name: string; avatarUrl: string | null };
-  };
 }
 
 interface JobDetail {
@@ -98,6 +96,13 @@ function getUrgencyVariant(urgency: JobUrgency): 'danger' | 'warning' | 'gray' {
   return 'gray';
 }
 
+function formatDisplayName(name?: string): string {
+  if (!name) return '';
+  const parts = name.trim().split(' ');
+  if (parts.length <= 1) return parts[0] ?? '';
+  return `${parts[0]} ${parts[1][0]}.`;
+}
+
 // ─── Screen ────────────────────────────────────────────────────────────────────
 
 export default function ExpertJobDetailScreen() {
@@ -105,8 +110,8 @@ export default function ExpertJobDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { show } = useToast();
   const insets = useSafeAreaInsets();
-
   const bidSheetRef = useRef<BottomSheetModal>(null);
+  const carouselRef = useRef<ScrollView>(null);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -114,8 +119,9 @@ export default function ExpertJobDetailScreen() {
   const [myBid, setMyBid] = useState<MyBid | null>(null);
   const [creditBalance, setCreditBalance] = useState(0);
   const [imageIndex, setImageIndex] = useState(0);
+  const [fullscreenUri, setFullscreenUri] = useState<string | null>(null);
 
-  // Bid form state
+  // Bid form
   const [price, setPrice] = useState('');
   const [arrivalMinutes, setArrivalMinutes] = useState('');
   const [durationHours, setDurationHours] = useState('');
@@ -125,10 +131,25 @@ export default function ExpertJobDetailScreen() {
   const [priceError, setPriceError] = useState('');
   const [arrivalError, setArrivalError] = useState('');
   const [durationError, setDurationError] = useState('');
-
-  // Edit mode
   const [editBidId, setEditBidId] = useState<string | null>(null);
   const [withdrawLoading, setWithdrawLoading] = useState(false);
+
+  const heroImages = job?.media.filter((m) => m.type === 'image') ?? [];
+  const allMedia = job?.media ?? [];
+  const imageCount = heroImages.length;
+
+  // Auto-advance carousel
+  useEffect(() => {
+    if (imageCount <= 1) return;
+    const timer = setInterval(() => {
+      setImageIndex((prev) => {
+        const next = (prev + 1) % imageCount;
+        carouselRef.current?.scrollTo({ x: next * SCREEN_W, animated: true });
+        return next;
+      });
+    }, 3000);
+    return () => clearInterval(timer);
+  }, [imageCount]);
 
   const load = useCallback(async () => {
     try {
@@ -138,21 +159,16 @@ export default function ExpertJobDetailScreen() {
         jobsService.get(id),
         usersService.getMe(),
       ]);
-      const jobData = jobRes.data as JobDetail;
-      setJob(jobData);
-
-      const profile = profileRes.data;
-      const balance = profile.expertProfile?.creditBalance?.balance ?? 0;
+      setJob(jobRes.data as JobDetail);
+      const balance = profileRes.data?.expertProfile?.creditBalance?.balance ?? 0;
       setCreditBalance(balance);
 
-      // Check for own bid
       try {
         const bidsRes = await bidsService.listForJob(id);
         const bidList = bidsRes.data as MyBid[];
-        const activeBid = bidList.find((b) => !b.isWithdrawn) ?? null;
-        setMyBid(activeBid);
+        setMyBid(bidList.find((b) => !b.isWithdrawn) ?? null);
       } catch {
-        // no bid yet is fine
+        // no bid yet
       }
     } catch {
       setError(true);
@@ -263,27 +279,24 @@ export default function ExpertJobDetailScreen() {
     }
   };
 
-  const canSubmit =
-    price.trim() !== '' &&
-    arrivalMinutes.trim() !== '' &&
-    durationHours.trim() !== '';
+  const canSubmit = price.trim() !== '' && arrivalMinutes.trim() !== '' && durationHours.trim() !== '';
+  const BOTTOM_BAR_H = 80 + insets.bottom;
 
   // ── Loading ─────────────────────────────────────────────────────────────────
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.safe} edges={['top']}>
-        <View style={styles.header}>
-          <TouchableOpacity style={styles.backCircle} onPress={() => router.back()}>
-            <MaterialIcons name={Icons.back as any} size={24} color={Colors.gray900} />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>{t('expert.jobDetail.title')}</Text>
-          <View style={styles.headerSpacer} />
-        </View>
+      <View style={[styles.flex, { backgroundColor: Colors.bgApp }]}>
+        <TouchableOpacity
+          style={[styles.backCircle, { position: 'absolute', top: insets.top + 8, left: Spacing.s4, zIndex: 10 }]}
+          onPress={() => router.back()}
+        >
+          <MaterialIcons name={Icons.back as any} size={20} color={Colors.gray900} />
+        </TouchableOpacity>
         <View style={styles.centered}>
           <ActivityIndicator size="large" color={Colors.primary600} />
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
@@ -291,112 +304,100 @@ export default function ExpertJobDetailScreen() {
 
   if (error || !job) {
     return (
-      <SafeAreaView style={styles.safe} edges={['top']}>
-        <View style={styles.header}>
-          <TouchableOpacity style={styles.backCircle} onPress={() => router.back()}>
-            <MaterialIcons name={Icons.back as any} size={24} color={Colors.gray900} />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>{t('expert.jobDetail.title')}</Text>
-          <View style={styles.headerSpacer} />
-        </View>
+      <View style={[styles.flex, { backgroundColor: Colors.bgApp }]}>
+        <TouchableOpacity
+          style={[styles.backCircle, { position: 'absolute', top: insets.top + 8, left: Spacing.s4, zIndex: 10 }]}
+          onPress={() => router.back()}
+        >
+          <MaterialIcons name={Icons.back as any} size={20} color={Colors.gray900} />
+        </TouchableOpacity>
         <View style={styles.centered}>
           <Text style={styles.errorText}>{t('common.error')}</Text>
           <Button label={t('common.retry')} onPress={load} style={styles.retryBtn} />
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   // ── Derived ─────────────────────────────────────────────────────────────────
 
-  const images = job.media.filter((m) => m.type === 'image');
   const isOpen = job.status === 'OPEN';
-  const homeownerFirstName = job.homeowner?.name?.split(' ')[0] ?? t('common.unknown');
-  const BOTTOM_BAR_H = 72 + insets.bottom;
+  const displayName = formatDisplayName(job.homeowner?.name);
+  const timeAgo = formatRelativeTime(job.openedAt ?? job.createdAt, 'en');
+  const bidCount = job._count.bids;
 
   // ── Render ──────────────────────────────────────────────────────────────────
 
   return (
     <>
-      <SafeAreaView style={styles.safe} edges={['top']}>
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity style={styles.backCircle} onPress={() => router.back()}>
-            <MaterialIcons name={Icons.back as any} size={24} color={Colors.gray900} />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>{t('expert.jobDetail.title')}</Text>
-          <View style={styles.headerSpacer} />
-        </View>
-
+      <View style={[styles.flex, { backgroundColor: Colors.bgApp }]}>
+        {/* ── Scrollable content ─────────────────────────────────────────────── */}
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={[styles.scroll, { paddingBottom: isOpen ? BOTTOM_BAR_H + Spacing.s4 : Spacing.s8 }]}
+          contentContainerStyle={{ paddingBottom: isOpen && !myBid ? BOTTOM_BAR_H + Spacing.s4 : Spacing.s8 }}
         >
-          {/* ── Image / placeholder ── */}
-          {images.length > 0 ? (
-            <View style={styles.imageContainer}>
-              <ScrollView
-                horizontal
-                pagingEnabled
-                showsHorizontalScrollIndicator={false}
-                onMomentumScrollEnd={(e) => {
-                  const idx = Math.round(
-                    e.nativeEvent.contentOffset.x / e.nativeEvent.layoutMeasurement.width,
-                  );
-                  setImageIndex(idx);
-                }}
-              >
-                {images.map((m) => (
-                  <Image
-                    key={m.id}
-                    source={{ uri: m.url }}
-                    style={styles.image}
-                    resizeMode="cover"
-                  />
-                ))}
-              </ScrollView>
-              {images.length > 1 && (
-                <View style={styles.dots}>
-                  {images.map((_, idx) => (
-                    <View
-                      key={idx}
-                      style={[styles.dot, idx === imageIndex ? styles.dotActive : styles.dotInactive]}
-                    />
+          {/* ── Hero image carousel ──────────────────────────────────────────── */}
+          <View style={styles.hero}>
+            {heroImages.length > 0 ? (
+              <>
+                <ScrollView
+                  ref={carouselRef}
+                  horizontal
+                  pagingEnabled
+                  scrollEnabled
+                  showsHorizontalScrollIndicator={false}
+                  onMomentumScrollEnd={(e) => {
+                    const idx = Math.round(e.nativeEvent.contentOffset.x / SCREEN_W);
+                    setImageIndex(idx);
+                  }}
+                  style={StyleSheet.absoluteFill}
+                >
+                  {heroImages.map((m) => (
+                    <Image key={m.id} source={{ uri: m.url }} style={styles.heroImage} resizeMode="cover" />
                   ))}
-                </View>
-              )}
-            </View>
-          ) : (
-            <View style={styles.imagePlaceholder}>
-              <MaterialIcons
-                name={(job.category ? Icons.assignment : Icons.image) as any}
-                size={IconSize.large}
-                color={Colors.primary600}
-              />
-            </View>
-          )}
+                </ScrollView>
+                {/* Dark gradient overlay for readability */}
+                <View style={styles.heroOverlay} />
+                {/* Dots */}
+                {heroImages.length > 1 && (
+                  <View style={styles.dotsRow}>
+                    {heroImages.map((_, i) => (
+                      <View key={i} style={[styles.dot, i === imageIndex ? styles.dotActive : styles.dotInactive]} />
+                    ))}
+                  </View>
+                )}
+              </>
+            ) : (
+              <View style={styles.heroPlaceholder}>
+                <MaterialIcons
+                  name={(job.category ? Icons.assignment : Icons.image) as any}
+                  size={56}
+                  color={Colors.primary600}
+                />
+              </View>
+            )}
+          </View>
 
-          {/* ── White content card ── */}
-          <View style={styles.contentCard}>
-            {/* Title */}
-            <Text style={styles.jobTitle}>{job.title}</Text>
-
-            {/* Category + urgency */}
-            <View style={styles.rowBetween}>
-              {job.category ? (
-                <View style={styles.categoryChip}>
-                  <Text style={styles.categoryText}>{job.category.nameEn}</Text>
-                </View>
-              ) : (
-                <View />
-              )}
+          {/* ── White content card ────────────────────────────────────────────── */}
+          <View style={styles.card}>
+            {/* Title + urgency badge */}
+            <View style={styles.titleRow}>
+              <Text style={styles.jobTitle}>{job.title}</Text>
               <Pill label={getUrgencyLabel(job.urgency)} variant={getUrgencyVariant(job.urgency)} />
             </View>
 
-            {/* Zone + time */}
-            <Text style={styles.metaText}>
-              {job.zone.nameEn} · {formatRelativeTime(job.createdAt, 'en')}
-            </Text>
+            {/* Category · time · bids */}
+            <View style={styles.metaRow}>
+              {job.category && (
+                <View style={styles.categoryChip}>
+                  <Text style={styles.categoryText}>{job.category.nameEn}</Text>
+                </View>
+              )}
+              <Text style={styles.metaSep}>·</Text>
+              <Text style={styles.metaText}>{timeAgo}</Text>
+              <Text style={styles.metaSep}>·</Text>
+              <Text style={styles.metaText}>{bidCount} {t('expert.jobDetail.bids')}</Text>
+            </View>
 
             <Divider />
 
@@ -404,44 +405,71 @@ export default function ExpertJobDetailScreen() {
             <Text style={styles.sectionLabel}>{t('expert.jobDetail.description')}</Text>
             <Text style={styles.bodyText}>{job.description || '—'}</Text>
 
+            {/* Media thumbnails */}
+            {allMedia.length > 0 && (
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.thumbsRow}
+              >
+                {allMedia.map((m) =>
+                  m.type === 'image' ? (
+                    <TouchableOpacity
+                      key={m.id}
+                      onPress={() => setFullscreenUri(m.url)}
+                      activeOpacity={0.85}
+                    >
+                      <Image source={{ uri: m.url }} style={styles.thumb} resizeMode="cover" />
+                    </TouchableOpacity>
+                  ) : (
+                    <TouchableOpacity
+                      key={m.id}
+                      onPress={() => Linking.openURL(m.url)}
+                      activeOpacity={0.85}
+                      style={styles.videoThumb}
+                    >
+                      <MaterialIcons name={Icons.play as any} size={32} color={Colors.white} />
+                      <Text style={styles.videoLabel}>{t('expert.jobDetail.video')}</Text>
+                    </TouchableOpacity>
+                  ),
+                )}
+              </ScrollView>
+            )}
+
             <Divider />
 
-            {/* Homeowner trust block */}
+            {/* Homeowner */}
             <Text style={styles.sectionLabel}>{t('expert.jobDetail.homeowner')}</Text>
-            <View style={styles.trustRow}>
+            <View style={styles.homeownerCard}>
               <Avatar size={40} name={job.homeowner?.name} uri={job.homeowner?.avatarUrl} />
-              <View style={styles.trustInfo}>
-                <Text style={styles.bodyMd}>
-                  {t('expert.jobDetail.postedBy')} {homeownerFirstName}
-                </Text>
-                {job.homeowner?.positivePoints !== undefined && (
-                  <Text style={styles.captionText}>
-                    ★ {job.homeowner.positivePoints} {t('expert.jobDetail.positiveReviews')}
-                    {job.homeowner.jobsPosted !== undefined
+              <View style={styles.homeownerInfo}>
+                <Text style={styles.homeownerName}>{displayName || t('common.unknown')}</Text>
+                <View style={styles.homeownerStats}>
+                  <MaterialIcons name={Icons.thumbUp as any} size={12} color={Colors.success600} />
+                  <Text style={styles.homeownerStatText}>
+                    {job.homeowner?.positivePoints ?? 0} {t('expert.jobDetail.positivePoints')}
+                    {job.homeowner?.jobsPosted !== undefined
                       ? ` · ${job.homeowner.jobsPosted} ${t('expert.jobDetail.jobsPosted')}`
                       : null}
                   </Text>
-                )}
+                </View>
               </View>
             </View>
 
-            <Divider />
-
             {/* Location */}
-            <Text style={styles.sectionLabel}>{t('expert.jobDetail.location')}</Text>
-            <Text style={styles.bodyText}>{job.address}</Text>
-            <Text style={styles.captionText}>{job.zone.nameEn}</Text>
+            <View style={styles.locationRow}>
+              <MaterialIcons name={Icons.location as any} size={IconSize.status} color={Colors.gray400} />
+              <Text style={styles.locationText}>{job.address}, {job.zone.nameEn}</Text>
+            </View>
 
-            {/* ── My bid card (if bid placed) ── */}
+            {/* My bid (if placed) */}
             {myBid && (
               <>
                 <Divider />
                 <Text style={styles.sectionLabel}>{t('expert.jobDetail.yourBid')}</Text>
                 <Card variant="accepted" style={styles.myBidCard}>
                   <View style={styles.myBidRow}>
-                    <Text style={styles.myBidPrice}>
-                      {myBid.price.toLocaleString()} AFN
-                    </Text>
+                    <Text style={styles.myBidPrice}>{myBid.price.toLocaleString()} AFN</Text>
                     <Pill label={t('expert.jobDetail.bidPlacedPill')} variant="primary" />
                   </View>
                   <View style={styles.myBidChips}>
@@ -481,28 +509,59 @@ export default function ExpertJobDetailScreen() {
           </View>
         </ScrollView>
 
-        {/* ── Sticky bottom bar (OPEN + no bid) ── */}
+        {/* ── Overlaid navigation (back + zone) ─────────────────────────────── */}
+        <View style={[styles.navOverlay, { top: insets.top + 8 }]} pointerEvents="box-none">
+          <TouchableOpacity style={styles.backCircle} onPress={() => router.back()} activeOpacity={0.8}>
+            <MaterialIcons name={Icons.back as any} size={20} color={Colors.gray900} />
+          </TouchableOpacity>
+          <View style={styles.zoneChip}>
+            <MaterialIcons name={Icons.location as any} size={12} color={Colors.white} />
+            <Text style={styles.zoneChipText} numberOfLines={1}>{job.zone.nameEn}</Text>
+          </View>
+        </View>
+
+        {/* ── Sticky bottom bar (OPEN + no bid placed) ──────────────────────── */}
         {isOpen && !myBid && (
-          <View
-            style={[
-              styles.bottomBar,
-              { paddingBottom: insets.bottom + Spacing.s3 },
-            ]}
-          >
-            <Text style={styles.creditsLabel}>
+          <View style={[styles.bottomBar, { paddingBottom: insets.bottom + Spacing.s3 }]}>
+            <View style={styles.creditsBlock}>
               <Text style={styles.creditsNumber}>{creditBalance}</Text>
-              {' '}{t('expert.jobDetail.creditsRemaining')}
-            </Text>
-            <Button
-              label={t('expert.jobDetail.placeBid')}
-              onPress={() => openBidSheet()}
+              <Text style={styles.creditsLabel}>{t('expert.jobDetail.creditsRemaining')}</Text>
+            </View>
+            <TouchableOpacity
               style={styles.placeBidBtn}
-            />
+              onPress={() => openBidSheet()}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.placeBidText}>{t('expert.jobDetail.placeBid')}</Text>
+              <View style={styles.placeBidDivider} />
+              <View style={styles.placeBidCredit}>
+                <MaterialIcons name={Icons.credit as any} size={14} color={Colors.white} />
+                <Text style={styles.placeBidText}>1 {t('expert.jobDetail.credit')}</Text>
+              </View>
+            </TouchableOpacity>
           </View>
         )}
-      </SafeAreaView>
+      </View>
 
-      {/* ── Bid form bottom sheet ── */}
+      {/* ── Fullscreen image viewer ─────────────────────────────────────────── */}
+      <Modal visible={fullscreenUri !== null} transparent={false} animationType="fade" statusBarTranslucent>
+        <SafeAreaView style={styles.fullscreenBg} edges={['top', 'bottom']}>
+          <View style={styles.fullscreenHeader}>
+            <TouchableOpacity
+              style={styles.fullscreenClose}
+              onPress={() => setFullscreenUri(null)}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            >
+              <MaterialIcons name={Icons.back as any} size={22} color={Colors.white} />
+            </TouchableOpacity>
+          </View>
+          {fullscreenUri && (
+            <Image source={{ uri: fullscreenUri }} style={styles.fullscreenImage} resizeMode="contain" />
+          )}
+        </SafeAreaView>
+      </Modal>
+
+      {/* ── Bid form bottom sheet ───────────────────────────────────────────── */}
       <BottomSheetModal
         ref={bidSheetRef}
         snapPoints={BID_SHEET_SNAP}
@@ -514,9 +573,7 @@ export default function ExpertJobDetailScreen() {
         keyboardBlurBehavior="restore"
       >
         <BottomSheetScrollView contentContainerStyle={styles.sheetScroll}>
-          <KeyboardAvoidingView
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          >
+          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
             <Text style={styles.sheetTitle}>{t('expert.jobDetail.formTitle')}</Text>
 
             <View style={styles.formField}>
@@ -596,7 +653,6 @@ export default function ExpertJobDetailScreen() {
               />
             </View>
 
-            {/* Credit warning */}
             <View style={styles.creditWarning}>
               <MaterialIcons name={Icons.info as any} size={14} color={Colors.warning600} />
               <Text style={styles.creditWarningText}>
@@ -621,9 +677,8 @@ export default function ExpertJobDetailScreen() {
 // ─── Styles ────────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  safe: {
+  flex: {
     flex: 1,
-    backgroundColor: Colors.bgApp,
   },
   centered: {
     flex: 1,
@@ -639,50 +694,28 @@ const styles = StyleSheet.create({
     maxWidth: 160,
   },
 
-  // ── Header ──────────────────────────────────────────────────────────────────
-  header: {
-    height: 56,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.white,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.gray200,
-    paddingHorizontal: Spacing.s4,
-    gap: Spacing.s3,
+  // ── Hero ────────────────────────────────────────────────────────────────────
+  hero: {
+    height: HERO_H,
+    backgroundColor: Colors.primary50,
+    overflow: 'hidden',
   },
-  backCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: Colors.gray100,
+  heroImage: {
+    width: SCREEN_W,
+    height: HERO_H,
+  },
+  heroOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.18)',
+  },
+  heroPlaceholder: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  headerTitle: {
-    flex: 1,
-    ...Typography.heading1,
-  },
-  headerSpacer: {
-    width: 32,
-  },
-
-  // ── Scroll ──────────────────────────────────────────────────────────────────
-  scroll: {
-    flexGrow: 1,
-  },
-
-  // ── Image ───────────────────────────────────────────────────────────────────
-  imageContainer: {
-    height: 220,
-    backgroundColor: Colors.gray100,
-  },
-  image: {
-    width: SCREEN_W,
-    height: 220,
-  },
-  dots: {
+  dotsRow: {
     position: 'absolute',
-    bottom: Spacing.s3,
+    bottom: Spacing.s5,
     left: 0,
     right: 0,
     flexDirection: 'row',
@@ -690,44 +723,90 @@ const styles = StyleSheet.create({
     gap: Spacing.s1,
   },
   dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    height: 6,
+    borderRadius: 3,
   },
   dotActive: {
+    width: 20,
     backgroundColor: Colors.white,
   },
   dotInactive: {
+    width: 6,
     backgroundColor: 'rgba(255,255,255,0.5)',
   },
-  imagePlaceholder: {
-    height: 120,
-    backgroundColor: Colors.primary50,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
 
-  // ── Content card ────────────────────────────────────────────────────────────
-  contentCard: {
-    backgroundColor: Colors.white,
-    borderTopLeftRadius: Radius.xl,
-    borderTopRightRadius: Radius.xl,
-    marginTop: -16,
-    padding: Spacing.s4,
-    gap: Spacing.s3,
-    flex: 1,
-  },
-  jobTitle: {
-    ...Typography.heading1,
-  },
-  rowBetween: {
+  // ── Nav overlay ─────────────────────────────────────────────────────────────
+  navOverlay: {
+    position: 'absolute',
+    left: Spacing.s4,
+    right: Spacing.s4,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
+  backCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: Colors.white,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  zoneChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    paddingHorizontal: Spacing.s3,
+    paddingVertical: 6,
+    borderRadius: Radius.full,
+    maxWidth: 160,
+  },
+  zoneChipText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: Colors.white,
+  },
+
+  // ── White card ──────────────────────────────────────────────────────────────
+  card: {
+    backgroundColor: Colors.white,
+    borderTopLeftRadius: Radius.xl,
+    borderTopRightRadius: Radius.xl,
+    marginTop: -Radius.xl,
+    paddingHorizontal: Spacing.s4,
+    paddingTop: Spacing.s5,
+    paddingBottom: Spacing.s4,
+    gap: Spacing.s3,
+    flex: 1,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: Spacing.s3,
+  },
+  jobTitle: {
+    flex: 1,
+    fontSize: 22,
+    fontWeight: '700',
+    color: Colors.gray900,
+    lineHeight: 28,
+  },
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
   categoryChip: {
     backgroundColor: Colors.gray100,
-    paddingVertical: 6,
+    paddingVertical: 4,
     paddingHorizontal: Spacing.s3,
     borderRadius: Radius.full,
   },
@@ -736,8 +815,13 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Colors.gray600,
   },
+  metaSep: {
+    fontSize: 12,
+    color: Colors.gray400,
+  },
   metaText: {
-    ...Typography.caption,
+    fontSize: 12,
+    color: Colors.gray400,
   },
   sectionLabel: {
     fontSize: 12,
@@ -745,21 +829,40 @@ const styles = StyleSheet.create({
     color: Colors.primary600,
     textTransform: 'uppercase',
     letterSpacing: 0.8,
-    marginBottom: Spacing.s1,
   },
   bodyText: {
     ...Typography.body,
     lineHeight: 22,
   },
-  bodyMd: {
-    ...Typography.bodyMd,
+
+  // ── Media thumbnails ─────────────────────────────────────────────────────────
+  thumbsRow: {
+    gap: Spacing.s2,
+    paddingVertical: Spacing.s1,
   },
-  captionText: {
-    ...Typography.caption,
+  thumb: {
+    width: 80,
+    height: 80,
+    borderRadius: Radius.sm,
+    backgroundColor: Colors.gray100,
+  },
+  videoThumb: {
+    width: 80,
+    height: 80,
+    borderRadius: Radius.sm,
+    backgroundColor: Colors.gray900,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+  },
+  videoLabel: {
+    fontSize: 10,
+    fontWeight: '500',
+    color: Colors.white,
   },
 
-  // ── Homeowner trust block ───────────────────────────────────────────────────
-  trustRow: {
+  // ── Homeowner card ───────────────────────────────────────────────────────────
+  homeownerCard: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.s3,
@@ -767,12 +870,40 @@ const styles = StyleSheet.create({
     borderRadius: Radius.md,
     padding: Spacing.s3,
   },
-  trustInfo: {
+  homeownerInfo: {
     flex: 1,
-    gap: 2,
+    gap: 3,
+  },
+  homeownerName: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: Colors.gray900,
+  },
+  homeownerStats: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  homeownerStatText: {
+    fontSize: 12,
+    fontWeight: '400',
+    color: Colors.gray600,
   },
 
-  // ── My bid card ─────────────────────────────────────────────────────────────
+  // ── Location ────────────────────────────────────────────────────────────────
+  locationRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 4,
+  },
+  locationText: {
+    flex: 1,
+    fontSize: 13,
+    color: Colors.gray400,
+    lineHeight: 18,
+  },
+
+  // ── My bid card ──────────────────────────────────────────────────────────────
   myBidCard: {
     gap: Spacing.s2,
   },
@@ -815,7 +946,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 
-  // ── Sticky bottom bar ───────────────────────────────────────────────────────
+  // ── Bottom bar ───────────────────────────────────────────────────────────────
   bottomBar: {
     position: 'absolute',
     bottom: 0,
@@ -830,21 +961,70 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: Spacing.s3,
   },
-  creditsLabel: {
+  creditsBlock: {
     flex: 1,
-    fontSize: 13,
+    gap: 1,
+  },
+  creditsNumber: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: Colors.primary600,
+  },
+  creditsLabel: {
+    fontSize: 12,
     fontWeight: '400',
     color: Colors.gray400,
   },
-  creditsNumber: {
-    fontWeight: '600',
-    color: Colors.primary600,
-  },
   placeBidBtn: {
-    width: 180,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.primary600,
+    borderRadius: Radius.sm,
+    height: 52,
+    paddingHorizontal: Spacing.s4,
+    gap: Spacing.s2,
+  },
+  placeBidText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: Colors.white,
+  },
+  placeBidDivider: {
+    width: 1,
+    height: 20,
+    backgroundColor: 'rgba(255,255,255,0.3)',
+  },
+  placeBidCredit: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
   },
 
-  // ── Bid sheet ───────────────────────────────────────────────────────────────
+  // ── Fullscreen viewer ────────────────────────────────────────────────────────
+  fullscreenBg: {
+    flex: 1,
+    backgroundColor: '#000',
+  },
+  fullscreenHeader: {
+    height: 56,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.s4,
+  },
+  fullscreenClose: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.20)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  fullscreenImage: {
+    flex: 1,
+    width: SCREEN_W,
+  },
+
+  // ── Bid sheet ────────────────────────────────────────────────────────────────
   sheetBg: {
     backgroundColor: Colors.white,
     borderTopLeftRadius: Radius.xl,

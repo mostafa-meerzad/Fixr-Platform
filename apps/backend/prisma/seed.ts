@@ -133,13 +133,17 @@ async function main() {
 
   // ─── Categories ────────────────────────────────────────────────────────────
   const categories = [
-    { name: "لوله‌کشی", nameEn: "Plumbing", icon: "droplets" },
-    { name: "برق‌کاری", nameEn: "Electrical", icon: "zap" },
-    { name: "نجاری", nameEn: "Carpentry", icon: "hammer" },
-    { name: "رنگ‌کاری", nameEn: "Painting", icon: "paint-roller" },
-    { name: "تعمیر لوازم خانگی", nameEn: "Appliance Repair", icon: "wrench" },
-    { name: "نظافت", nameEn: "Cleaning", icon: "sparkles" },
-    { name: "ساختمان‌سازی", nameEn: "Construction", icon: "building" },
+    { name: "لوله‌کشی", nameEn: "Plumbing", icon: "plumbing" },
+    { name: "برق‌کاری", nameEn: "Electrical", icon: "electric-bolt" },
+    { name: "نجاری", nameEn: "Carpentry", icon: "handyman" },
+    { name: "رنگ‌کاری", nameEn: "Painting", icon: "format-paint" },
+    {
+      name: "تعمیر لوازم خانگی",
+      nameEn: "Appliance Repair",
+      icon: "construction",
+    },
+    { name: "نظافت", nameEn: "Cleaning", icon: "auto-awesome" },
+    { name: "ساختمان‌سازی", nameEn: "Construction", icon: "house" },
     { name: "سایر", nameEn: "Other", icon: "more-horizontal" },
   ];
 

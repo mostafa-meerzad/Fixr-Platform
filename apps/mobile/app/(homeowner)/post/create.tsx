@@ -31,21 +31,6 @@ import { Icons } from '@/constants/icons';
 type Step = 1 | 2 | 3 | 4;
 type Urgency = 'EMERGENCY' | 'TODAY' | 'SCHEDULED';
 
-const CATEGORY_ICONS: Record<string, string> = {
-  Plumbing: 'plumbing',
-  Electrical: 'electrical_services',
-  Carpentry: 'carpenter',
-  Painting: 'format_paint',
-  'Appliance Repair': 'home_repair_service',
-  Cleaning: 'cleaning_services',
-  Construction: 'construction',
-  Other: 'more_horiz',
-};
-
-function getCategoryIcon(nameEn?: string): string {
-  return CATEGORY_ICONS[nameEn ?? ''] ?? 'handyman';
-}
-
 // ─── UrgencyCard ──────────────────────────────────────────────────────────────
 
 interface UrgencyCardProps {
@@ -73,7 +58,7 @@ function UrgencyCard({ icon, iconColor, iconBg, title, description, selected, on
         <Text style={styles.urgencyDesc}>{description}</Text>
       </View>
       {selected && (
-        <MaterialIcons name={'check_circle' as any} size={22} color={Colors.primary600} />
+        <MaterialIcons name={'check-circle' as any} size={22} color={Colors.primary600} />
       )}
     </TouchableOpacity>
   );
@@ -202,6 +187,7 @@ export default function CreateJobScreen() {
     } catch (err: any) {
       const message = err?.response?.data?.message ?? t('homeowner.post.errorNetwork');
       toast.show({ message, variant: 'error' });
+    } finally {
       setSubmitting(false);
     }
   }
@@ -250,6 +236,7 @@ export default function CreateJobScreen() {
                 <View key={rowIdx} style={styles.categoryRow}>
                   {row.map((cat) => {
                     const selected = selectedCategory?.id === cat.id;
+                    console.log("cat: ", cat)
                     return (
                       <TouchableOpacity
                         key={cat.id}
@@ -264,7 +251,7 @@ export default function CreateJobScreen() {
                         )}
                         <View style={[styles.categoryIconBox, selected && styles.categoryIconBoxSelected]}>
                           <MaterialIcons
-                            name={getCategoryIcon(cat.nameEn) as any}
+                            name={cat.icon as any}
                             size={24}
                             color={selected ? Colors.primary600 : Colors.gray400}
                           />

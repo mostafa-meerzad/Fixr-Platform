@@ -8,56 +8,56 @@ export const Icons = {
   tabBids: "gavel",
 
   // Navigation
-  back: "arrow_back",
-  chevronRight: "chevron_right",
+  back: "arrow-back",
+  chevronRight: "chevron-right",
   close: "close",
   menu: "menu",
 
   // Actions
   add: "add",
   location: "room",
-  camera: "photo_camera",
+  camera: "photo-camera",
   edit: "edit",
   delete: "delete",
   share: "share",
-
+  check: "check",
   // Urgency
-  emergency: "flash_on",
+  emergency: "flash-on",
   today: "schedule",
-  scheduled: "calendar_today",
+  scheduled: "calendar-today",
 
   // Credits / finance
   credit: "toll",
 
   // Roles
   handyman: "handyman",
-  homeRepair: "home_repair_service",
+  homeRepair: "home-repair-service",
 
   // Trust / verification
   verified: "verified",
   star: "star",
-  thumbUp: "thumb_up",
+  thumbUp: "thumb-up",
   noShow: "cancel",
 
   // Empty states
   notifNone: "notifications_none",
-  workOutline: "work_outline",
+  workOutline: "work-outline",
   history: "history",
-  hourglass: "hourglass_empty",
+  hourglass: "hourglass-empty",
   chatNone: "chat",
-  searchOff: "search_off",
+  searchOff: "search-off",
   assignment: "assignment",
   gavel: "gavel",
 
   // Media
   video: "videocam",
-  play: "play_circle",
+  play: "play-circle",
   image: "image",
-  addPhoto: "add_a_photo",
+  addPhoto: "add-photo-alternate",
 
   // Misc
-  chevronDown: "expand_more",
-  checkCircle: "check_circle",
+  chevronDown: "expand-more",
+  checkCircle: "check-circle",
   warning: "warning",
   info: "info",
   phone: "phone",

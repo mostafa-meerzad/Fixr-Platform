@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -11,7 +11,7 @@ import {
 import { router, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { Colors, Spacing, Typography } from '@/constants/theme';
+import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
 import { Icons } from '@/constants/icons';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -28,24 +28,23 @@ const NAV_STATUSES = ['ASSIGNED', 'EN_ROUTE', 'ARRIVED', 'IN_PROGRESS', 'COMPLET
 
 const URGENCY_ORDER: Record<string, number> = { EMERGENCY: 0, TODAY: 1, SCHEDULED: 2 };
 
-function getUrgencyLabel(urgency: string): string {
-  if (urgency === 'EMERGENCY') return 'Emergency';
-  if (urgency === 'TODAY') return 'Today';
-  return 'Scheduled';
+function getUrgencyLabel(urgency: string, t: (key: string) => string): string {
+  if (urgency === 'EMERGENCY') return t('homeowner.post.urgencyEmergency');
+  if (urgency === 'TODAY') return t('homeowner.post.urgencyToday');
+  return t('homeowner.post.urgencyScheduled');
 }
 
-function getStatusLabel(status: string): string {
+function getStatusLabel(status: string, t: (key: string) => string): string {
   const map: Record<string, string> = {
     OPEN: 'Open',
-    ASSIGNED: 'Assigned',
-    EN_ROUTE: 'En Route',
-    ARRIVED: 'Arrived',
-    IN_PROGRESS: 'In Progress',
-    COMPLETION_REQUESTED: 'Completion Req.',
-    COMPLETED: 'Completed',
-    CANCELLED: 'Cancelled',
-    DISPUTED: 'Disputed',
-    DRAFT: 'Draft',
+    ASSIGNED: t('common.status.assigned'),
+    EN_ROUTE: t('common.status.enRoute'),
+    ARRIVED: t('common.status.arrived'),
+    IN_PROGRESS: t('common.status.inProgress'),
+    COMPLETION_REQUESTED: t('common.status.completionRequested'),
+    COMPLETED: t('common.status.completed'),
+    CANCELLED: t('common.status.cancelled'),
+    DISPUTED: t('common.status.disputed'),
   };
   return map[status] ?? status;
 }
@@ -79,7 +78,7 @@ export default function MyJobsScreen() {
       if (isRefresh) setRefreshing(true);
       const res = await jobsService.list({ limit: 50, page: 1 });
       const body = res.data as JobListResponse;
-      setAllJobs(body.data);
+      setAllJobs(body.data.filter((j) => j.status !== 'DRAFT'));
     } catch {
       setError(true);
     } finally {
@@ -111,7 +110,7 @@ export default function MyJobsScreen() {
           {job.title}
         </Text>
         <Pill
-          label={getUrgencyLabel(job.urgency)}
+          label={getUrgencyLabel(job.urgency, t)}
           variant={
             job.urgency === 'EMERGENCY' ? 'danger' : job.urgency === 'TODAY' ? 'warning' : 'gray'
           }
@@ -130,7 +129,7 @@ export default function MyJobsScreen() {
         ) : (
           <View />
         )}
-        <Pill label={getStatusLabel(job.status)} variant={getStatusVariant(job.status)} />
+        <Pill label={getStatusLabel(job.status, t)} variant={getStatusVariant(job.status)} />
       </View>
     </Card>
   );
@@ -256,7 +255,7 @@ const styles = StyleSheet.create({
   togglePill: {
     flex: 1,
     height: 36,
-    borderRadius: 9999,
+    borderRadius: Radius.full,
     alignItems: 'center',
     justifyContent: 'center',
   },
