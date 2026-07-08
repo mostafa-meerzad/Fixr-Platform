@@ -19,6 +19,7 @@ import { useLangStore } from '@/stores/lang.store';
 import { useNotifStore } from '@/stores/notif.store';
 import { ToastProvider } from '@/components/ui/Toast';
 import { notificationsService } from '@/services/notifications.service';
+import { usersService } from '@/services/users.service';
 import { UserRole } from '@fixr/shared';
 
 SplashScreen.preventAutoHideAsync();
@@ -37,13 +38,44 @@ function navigateToNotification(
   data: Record<string, string>,
   role: UserRole | undefined,
 ) {
-  const jobId = data?.jobId;
-  if (!jobId) return;
+  const { type, jobId, channel_id } = data ?? {};
 
-  if (role === UserRole.HOMEOWNER) {
-    router.push(`/(homeowner)/job/${jobId}` as any);
-  } else if (role === UserRole.EXPERT) {
-    router.push(`/(expert)/job/${jobId}` as any);
+  // Stream Chat push: type = "message.new", channel_id = "job-<jobId>"
+  if (type === 'message.new') {
+    const match = (channel_id ?? '').match(/^(?:messaging:)?job-(.+)$/);
+    if (match) router.push(`/(shared)/chat/${match[1]}` as any);
+    return;
+  }
+
+  switch (type) {
+    case 'BID_RECEIVED':
+      if (jobId) router.push(`/(homeowner)/job/${jobId}` as any);
+      break;
+    case 'JOB_POSTED':
+      if (jobId) router.push(`/(expert)/job/${jobId}` as any);
+      break;
+    case 'BID_ACCEPTED':
+    case 'JOB_COMPLETED':
+      if (jobId) router.push(`/(expert)/active-job/${jobId}` as any);
+      break;
+    case 'EXPERT_EN_ROUTE':
+    case 'EXPERT_ARRIVED':
+    case 'COMPLETION_REQUESTED':
+      if (jobId) router.push(`/(homeowner)/active-job/${jobId}` as any);
+      break;
+    case 'JOB_CANCELLED':
+      if (role === UserRole.EXPERT) router.push('/(expert)/my-bids' as any);
+      else router.push('/(homeowner)/my-jobs' as any);
+      break;
+    case 'VERIFICATION_APPROVED':
+      router.push('/(expert)/browse' as any);
+      break;
+    case 'VERIFICATION_REJECTED':
+      router.push('/(expert)/profile' as any);
+      break;
+    default:
+      // Unknown or legacy type — no navigation
+      break;
   }
 }
 
@@ -71,11 +103,13 @@ export default function RootLayout() {
     initializeLang();
   }, []);
 
-  // Register FCM token once user is authenticated
+  // Register FCM token + sync language to backend when user logs in.
+  // Language sync ensures FCM notifications arrive in the correct language —
+  // the backend selects title/body based on user.language in the DB.
   useEffect(() => {
-    if (user) {
-      notificationsService.registerPushToken().catch(() => {});
-    }
+    if (!user) return;
+    notificationsService.registerPushToken().catch(() => {});
+    usersService.updateMe({ language: 'en' }).catch(() => {});
   }, [user?.id]);
 
   // Load initial unread count when user logs in

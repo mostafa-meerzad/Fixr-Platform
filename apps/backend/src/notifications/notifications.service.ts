@@ -109,7 +109,7 @@ export class NotificationsService {
     await this.firebaseApp.messaging().send({
       token,
       notification: { title, body },
-      data: payload.data ?? {},
+      data: { type: String(payload.type), ...(payload.data ?? {}) },
       android: {
         priority: 'high',
         notification: { sound: 'default', channelId: 'fixr_default' },
