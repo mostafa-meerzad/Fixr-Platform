@@ -300,8 +300,8 @@ Each row:
 
 **Goal:** Homeowners can view their disputes; rejected experts can restart the verification flow.
 
-**Completed:** [ ]  
-**TypeScript clean:** [ ]
+**Completed:** [x]  
+**TypeScript clean:** [x]
 
 ---
 
@@ -532,8 +532,8 @@ Add `category: 'category'` to `apps/mobile/src/constants/icons.ts` if not alread
 | 10 | Notification inbox screen + bell icon | [x] |
 | 11 | My Reviews screen | [x] |
 | 12 | Credit ledger screen + `credits.service.ts` | [x] |
-| 13 | Disputes history screen | [ ] |
-| 13 | Expert re-verify flow | [ ] |
+| 13 | Disputes history screen | [x] |
+| 13 | Expert re-verify flow | [x] |
 | 14 | Help & Support screen | [ ] |
 | 14 | About Fixr screen | [ ] |
 | 14 | Notification settings sheet | [ ] |

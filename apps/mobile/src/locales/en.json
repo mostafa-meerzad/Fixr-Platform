@@ -306,6 +306,20 @@
       "saveChanges": "Save changes",
       "errorName": "Please enter your name",
       "errorNetwork": "Something went wrong. Please try again."
+    },
+    "disputes": {
+      "title": "Reported Issues",
+      "empty": "No issues reported",
+      "emptySub": "Disputes from your jobs will appear here.",
+      "statusOpen": "Open",
+      "statusResolved": "Resolved",
+      "reasons": {
+        "NO_SHOW": "Expert no-show",
+        "PRICE_DISPUTE": "Price dispute",
+        "WORK_QUALITY": "Work quality",
+        "COMMUNICATION_ISSUE": "Communication issue",
+        "OTHER": "Other"
+      }
     }
   },
   "expert": {
@@ -438,7 +452,9 @@
       "saveChanges": "Save changes",
       "savedToast": "Profile updated",
       "errorName": "Please enter your name",
-      "viewHistory": "View history →"
+      "viewHistory": "View history →",
+      "alreadyVerified": "Your account is already verified.",
+      "pendingVerification": "Your documents are under review. We'll notify you when approved."
     },
     "credits": {
       "title": "Credit History",

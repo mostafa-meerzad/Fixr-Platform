@@ -147,6 +147,7 @@ export default function ProfileScreen() {
         key: "issues",
         label: t("homeowner.profile.reportedIssues"),
         icon: Icons.warning,
+        onPress: () => router.push("/(homeowner)/disputes" as any),
       },
     ],
     [

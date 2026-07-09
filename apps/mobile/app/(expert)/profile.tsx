@@ -177,6 +177,15 @@ export default function ExpertProfileScreen() {
         key: "verifyDocs",
         label: t("expert.profile.verifyDocs"),
         icon: Icons.verified,
+        onPress: () => {
+          if (verificationStatus === "VERIFIED") {
+            toast.show({ message: t("expert.profile.alreadyVerified") });
+          } else if (verificationStatus === "PENDING") {
+            toast.show({ message: t("expert.profile.pendingVerification") });
+          } else {
+            router.push("/(auth)/expert-onboarding/selfie" as any);
+          }
+        },
       },
       {
         key: "zones",
