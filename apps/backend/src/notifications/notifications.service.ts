@@ -112,7 +112,7 @@ export class NotificationsService {
       data: { type: String(payload.type), ...(payload.data ?? {}) },
       android: {
         priority: 'high',
-        notification: { sound: 'default', channelId: 'fixr_default' },
+        notification: { sound: 'default', channelId: 'fixr_default', icon: 'notification_icon', color: '#0D9488' },
       },
       apns: {
         payload: { aps: { sound: 'default', badge: 1 } },
