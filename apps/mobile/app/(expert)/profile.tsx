@@ -247,12 +247,26 @@ export default function ExpertProfileScreen() {
             <Text style={styles.creditsSectionLabel}>
               {t("expert.profile.yourCredits")}
             </Text>
-            <View style={styles.creditsRow}>
-              <Text style={styles.creditCount}>{creditBalance}</Text>
-              <Text style={styles.creditsAvailable}>
-                {t("expert.profile.creditsAvailable")}
+            <TouchableOpacity
+              onPress={() => router.push("/(expert)/credits" as any)}
+              activeOpacity={0.7}
+            >
+              <View style={styles.creditsRow}>
+                <Text style={styles.creditCount}>{creditBalance}</Text>
+                <Text style={styles.creditsAvailable}>
+                  {t("expert.profile.creditsAvailable")}
+                </Text>
+              </View>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => router.push("/(expert)/credits" as any)}
+              activeOpacity={0.7}
+              style={styles.viewHistoryBtn}
+            >
+              <Text style={styles.viewHistoryText}>
+                {t("expert.profile.viewHistory")}
               </Text>
-            </View>
+            </TouchableOpacity>
             <Button
               label={t("expert.profile.buyCredits")}
               onPress={() => buySheetRef.current?.present()}
@@ -610,6 +624,15 @@ const styles = StyleSheet.create({
   creditsAvailable: {
     ...Typography.body,
     color: Colors.gray600,
+  },
+  viewHistoryBtn: {
+    alignSelf: 'flex-start',
+    marginBottom: Spacing.s3,
+  },
+  viewHistoryText: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: Colors.primary600,
   },
   buyBtn: {
     marginBottom: Spacing.s2,

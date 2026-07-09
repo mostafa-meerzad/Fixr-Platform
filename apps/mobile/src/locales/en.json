@@ -437,7 +437,21 @@
       "namePlaceholder": "e.g. Ahmad Karimi",
       "saveChanges": "Save changes",
       "savedToast": "Profile updated",
-      "errorName": "Please enter your name"
+      "errorName": "Please enter your name",
+      "viewHistory": "View history →"
+    },
+    "credits": {
+      "title": "Credit History",
+      "currentBalance": "Current Balance",
+      "empty": "No transactions yet",
+      "emptySub": "Your credit activity will appear here.",
+      "types": {
+        "BID_SPEND": "Bid placed",
+        "BID_REFUND": "Bid refunded",
+        "PURCHASE": "Credits purchased",
+        "WELCOME_GRANT": "Welcome credits",
+        "ADMIN_ADJUSTMENT": "Admin adjustment"
+      }
     },
     "buySheet": {
       "title": "Purchase Credits",

@@ -78,6 +78,7 @@ export default function ExpertLayout() {
       />
       <Tabs.Screen name="job/[id]" options={{ href: null }} />
       <Tabs.Screen name="active-job/[id]" options={{ href: null }} />
+      <Tabs.Screen name="credits" options={{ href: null }} />
     </Tabs>
     <TouchableOpacity
       style={[styles.bell, { top: insets.top + 8 }]}
