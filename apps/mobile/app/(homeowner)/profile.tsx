@@ -1,6 +1,7 @@
-import React, { useCallback, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Linking,
   ScrollView,
   StyleSheet,
   Text,
@@ -8,6 +9,7 @@ import {
   View,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
+import * as Notifications from "expo-notifications";
 import { router, useFocusEffect } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as SecureStore from "expo-secure-store";
@@ -49,6 +51,7 @@ export default function ProfileScreen() {
 
   const editSheetRef = useRef<BottomSheetModal>(null);
   const langSheetRef = useRef<BottomSheetModal>(null);
+  const notifSheetRef = useRef<BottomSheetModal>(null);
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [totalJobs, setTotalJobs] = useState(0);
@@ -58,6 +61,13 @@ export default function ProfileScreen() {
   const [editNameError, setEditNameError] = useState("");
   const [saving, setSaving] = useState(false);
   const [avatarUploading, setAvatarUploading] = useState(false);
+  const [notifGranted, setNotifGranted] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    Notifications.getPermissionsAsync().then(({ status }) => {
+      setNotifGranted(status === "granted");
+    });
+  }, []);
 
   const handleAvatarChange = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -155,6 +165,7 @@ export default function ProfileScreen() {
         key: "notifications",
         label: t("homeowner.profile.notificationSettings"),
         icon: Icons.notifs,
+        onPress: () => notifSheetRef.current?.present(),
       },
       {
         key: "language",
@@ -169,11 +180,13 @@ export default function ProfileScreen() {
         key: "help",
         label: t("homeowner.profile.helpSupport"),
         icon: Icons.help,
+        onPress: () => router.push("/(shared)/help" as any),
       },
       {
         key: "about",
         label: t("homeowner.profile.aboutFixr"),
         icon: Icons.about,
+        onPress: () => router.push("/(shared)/about" as any),
       },
     ],
   ];
@@ -357,6 +370,34 @@ export default function ProfileScreen() {
           </View>
         ))}
       </BottomSheet>
+
+      <BottomSheet ref={notifSheetRef} snapPoints={["30%"]}>
+        <Text style={styles.sheetTitle}>
+          {t("shared.notifSettings.title")}
+        </Text>
+        <View style={styles.notifRow}>
+          <View style={styles.notifInfo}>
+            <Text style={styles.notifLabel}>
+              {t("shared.notifSettings.pushNotifications")}
+            </Text>
+          </View>
+          {notifGranted === true ? (
+            <Text style={styles.notifEnabled}>
+              {t("shared.notifSettings.enabled")}
+            </Text>
+          ) : (
+            <TouchableOpacity
+              onPress={() => Linking.openSettings()}
+              style={styles.notifSettingsBtn}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.notifSettingsBtnText}>
+                {t("shared.notifSettings.openSettings")}
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      </BottomSheet>
     </SafeAreaView>
   );
 }
@@ -533,5 +574,36 @@ const styles = StyleSheet.create({
   langLabelActive: {
     color: Colors.primary600,
     fontWeight: "600",
+  },
+  // Notification settings sheet
+  notifRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    height: 52,
+    gap: Spacing.s3,
+  },
+  notifInfo: {
+    flex: 1,
+  },
+  notifLabel: {
+    ...Typography.bodyMd,
+    color: Colors.gray900,
+  },
+  notifEnabled: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: Colors.success600,
+  },
+  notifSettingsBtn: {
+    borderWidth: 1.5,
+    borderColor: Colors.primary600,
+    borderRadius: 8,
+    paddingHorizontal: Spacing.s3,
+    paddingVertical: 6,
+  },
+  notifSettingsBtnText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: Colors.primary600,
   },
 });

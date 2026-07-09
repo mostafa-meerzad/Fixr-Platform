@@ -523,6 +523,39 @@
       "successToast": "Dispute submitted. We'll review and respond within 24 hours.",
       "errorAlreadyExists": "A dispute already exists for this job.",
       "errorNetwork": "Something went wrong. Please try again."
+    },
+    "help": {
+      "title": "Help & Support",
+      "contactLabel": "CONTACT US",
+      "whatsapp": "WhatsApp Us",
+      "call": "Call Us",
+      "phone": "+93 700 000 000",
+      "officeLabel": "OFFICE",
+      "address": "Shahr-e-Naw, Kabul, Afghanistan",
+      "hours": "Sat–Thu, 8:00 AM – 5:00 PM",
+      "faqLabel": "FREQUENTLY ASKED QUESTIONS",
+      "faq1Q": "How do I post a job?",
+      "faq1A": "Tap Post a Job on your home screen, choose a category, add a title and description, set urgency and location, then add photos. Review your job and tap Post.",
+      "faq2Q": "How do credits work?",
+      "faq2A": "Experts use 1 credit per bid placed. Credits are purchased in person at our Kabul office — 1 credit costs 50 AFN. Bring cash and we'll top up your balance on the spot.",
+      "faq3Q": "What if the expert doesn't show up?",
+      "faq3A": "If the expert fails to arrive within the agreed time, you can raise a dispute from the active job screen. Our team will review and resolve it within 24 hours.",
+      "faq4Q": "How do I contact the expert?",
+      "faq4A": "Chat unlocks automatically once you accept an expert's bid. Tap the Messages tab or the Message button on your active job screen to start chatting."
+    },
+    "about": {
+      "title": "About Fixr",
+      "description": "Fixr connects homeowners in Kabul with verified local service experts — plumbers, electricians, carpenters, and more. Post a job, get bids, and hire with confidence.",
+      "privacyPolicy": "Privacy Policy",
+      "terms": "Terms of Service",
+      "comingSoon": "Coming soon. Check back later.",
+      "versionLabel": "Version"
+    },
+    "notifSettings": {
+      "title": "Notification Settings",
+      "pushNotifications": "Push Notifications",
+      "enabled": "Enabled",
+      "openSettings": "Enable in Settings"
     }
   }
 }

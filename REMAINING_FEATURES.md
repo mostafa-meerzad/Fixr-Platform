@@ -380,8 +380,8 @@ No new screens — the existing onboarding flow handles the re-upload correctly 
 
 **Goal:** Give the four dead profile rows real destinations.
 
-**Completed:** [ ]  
-**TypeScript clean:** [ ]
+**Completed:** [x]  
+**TypeScript clean:** [x]
 
 ---
 
@@ -534,9 +534,9 @@ Add `category: 'category'` to `apps/mobile/src/constants/icons.ts` if not alread
 | 12 | Credit ledger screen + `credits.service.ts` | [x] |
 | 13 | Disputes history screen | [x] |
 | 13 | Expert re-verify flow | [x] |
-| 14 | Help & Support screen | [ ] |
-| 14 | About Fixr screen | [ ] |
-| 14 | Notification settings sheet | [ ] |
+| 14 | Help & Support screen | [x] |
+| 14 | About Fixr screen | [x] |
+| 14 | Notification settings sheet | [x] |
 | 15 | Expert category management in profile | [ ] |
 
 ---

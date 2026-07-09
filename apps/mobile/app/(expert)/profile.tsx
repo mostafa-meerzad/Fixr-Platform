@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import * as Notifications from "expo-notifications";
 import { router, useFocusEffect } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as SecureStore from "expo-secure-store";
@@ -68,6 +69,7 @@ export default function ExpertProfileScreen() {
   const zonesSheetRef = useRef<BottomSheetModal>(null);
   const langSheetRef = useRef<BottomSheetModal>(null);
   const buySheetRef = useRef<BottomSheetModal>(null);
+  const notifSheetRef = useRef<BottomSheetModal>(null);
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [allZones, setAllZones] = useState<Zone[]>([]);
@@ -77,6 +79,13 @@ export default function ExpertProfileScreen() {
   const [editNameError, setEditNameError] = useState("");
   const [saving, setSaving] = useState(false);
   const [zonesLoading, setZonesLoading] = useState(false);
+  const [notifGranted, setNotifGranted] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    Notifications.getPermissionsAsync().then(({ status }) => {
+      setNotifGranted(status === "granted");
+    });
+  }, []);
 
   const load = useCallback(async () => {
     try {
@@ -199,6 +208,7 @@ export default function ExpertProfileScreen() {
         key: "notifications",
         label: t("expert.profile.notificationSettings"),
         icon: Icons.notifs,
+        onPress: () => notifSheetRef.current?.present(),
       },
       {
         key: "language",
@@ -209,8 +219,18 @@ export default function ExpertProfileScreen() {
       },
     ],
     [
-      { key: "help", label: t("expert.profile.helpSupport"), icon: Icons.help },
-      { key: "about", label: t("expert.profile.aboutFixr"), icon: Icons.about },
+      {
+        key: "help",
+        label: t("expert.profile.helpSupport"),
+        icon: Icons.help,
+        onPress: () => router.push("/(shared)/help" as any),
+      },
+      {
+        key: "about",
+        label: t("expert.profile.aboutFixr"),
+        icon: Icons.about,
+        onPress: () => router.push("/(shared)/about" as any),
+      },
     ],
   ];
 
@@ -534,6 +554,35 @@ export default function ExpertProfileScreen() {
           onPress={() => buySheetRef.current?.dismiss()}
         />
       </BottomSheet>
+
+      {/* Notification Settings sheet */}
+      <BottomSheet ref={notifSheetRef} snapPoints={["30%"]}>
+        <Text style={styles.sheetTitle}>
+          {t("shared.notifSettings.title")}
+        </Text>
+        <View style={styles.notifRow}>
+          <View style={styles.notifInfo}>
+            <Text style={styles.notifLabel}>
+              {t("shared.notifSettings.pushNotifications")}
+            </Text>
+          </View>
+          {notifGranted === true ? (
+            <Text style={styles.notifEnabled}>
+              {t("shared.notifSettings.enabled")}
+            </Text>
+          ) : (
+            <TouchableOpacity
+              onPress={() => Linking.openSettings()}
+              style={styles.notifSettingsBtn}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.notifSettingsBtnText}>
+                {t("shared.notifSettings.openSettings")}
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      </BottomSheet>
     </SafeAreaView>
   );
 }
@@ -788,6 +837,37 @@ const styles = StyleSheet.create({
   },
   zoneDivider: {
     marginVertical: 0,
+  },
+  // Notification settings sheet
+  notifRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    height: 52,
+    gap: Spacing.s3,
+  },
+  notifInfo: {
+    flex: 1,
+  },
+  notifLabel: {
+    ...Typography.bodyMd,
+    color: Colors.gray900,
+  },
+  notifEnabled: {
+    fontSize: 13,
+    fontWeight: "600" as const,
+    color: Colors.success600,
+  },
+  notifSettingsBtn: {
+    borderWidth: 1.5,
+    borderColor: Colors.primary600,
+    borderRadius: 8,
+    paddingHorizontal: Spacing.s3,
+    paddingVertical: 6,
+  },
+  notifSettingsBtnText: {
+    fontSize: 13,
+    fontWeight: "600" as const,
+    color: Colors.primary600,
   },
   // Buy Credits sheet
   buySheetIconWrap: {

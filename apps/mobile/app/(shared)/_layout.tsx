@@ -1,5 +1,11 @@
 import { Stack } from 'expo-router';
 
 export default function SharedLayout() {
-  return <Stack screenOptions={{ headerShown: false }} />;
+  return (
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="help" />
+      <Stack.Screen name="about" />
+      <Stack.Screen name="notifications" />
+    </Stack>
+  );
 }
