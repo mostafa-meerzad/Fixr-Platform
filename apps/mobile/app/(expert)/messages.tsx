@@ -10,6 +10,7 @@ import {
 import { router, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
+import { useNotifStore } from '@/stores/notif.store';
 import { Colors, Spacing, Typography } from '@/constants/theme';
 import { Icons } from '@/constants/icons';
 import { Avatar } from '@/components/ui/Avatar';
@@ -41,6 +42,7 @@ function getStatusLabel(status: string): string {
 
 export default function ExpertMessagesScreen() {
   const { t } = useTranslation();
+  const clearUnreadChat = useNotifStore((s) => s.clearUnreadChat);
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -58,7 +60,10 @@ export default function ExpertMessagesScreen() {
     }
   }, []);
 
-  useFocusEffect(useCallback(() => { load(); }, [load]));
+  useFocusEffect(useCallback(() => {
+    clearUnreadChat();
+    load();
+  }, [load]));
 
   const renderItem = ({ item: job, index }: { item: Job; index: number }) => (
     <View>

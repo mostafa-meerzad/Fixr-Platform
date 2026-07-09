@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { AppState, AppStateStatus, StyleSheet, View, Image } from 'react-native';
 import { Stack, router } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -87,6 +87,8 @@ export default function RootLayout() {
   const langLoaded = useLangStore((s) => s.langLoaded);
   const setUnreadCount = useNotifStore((s) => s.setUnreadCount);
   const incrementUnread = useNotifStore((s) => s.increment);
+  const setUnreadChatCount = useNotifStore((s) => s.setUnreadChatCount);
+  const incrementUnreadChat = useNotifStore((s) => s.incrementUnreadChat);
   const startTime = useRef(Date.now());
   const [ready, setReady] = useState(false);
   const appState = useRef(AppState.currentState);
@@ -112,13 +114,22 @@ export default function RootLayout() {
     usersService.updateMe({ language: 'en' }).catch(() => {});
   }, [user?.id]);
 
-  // Load initial unread count when user logs in
-  useEffect(() => {
+  const syncUnreadCounts = useCallback(() => {
     if (!user) return;
     notificationsService
-      .list(1, 1)
-      .then((res) => setUnreadCount(res.data?.unreadCount ?? 0))
+      .list(1, 50)
+      .then((res) => {
+        setUnreadCount(res.data?.unreadCount ?? 0);
+        const notifs: Array<{ type: string; isRead: boolean }> = res.data?.data ?? [];
+        const chatUnread = notifs.filter((n) => !n.isRead && n.type === 'NEW_MESSAGE').length;
+        setUnreadChatCount(chatUnread);
+      })
       .catch(() => {});
+  }, [user?.id]);
+
+  // Load initial unread counts when user logs in
+  useEffect(() => {
+    syncUnreadCounts();
   }, [user?.id]);
 
   // Handle app coming to foreground
@@ -126,12 +137,7 @@ export default function RootLayout() {
     const sub = AppState.addEventListener('change', (next: AppStateStatus) => {
       if (appState.current.match(/inactive|background/) && next === 'active') {
         bumpProfileRefresh();
-        if (user) {
-          notificationsService
-            .list(1, 1)
-            .then((res) => setUnreadCount(res.data?.unreadCount ?? 0))
-            .catch(() => {});
-        }
+        syncUnreadCounts();
       }
       appState.current = next;
     });
@@ -140,8 +146,13 @@ export default function RootLayout() {
 
   // Foreground notification received → bump unread badge
   useEffect(() => {
-    const sub = Notifications.addNotificationReceivedListener(() => {
-      incrementUnread();
+    const sub = Notifications.addNotificationReceivedListener((notification) => {
+      const type = notification.request.content.data?.type as string | undefined;
+      if (type === 'NEW_MESSAGE' || type === 'message.new') {
+        incrementUnreadChat();
+      } else {
+        incrementUnread();
+      }
       bumpProfileRefresh();
     });
     return () => sub.remove();

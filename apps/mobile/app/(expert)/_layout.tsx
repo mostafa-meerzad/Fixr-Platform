@@ -26,7 +26,7 @@ function TabIcon({
 
 export default function ExpertLayout() {
   const insets = useSafeAreaInsets();
-  const hasUnread = useNotifStore((s) => s.unreadCount > 0);
+  const hasUnread = useNotifStore((s) => s.unreadChatCount > 0);
 
   return (
     <Tabs
