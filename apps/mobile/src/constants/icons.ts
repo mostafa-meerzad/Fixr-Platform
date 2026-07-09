@@ -62,12 +62,21 @@ export const Icons = {
   info: "info",
   phone: "phone",
   notifs: "notifications",
+  notifsActive: "notifications_active",
   language: "language",
   help: "help",
   about: "info",
   logout: "logout",
   visibility: "visibility",
   visibilityOff: "visibility_off",
+
+  // Notification type icons
+  undo: "undo",
+  assignmentTurnedIn: "assignment_turned_in",
+  taskAlt: "task_alt",
+  gppBad: "gpp_bad",
+  reportProblem: "report_problem",
+  handshake: "handshake",
 } as const;
 
 export type IconName = (typeof Icons)[keyof typeof Icons];

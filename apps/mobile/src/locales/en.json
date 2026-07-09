@@ -465,6 +465,12 @@
       "successToast": "Review submitted. Thank you!",
       "errorWindowClosed": "The 48-hour review window for this job has closed."
     },
+    "notifications": {
+      "title": "Notifications",
+      "markAllRead": "Mark all read",
+      "empty": "No notifications yet",
+      "emptySub": "Activity on your jobs will appear here."
+    },
     "dispute": {
       "headerTitle": "Raise a Dispute",
       "heading": "What went wrong?",

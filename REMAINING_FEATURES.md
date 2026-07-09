@@ -123,8 +123,8 @@ git commit -m "fix(backend): set Android FCM notification icon and brand color"
 
 **Goal:** Give users a screen to view their notification history and deep-link from it.
 
-**Completed:** [ ]  
-**TypeScript clean:** [ ]
+**Completed:** [x]  
+**TypeScript clean:** [x]
 
 ---
 
@@ -529,7 +529,7 @@ Add `category: 'category'` to `apps/mobile/src/constants/icons.ts` if not alread
 | 9 | Buy Credits agency sheet | [x] |
 | 9 | Fix job-post edit links | [x] |
 | 9 | Commit backend notification change | [x] |
-| 10 | Notification inbox screen + bell icon | [ ] |
+| 10 | Notification inbox screen + bell icon | [x] |
 | 11 | My Reviews screen | [ ] |
 | 12 | Credit ledger screen + `credits.service.ts` | [ ] |
 | 13 | Disputes history screen | [ ] |

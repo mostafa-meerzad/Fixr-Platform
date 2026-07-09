@@ -20,7 +20,7 @@ import { useNotifStore } from '@/stores/notif.store';
 import { ToastProvider } from '@/components/ui/Toast';
 import { notificationsService } from '@/services/notifications.service';
 import { usersService } from '@/services/users.service';
-import { UserRole } from '@fixr/shared';
+import { navigateFromNotification } from '@/utils/notificationRouter';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -35,51 +35,6 @@ Notifications.setNotificationHandler({
 });
 
 const SPLASH_MIN_MS = 2000;
-
-function navigateToNotification(
-  data: Record<string, string>,
-  role: UserRole | undefined,
-) {
-  const { type, jobId, channel_id } = data ?? {};
-
-  // Stream Chat push: type = "message.new", channel_id = "job-<jobId>"
-  if (type === 'message.new') {
-    const match = (channel_id ?? '').match(/^(?:messaging:)?job-(.+)$/);
-    if (match) router.push(`/(shared)/chat/${match[1]}` as any);
-    return;
-  }
-
-  switch (type) {
-    case 'BID_RECEIVED':
-      if (jobId) router.push(`/(homeowner)/job/${jobId}` as any);
-      break;
-    case 'JOB_POSTED':
-      if (jobId) router.push(`/(expert)/job/${jobId}` as any);
-      break;
-    case 'BID_ACCEPTED':
-    case 'JOB_COMPLETED':
-      if (jobId) router.push(`/(expert)/active-job/${jobId}` as any);
-      break;
-    case 'EXPERT_EN_ROUTE':
-    case 'EXPERT_ARRIVED':
-    case 'COMPLETION_REQUESTED':
-      if (jobId) router.push(`/(homeowner)/active-job/${jobId}` as any);
-      break;
-    case 'JOB_CANCELLED':
-      if (role === UserRole.EXPERT) router.push('/(expert)/my-bids' as any);
-      else router.push('/(homeowner)/my-jobs' as any);
-      break;
-    case 'VERIFICATION_APPROVED':
-      router.push('/(expert)/browse' as any);
-      break;
-    case 'VERIFICATION_REJECTED':
-      router.push('/(expert)/profile' as any);
-      break;
-    default:
-      // Unknown or legacy type — no navigation
-      break;
-  }
-}
 
 export default function RootLayout() {
   const initialize = useAuthStore((s) => s.initialize);
@@ -164,7 +119,7 @@ export default function RootLayout() {
   useEffect(() => {
     const sub = Notifications.addNotificationResponseReceivedListener((response) => {
       const data = response.notification.request.content.data as Record<string, string>;
-      navigateToNotification(data, user?.role);
+      navigateFromNotification(data, user?.role);
     });
     return () => sub.remove();
   }, [user?.role]);
@@ -174,7 +129,7 @@ export default function RootLayout() {
     Notifications.getLastNotificationResponseAsync().then((response) => {
       if (!response || !user) return;
       const data = response.notification.request.content.data as Record<string, string>;
-      navigateToNotification(data, user.role);
+      navigateFromNotification(data, user.role);
     });
   }, [user?.id]);
 
