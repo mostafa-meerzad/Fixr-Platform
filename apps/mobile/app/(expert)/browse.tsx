@@ -170,12 +170,12 @@ export default function BrowseScreen() {
   };
 
   useEffect(() => {
-    if (!loading && !error && verificationStatus === 'NOT_SUBMITTED') {
+    if (!loading && !error && !verificationStatus) {
       router.replace('/(auth)/expert-onboarding/selfie' as any);
     }
   }, [loading, error, verificationStatus]);
 
-  if (loading || (!error && verificationStatus === 'NOT_SUBMITTED')) {
+  if (loading || (!error && !verificationStatus)) {
     return (
       <SafeAreaView style={styles.safe} edges={["top"]}>
         <View style={styles.loadingHeader}>

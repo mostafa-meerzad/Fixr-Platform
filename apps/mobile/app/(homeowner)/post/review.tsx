@@ -194,7 +194,7 @@ export default function ReviewScreen() {
             {/* Category */}
             <ReviewRow
               label={t('homeowner.post.categoryRowLabel')}
-              onEdit={() => router.back()}
+              onEdit={() => router.push({ pathname: '/(homeowner)/post/create', params: { jobId, editStep: '1' } } as any)}
             >
               <Text style={styles.valueText}>{job?.category?.nameEn}</Text>
             </ReviewRow>
@@ -203,7 +203,7 @@ export default function ReviewScreen() {
             {/* Title */}
             <ReviewRow
               label={t('homeowner.post.titleRowLabel')}
-              onEdit={() => router.back()}
+              onEdit={() => router.push({ pathname: '/(homeowner)/post/create', params: { jobId, editStep: '2' } } as any)}
             >
               <Text style={styles.valueText} numberOfLines={2}>{job?.title}</Text>
             </ReviewRow>
@@ -212,7 +212,7 @@ export default function ReviewScreen() {
             {/* Urgency */}
             <ReviewRow
               label={t('homeowner.post.urgencyRowLabel')}
-              onEdit={() => router.back()}
+              onEdit={() => router.push({ pathname: '/(homeowner)/post/create', params: { jobId, editStep: '3' } } as any)}
             >
               {job && (
                 <View style={styles.pillWrap}>
@@ -231,7 +231,7 @@ export default function ReviewScreen() {
             {/* Zone */}
             <ReviewRow
               label={t('homeowner.post.zoneRowLabel')}
-              onEdit={() => router.back()}
+              onEdit={() => router.push({ pathname: '/(homeowner)/post/create', params: { jobId, editStep: '4' } } as any)}
             >
               <Text style={styles.valueText}>{job?.zone?.nameEn}</Text>
             </ReviewRow>
@@ -240,7 +240,7 @@ export default function ReviewScreen() {
             {/* Address */}
             <ReviewRow
               label={t('homeowner.post.addressRowLabel')}
-              onEdit={() => router.back()}
+              onEdit={() => router.push({ pathname: '/(homeowner)/post/create', params: { jobId, editStep: '4' } } as any)}
             >
               <Text style={styles.valueText}>{job?.address}</Text>
             </ReviewRow>

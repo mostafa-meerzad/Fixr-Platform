@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
+  Linking,
   ScrollView,
   StyleSheet,
   Text,
@@ -66,6 +67,7 @@ export default function ExpertProfileScreen() {
   const editSheetRef = useRef<BottomSheetModal>(null);
   const zonesSheetRef = useRef<BottomSheetModal>(null);
   const langSheetRef = useRef<BottomSheetModal>(null);
+  const buySheetRef = useRef<BottomSheetModal>(null);
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [allZones, setAllZones] = useState<Zone[]>([]);
@@ -252,9 +254,7 @@ export default function ExpertProfileScreen() {
             </View>
             <Button
               label={t("expert.profile.buyCredits")}
-              onPress={() =>
-                toast.show({ message: t("expert.profile.comingSoon") })
-              }
+              onPress={() => buySheetRef.current?.present()}
               style={styles.buyBtn}
             />
             <Text style={styles.creditsCaption}>
@@ -476,6 +476,39 @@ export default function ExpertProfileScreen() {
             showsVerticalScrollIndicator={false}
           />
         )}
+      </BottomSheet>
+
+      {/* Buy Credits sheet */}
+      <BottomSheet ref={buySheetRef} snapPoints={["55%"]}>
+        <View style={styles.buySheetIconWrap}>
+          <MaterialIcons name={"storefront" as any} size={40} color={Colors.primary600} />
+        </View>
+        <Text style={styles.buySheetTitle}>{t("expert.buySheet.title")}</Text>
+        <Text style={styles.buySheetBody}>{t("expert.buySheet.body")}</Text>
+        <View style={styles.buySheetInfoRows}>
+          <View style={styles.buySheetRow}>
+            <MaterialIcons name={"place" as any} size={18} color={Colors.primary600} />
+            <Text style={styles.buySheetRowText}>{t("expert.buySheet.address")}</Text>
+          </View>
+          <TouchableOpacity
+            style={styles.buySheetRow}
+            onPress={() => Linking.openURL(`tel:${t("expert.buySheet.phone")}`)}
+            activeOpacity={0.7}
+          >
+            <MaterialIcons name={"phone" as any} size={18} color={Colors.primary600} />
+            <Text style={[styles.buySheetRowText, styles.buySheetPhoneText]}>
+              {t("expert.buySheet.phone")}
+            </Text>
+          </TouchableOpacity>
+          <View style={styles.buySheetRow}>
+            <MaterialIcons name={"schedule" as any} size={18} color={Colors.primary600} />
+            <Text style={styles.buySheetRowText}>{t("expert.buySheet.hours")}</Text>
+          </View>
+        </View>
+        <Button
+          label={t("expert.buySheet.dismiss")}
+          onPress={() => buySheetRef.current?.dismiss()}
+        />
       </BottomSheet>
     </SafeAreaView>
   );
@@ -722,5 +755,39 @@ const styles = StyleSheet.create({
   },
   zoneDivider: {
     marginVertical: 0,
+  },
+  // Buy Credits sheet
+  buySheetIconWrap: {
+    alignItems: "center",
+    marginBottom: Spacing.s3,
+  },
+  buySheetTitle: {
+    ...Typography.heading2,
+    textAlign: "center",
+    marginBottom: Spacing.s2,
+  },
+  buySheetBody: {
+    ...Typography.body,
+    color: Colors.gray600,
+    textAlign: "center",
+    lineHeight: 22,
+    marginBottom: Spacing.s4,
+  },
+  buySheetInfoRows: {
+    gap: Spacing.s3,
+    marginBottom: Spacing.s4,
+  },
+  buySheetRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.s2,
+  },
+  buySheetRowText: {
+    ...Typography.bodyMd,
+    color: Colors.gray900,
+    flex: 1,
+  },
+  buySheetPhoneText: {
+    color: Colors.primary600,
   },
 });

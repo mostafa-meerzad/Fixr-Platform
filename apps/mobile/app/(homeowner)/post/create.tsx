@@ -13,7 +13,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { router, Stack } from 'expo-router';
+import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { MaterialIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -70,7 +70,10 @@ export default function CreateJobScreen() {
   const { t } = useTranslation();
   const toast = useToast();
 
-  const [step, setStep] = useState<Step>(1);
+  const { jobId: editJobId, editStep } = useLocalSearchParams<{ jobId?: string; editStep?: string }>();
+  const isEditMode = !!editStep && !!editJobId;
+
+  const [step, setStep] = useState<Step>(isEditMode ? (Number(editStep) as Step) : 1);
 
   // Data
   const [categories, setCategories] = useState<Category[]>([]);
@@ -116,11 +119,26 @@ export default function CreateJobScreen() {
       })
       .catch(() => {})
       .finally(() => setZonesLoading(false));
+
+    if (isEditMode && editJobId) {
+      jobsService.get(editJobId).then(({ data }) => {
+        const job = data as any;
+        if (job.category) setSelectedCategory(job.category);
+        if (job.title) setTitle(job.title);
+        if (job.description) setDescription(job.description);
+        if (job.urgency) setUrgency(job.urgency);
+        if (job.scheduledAt) setScheduledAt(job.scheduledAt);
+        if (job.zone) setSelectedZone({ id: job.zone.id, nameEn: job.zone.nameEn ?? job.zone.name });
+        if (job.address) setAddress(job.address);
+      }).catch(() => {});
+    }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleBack() {
     if (step > 1) {
       setStep((s) => (s - 1) as Step);
+    } else if (isEditMode) {
+      router.back();
     } else {
       Alert.alert(
         t('homeowner.post.discardTitle'),
@@ -173,7 +191,7 @@ export default function CreateJobScreen() {
 
     setSubmitting(true);
     try {
-      const { data } = await jobsService.create({
+      const payload = {
         title: title.trim(),
         description: description.trim(),
         categoryId: selectedCategory!.id,
@@ -181,9 +199,15 @@ export default function CreateJobScreen() {
         address: address.trim(),
         urgency: urgency!,
         scheduledAt: urgency === 'SCHEDULED' && scheduledAt ? scheduledAt : undefined,
-      });
-      const jobId = (data as { id: string }).id;
-      router.push(`/(homeowner)/post/media?jobId=${jobId}` as any);
+      };
+      if (isEditMode) {
+        await jobsService.update(editJobId!, payload);
+        router.push({ pathname: '/(homeowner)/post/review', params: { jobId: editJobId } } as any);
+      } else {
+        const { data } = await jobsService.create(payload);
+        const newJobId = (data as { id: string }).id;
+        router.push(`/(homeowner)/post/media?jobId=${newJobId}` as any);
+      }
     } catch (err: any) {
       const message = err?.response?.data?.message ?? t('homeowner.post.errorNetwork');
       toast.show({ message, variant: 'error' });
