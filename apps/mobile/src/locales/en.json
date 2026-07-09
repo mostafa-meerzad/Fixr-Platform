@@ -471,6 +471,11 @@
       "empty": "No notifications yet",
       "emptySub": "Activity on your jobs will appear here."
     },
+    "reviews": {
+      "title": "My Reviews",
+      "empty": "No reviews yet",
+      "emptySub": "Reviews from completed jobs will appear here."
+    },
     "dispute": {
       "headerTitle": "Raise a Dispute",
       "heading": "What went wrong?",

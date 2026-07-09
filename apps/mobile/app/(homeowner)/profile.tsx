@@ -141,6 +141,7 @@ export default function ProfileScreen() {
         key: "reviews",
         label: t("homeowner.profile.myReviews"),
         icon: Icons.star,
+        onPress: () => user && router.push(`/(shared)/reviews/${user.id}` as any),
       },
       {
         key: "issues",

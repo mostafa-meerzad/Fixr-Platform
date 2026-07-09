@@ -171,6 +171,7 @@ export default function ExpertProfileScreen() {
         key: "reviews",
         label: t("expert.profile.myReviews"),
         icon: Icons.star,
+        onPress: () => user && router.push(`/(shared)/reviews/${user.id}` as any),
       },
       {
         key: "verifyDocs",

@@ -188,8 +188,8 @@ Add `/(shared)/notifications` to `apps/mobile/app/(shared)/_layout.tsx` Stack (n
 
 **Goal:** Let both homeowners and experts view reviews they've received.
 
-**Completed:** [ ]  
-**TypeScript clean:** [ ]
+**Completed:** [x]  
+**TypeScript clean:** [x]
 
 ---
 
@@ -530,7 +530,7 @@ Add `category: 'category'` to `apps/mobile/src/constants/icons.ts` if not alread
 | 9 | Fix job-post edit links | [x] |
 | 9 | Commit backend notification change | [x] |
 | 10 | Notification inbox screen + bell icon | [x] |
-| 11 | My Reviews screen | [ ] |
+| 11 | My Reviews screen | [x] |
 | 12 | Credit ledger screen + `credits.service.ts` | [ ] |
 | 13 | Disputes history screen | [ ] |
 | 13 | Expert re-verify flow | [ ] |
