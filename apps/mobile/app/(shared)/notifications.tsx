@@ -28,7 +28,7 @@ interface AppNotification {
   bodyEn: string;
   isRead: boolean;
   data: { jobId?: string } | null;
-  createdAt: string;
+  sentAt: string;
 }
 
 const ICON_MAP: Record<string, string> = {
@@ -224,7 +224,7 @@ export default function NotificationsScreen() {
                   {item.bodyEn}
                 </Text>
                 <Text style={styles.notifTime}>
-                  {formatRelativeTime(item.createdAt, 'en')}
+                  {formatRelativeTime(item.sentAt, 'en')}
                 </Text>
               </View>
 

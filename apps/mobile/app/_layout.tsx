@@ -44,7 +44,6 @@ export default function RootLayout() {
   const langLoaded = useLangStore((s) => s.langLoaded);
   const setUnreadCount = useNotifStore((s) => s.setUnreadCount);
   const incrementUnread = useNotifStore((s) => s.increment);
-  const setUnreadChatCount = useNotifStore((s) => s.setUnreadChatCount);
   const incrementUnreadChat = useNotifStore((s) => s.incrementUnreadChat);
   const startTime = useRef(Date.now());
   const [ready, setReady] = useState(false);
@@ -74,12 +73,9 @@ export default function RootLayout() {
   const syncUnreadCounts = useCallback(() => {
     if (!user) return;
     notificationsService
-      .list(1, 50)
+      .list(1, 1)
       .then((res) => {
         setUnreadCount(res.data?.unreadCount ?? 0);
-        const notifs: Array<{ type: string; isRead: boolean }> = res.data?.data ?? [];
-        const chatUnread = notifs.filter((n) => !n.isRead && n.type === 'NEW_MESSAGE').length;
-        setUnreadChatCount(chatUnread);
       })
       .catch(() => {});
   }, [user?.id]);
