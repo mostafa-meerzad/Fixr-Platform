@@ -100,7 +100,7 @@ export default function DisputesScreen() {
         />
       ) : disputes.length === 0 ? (
         <EmptyState
-          icon="check_circle"
+          icon="check-circle"
           title={t("homeowner.disputes.empty")}
           subtitle={t("homeowner.disputes.emptySub")}
         />

@@ -33,16 +33,16 @@ interface AppNotification {
 
 const ICON_MAP: Record<string, string> = {
   BID_RECEIVED: 'gavel',
-  BID_ACCEPTED: 'check_circle',
+  BID_ACCEPTED: 'check-circle',
   BID_REJECTED: 'cancel',
   BID_WITHDRAWN: 'undo',
-  JOB_ASSIGNED: 'assignment_turned_in',
+  JOB_ASSIGNED: 'assignment-turned-in',
   JOB_CANCELLED: 'cancel',
-  JOB_COMPLETED: 'task_alt',
-  COMPLETION_REQUESTED: 'hourglass_empty',
+  JOB_COMPLETED: 'task-alt',
+  COMPLETION_REQUESTED: 'hourglass-empty',
   EXPERT_VERIFIED: 'verified',
-  EXPERT_REJECTED: 'gpp_bad',
-  DISPUTE_OPENED: 'report_problem',
+  EXPERT_REJECTED: 'gpp-bad',
+  DISPUTE_OPENED: 'report-problem',
   DISPUTE_RESOLVED: 'handshake',
   JOB_PUBLISHED: 'work',
 };

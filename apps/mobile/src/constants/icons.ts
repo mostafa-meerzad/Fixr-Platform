@@ -43,9 +43,9 @@ export const Icons = {
   noShow: "cancel",
 
   // Empty states
-  notifNone: "notifications_none",
-  workOutline: "work-outline",
-  history: "history",
+  notifNone: "notifications-none",
+  workOutline: "work-outlined",
+  history: "history-outlined",
   hourglass: "hourglass-empty",
   chatNone: "chat",
   searchOff: "search-off",
@@ -65,20 +65,20 @@ export const Icons = {
   info: "info",
   phone: "phone",
   notifs: "notifications",
-  notifsActive: "notifications_active",
+  notifsActive: "notifications-active",
   language: "language",
   help: "help",
   about: "info",
   logout: "logout",
   visibility: "visibility",
-  visibilityOff: "visibility_off",
+  visibilityOff: "visibility-off",
 
   // Notification type icons
   undo: "undo",
-  assignmentTurnedIn: "assignment_turned_in",
-  taskAlt: "task_alt",
-  gppBad: "gpp_bad",
-  reportProblem: "report_problem",
+  assignmentTurnedIn: "assignment-turned-in",
+  taskAlt: "task-alt",
+  gppBad: "gpp-bad",
+  reportProblem: "report-problem",
   handshake: "handshake",
 } as const;
 
