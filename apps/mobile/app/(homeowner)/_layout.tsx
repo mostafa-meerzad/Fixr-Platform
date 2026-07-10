@@ -76,6 +76,7 @@ export default function HomeownerLayout() {
           tabBarIcon: ({ color }) => <TabIcon name={Icons.tabPerson} color={color} />,
         }}
       />
+      <Tabs.Screen name="disputes" options={{ href: null }} />
       <Tabs.Screen name="job/[id]" options={{ href: null }} />
       <Tabs.Screen name="active-job/[id]" options={{ href: null }} />
       <Tabs.Screen name="post/create" options={{ href: null }} />
