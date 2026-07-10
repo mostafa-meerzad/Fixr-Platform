@@ -17,7 +17,20 @@ import { Avatar } from '@/components/ui/Avatar';
 import { Divider } from '@/components/ui/Divider';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Pill, getStatusVariant } from '@/components/ui/Pill';
-import { jobsService, type Job, type JobListResponse } from '@/services/jobs.service';
+import { bidsService } from '@/services/bids.service';
+
+interface BidJob {
+  id: string;
+  title: string;
+  status: string;
+  acceptedBidId?: string | null;
+  zone?: { nameEn: string };
+}
+
+interface MineBid {
+  id: string;
+  job: BidJob;
+}
 
 const CHAT_STATUSES = [
   'ASSIGNED',
@@ -28,14 +41,14 @@ const CHAT_STATUSES = [
   'COMPLETED',
 ];
 
-function getStatusLabel(status: string): string {
+function getStatusLabel(status: string, t: (k: string) => string): string {
   const map: Record<string, string> = {
-    ASSIGNED: 'Assigned',
-    EN_ROUTE: 'On My Way',
-    ARRIVED: 'Arrived',
-    IN_PROGRESS: 'In Progress',
-    COMPLETION_REQUESTED: 'Completion Req.',
-    COMPLETED: 'Completed',
+    ASSIGNED: t('common.status.assigned'),
+    EN_ROUTE: t('common.status.enRoute'),
+    ARRIVED: t('common.status.arrived'),
+    IN_PROGRESS: t('common.status.inProgress'),
+    COMPLETION_REQUESTED: t('common.status.completionRequested'),
+    COMPLETED: t('common.status.completed'),
   };
   return map[status] ?? status;
 }
@@ -43,16 +56,21 @@ function getStatusLabel(status: string): string {
 export default function ExpertMessagesScreen() {
   const { t } = useTranslation();
   const clearUnreadChat = useNotifStore((s) => s.clearUnreadChat);
-  const [jobs, setJobs] = useState<Job[]>([]);
+  const [jobs, setJobs] = useState<BidJob[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
   const load = useCallback(async () => {
     try {
       setError(false);
-      const res = await jobsService.list({ limit: 50, page: 1 });
-      const body = res.data as JobListResponse;
-      setJobs(body.data.filter((j) => CHAT_STATUSES.includes(j.status)));
+      const res = await bidsService.mine();
+      const raw = res.data as MineBid[] | { data: MineBid[] };
+      const allBids = Array.isArray(raw) ? raw : raw.data ?? [];
+      setJobs(
+        allBids
+          .filter((b) => b.job.acceptedBidId === b.id && CHAT_STATUSES.includes(b.job.status))
+          .map((b) => b.job),
+      );
     } catch {
       setError(true);
     } finally {
@@ -65,7 +83,7 @@ export default function ExpertMessagesScreen() {
     load();
   }, [load]));
 
-  const renderItem = ({ item: job, index }: { item: Job; index: number }) => (
+  const renderItem = ({ item: job, index }: { item: BidJob; index: number }) => (
     <View>
       <TouchableOpacity
         style={styles.row}
@@ -81,7 +99,7 @@ export default function ExpertMessagesScreen() {
             {job.zone?.nameEn}
           </Text>
         </View>
-        <Pill label={getStatusLabel(job.status)} variant={getStatusVariant(job.status)} />
+        <Pill label={getStatusLabel(job.status, t)} variant={getStatusVariant(job.status)} />
       </TouchableOpacity>
       {index < jobs.length - 1 ? <Divider style={styles.divider} /> : null}
     </View>

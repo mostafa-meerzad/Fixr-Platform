@@ -44,8 +44,8 @@ export const Icons = {
 
   // Empty states
   notifNone: "notifications-none",
-  workOutline: "work-outlined",
-  history: "history-outlined",
+  workOutline: "work-outline",
+  history: "history",
   hourglass: "hourglass-empty",
   chatNone: "chat",
   searchOff: "search-off",

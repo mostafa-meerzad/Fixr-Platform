@@ -111,7 +111,7 @@ export default function ReviewScreen() {
     : `${t('shared.review.homeowner')} · ${job?.zone?.nameEn ?? ''}`;
 
   const screenTitle = isHomeowner
-    ? t('shared.review.questionExpert')
+    ? t('shared.review.questionExpert', { name: otherPartyName })
     : t('shared.review.questionHomeowner');
 
   const positiveTags = isHomeowner ? HOMEOWNER_POSITIVE_TAGS : EXPERT_POSITIVE_TAGS;

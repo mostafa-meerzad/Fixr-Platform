@@ -48,11 +48,11 @@ function getVerificationVariant(
   return "gray";
 }
 
-function getVerificationLabel(status?: string): string {
-  if (status === "VERIFIED") return "Verified";
-  if (status === "PENDING") return "Pending";
-  if (status === "REJECTED") return "Rejected";
-  return "Unverified";
+function getVerificationLabel(status: string | undefined, t: (k: string) => string): string {
+  if (status === "VERIFIED") return t("expert.profile.statusVerified");
+  if (status === "PENDING") return t("expert.profile.statusPending");
+  if (status === "REJECTED") return t("expert.profile.statusRejected");
+  return t("expert.profile.statusNotSubmitted");
 }
 
 export default function ExpertProfileScreen() {
@@ -307,7 +307,7 @@ export default function ExpertProfileScreen() {
                 <Text style={styles.profileName}>{user?.name}</Text>
                 <View style={styles.verifyRow}>
                   <Pill
-                    label={getVerificationLabel(verificationStatus)}
+                    label={getVerificationLabel(verificationStatus, t)}
                     variant={getVerificationVariant(verificationStatus)}
                   />
                 </View>

@@ -125,7 +125,7 @@ export default function ProfileScreen() {
       await usersService.updateMe({ name: editName.trim() });
       await updateUser({ name: editName.trim() });
       editSheetRef.current?.dismiss();
-      toast.show({ message: "Profile updated", variant: "success" });
+      toast.show({ message: t("homeowner.profile.savedToast"), variant: "success" });
     } catch {
       toast.show({
         message: t("homeowner.profile.errorNetwork"),

@@ -17,6 +17,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { Divider } from '@/components/ui/Divider';
 import { creditsService } from '@/services/credits.service';
 import { usersService } from '@/services/users.service';
+import { formatRelativeTime } from '@/utils/format';
 
 type TransactionType =
   | 'BID_SPEND'
@@ -41,23 +42,14 @@ function getTypeConfig(type: TransactionType) {
     case 'BID_REFUND':
       return { icon: 'undo', bg: Colors.success100, color: Colors.success600 };
     case 'PURCHASE':
-      return { icon: 'add_circle', bg: Colors.success100, color: Colors.success600 };
+      return { icon: 'add-circle', bg: Colors.success100, color: Colors.success600 };
     case 'WELCOME_GRANT':
-      return { icon: 'card_giftcard', bg: Colors.success100, color: Colors.success600 };
+      return { icon: 'card-giftcard', bg: Colors.success100, color: Colors.success600 };
     case 'ADMIN_ADJUSTMENT':
       return { icon: 'tune', bg: Colors.info100, color: Colors.info600 };
   }
 }
 
-function relativeTime(iso: string): string {
-  const diff = Date.now() - new Date(iso).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return 'just now';
-  if (mins < 60) return `${mins}m ago`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
-  return `${Math.floor(hrs / 24)}d ago`;
-}
 
 export default function CreditsScreen() {
   const { t } = useTranslation();
@@ -134,7 +126,7 @@ export default function CreditsScreen() {
             {item.amount}
           </Text>
           <Text style={styles.rowBalance}>
-            {relativeTime(item.createdAt)}
+            {formatRelativeTime(item.createdAt, 'en')}
           </Text>
         </View>
       </View>

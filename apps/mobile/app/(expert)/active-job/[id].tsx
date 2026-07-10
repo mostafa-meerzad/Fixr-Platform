@@ -281,7 +281,7 @@ export default function ExpertActiveJobScreen() {
 
             {(job.category || job.urgency) ? (
               <Text style={styles.metaText}>
-                {[job.category?.nameEn, job.urgency === 'EMERGENCY' ? 'Emergency' : job.urgency === 'TODAY' ? 'Today' : 'Scheduled']
+                {[job.category?.nameEn, job.urgency === 'EMERGENCY' ? t('homeowner.post.urgencyEmergency') : job.urgency === 'TODAY' ? t('homeowner.post.urgencyToday') : t('homeowner.post.urgencyScheduled')]
                   .filter(Boolean).join(' · ')}
               </Text>
             ) : null}

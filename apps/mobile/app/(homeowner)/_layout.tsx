@@ -3,6 +3,7 @@ import { TouchableOpacity, View, StyleSheet } from 'react-native';
 import { Tabs, router } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { Colors, IconSize, Spacing } from '@/constants/theme';
 import { Icons } from '@/constants/icons';
 import { useNotifStore } from '@/stores/notif.store';
@@ -25,6 +26,7 @@ function TabIcon({
 }
 
 export default function HomeownerLayout() {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const hasUnread = useNotifStore((s) => s.unreadChatCount > 0);
   const unreadCount = useNotifStore((s) => s.unreadCount);
@@ -49,21 +51,21 @@ export default function HomeownerLayout() {
       <Tabs.Screen
         name="home"
         options={{
-          title: 'Home',
+          title: t('homeowner.home.tabLabel'),
           tabBarIcon: ({ color }) => <TabIcon name={Icons.tabHome} color={color} />,
         }}
       />
       <Tabs.Screen
         name="my-jobs"
         options={{
-          title: 'My Jobs',
+          title: t('homeowner.myJobs.title'),
           tabBarIcon: ({ color }) => <TabIcon name={Icons.tabWork} color={color} />,
         }}
       />
       <Tabs.Screen
         name="messages"
         options={{
-          title: 'Messages',
+          title: t('homeowner.messages.title'),
           tabBarIcon: ({ color }) => (
             <TabIcon name={Icons.tabChat} color={color} hasBadge={hasUnread} />
           ),
@@ -72,7 +74,7 @@ export default function HomeownerLayout() {
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'Profile',
+          title: t('homeowner.profile.title'),
           tabBarIcon: ({ color }) => <TabIcon name={Icons.tabPerson} color={color} />,
         }}
       />

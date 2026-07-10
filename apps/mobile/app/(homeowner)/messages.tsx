@@ -21,14 +21,14 @@ import { jobsService, type Job, type JobListResponse } from '@/services/jobs.ser
 
 const CHAT_STATUSES = ['ASSIGNED', 'EN_ROUTE', 'ARRIVED', 'IN_PROGRESS', 'COMPLETION_REQUESTED', 'COMPLETED'];
 
-function getStatusLabel(status: string): string {
+function getStatusLabel(status: string, t: (k: string) => string): string {
   const map: Record<string, string> = {
-    ASSIGNED: 'Assigned',
-    EN_ROUTE: 'En Route',
-    ARRIVED: 'Arrived',
-    IN_PROGRESS: 'In Progress',
-    COMPLETION_REQUESTED: 'Completion Req.',
-    COMPLETED: 'Completed',
+    ASSIGNED: t('common.status.assigned'),
+    EN_ROUTE: t('common.status.enRoute'),
+    ARRIVED: t('common.status.arrived'),
+    IN_PROGRESS: t('common.status.inProgress'),
+    COMPLETION_REQUESTED: t('common.status.completionRequested'),
+    COMPLETED: t('common.status.completed'),
   };
   return map[status] ?? status;
 }
@@ -75,7 +75,7 @@ export default function MessagesScreen() {
             {job.zone?.nameEn}
           </Text>
         </View>
-        <Pill label={getStatusLabel(job.status)} variant={getStatusVariant(job.status)} />
+        <Pill label={getStatusLabel(job.status, t)} variant={getStatusVariant(job.status)} />
       </TouchableOpacity>
       {index < jobs.length - 1 ? <Divider style={styles.divider} /> : null}
     </View>

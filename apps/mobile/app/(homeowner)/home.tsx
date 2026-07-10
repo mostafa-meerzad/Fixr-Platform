@@ -23,11 +23,11 @@ import { useAuthStore } from '@/stores/auth.store';
 import { jobsService, type Job, type JobListResponse } from '@/services/jobs.service';
 import { formatRelativeTime } from '@/utils/format';
 
-function getGreeting(): string {
+function getGreeting(t: (k: string) => string): string {
   const hour = new Date().getHours();
-  if (hour < 12) return 'Good morning';
-  if (hour < 17) return 'Good afternoon';
-  return 'Good evening';
+  if (hour < 12) return t('homeowner.home.greetingMorning');
+  if (hour < 17) return t('homeowner.home.greetingAfternoon');
+  return t('homeowner.home.greetingEvening');
 }
 
 function getUrgencyLabel(urgency: string): string {
@@ -134,7 +134,7 @@ export default function HomeScreen() {
     <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.header}>
         <Text style={styles.greeting}>
-          {getGreeting()}, {firstName}
+          {getGreeting(t)}, {firstName}
         </Text>
         <Text style={styles.title}>{t('homeowner.home.title')}</Text>
       </View>

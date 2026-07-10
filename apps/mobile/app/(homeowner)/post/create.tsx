@@ -260,7 +260,6 @@ export default function CreateJobScreen() {
                 <View key={rowIdx} style={styles.categoryRow}>
                   {row.map((cat) => {
                     const selected = selectedCategory?.id === cat.id;
-                    console.log("cat: ", cat)
                     return (
                       <TouchableOpacity
                         key={cat.id}

@@ -238,6 +238,10 @@
     },
     "home": {
       "title": "What needs fixing?",
+      "tabLabel": "Home",
+      "greetingMorning": "Good morning",
+      "greetingAfternoon": "Good afternoon",
+      "greetingEvening": "Good evening",
       "postJob": "Post a Job",
       "recentActivity": "RECENT ACTIVITY",
       "seeAll": "See all →",
@@ -305,7 +309,8 @@
       "namePlaceholder": "e.g. Ahmad Karimi",
       "saveChanges": "Save changes",
       "errorName": "Please enter your name",
-      "errorNetwork": "Something went wrong. Please try again."
+      "errorNetwork": "Something went wrong. Please try again.",
+      "savedToast": "Profile updated"
     },
     "disputes": {
       "title": "Reported Issues",
@@ -398,7 +403,16 @@
       "emptyBidsTitle": "No bids yet",
       "emptyBidsSubtitle": "Place your first bid on a job to see it here.",
       "emptyActiveTitle": "No active jobs",
-      "emptyActiveSubtitle": "Accepted bids will appear here as active jobs."
+      "emptyActiveSubtitle": "Accepted bids will appear here as active jobs.",
+      "statusPending": "Pending",
+      "statusAccepted": "Accepted",
+      "statusNotSelected": "Not Selected",
+      "statusWithdrawn": "Withdrawn",
+      "ctaOnMyWay": "I'm On My Way",
+      "ctaArrived": "I've Arrived",
+      "ctaStart": "Start Job",
+      "ctaRequestCompletion": "Request Completion",
+      "ctaWaiting": "Waiting for confirmation..."
     },
     "messages": {
       "subtitle": "Post-acceptance chats",
@@ -457,7 +471,11 @@
       "errorName": "Please enter your name",
       "viewHistory": "View history →",
       "alreadyVerified": "Your account is already verified.",
-      "pendingVerification": "Your documents are under review. We'll notify you when approved."
+      "pendingVerification": "Your documents are under review. We'll notify you when approved.",
+      "statusPending": "Pending",
+      "statusVerified": "Verified",
+      "statusRejected": "Rejected",
+      "statusNotSubmitted": "Not submitted"
     },
     "credits": {
       "title": "Credit History",

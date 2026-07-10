@@ -19,7 +19,6 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { Pill, getStatusVariant } from '@/components/ui/Pill';
 import { Icons } from '@/constants/icons';
 import { bidsService } from '@/services/bids.service';
-import { jobsService, type Job, type JobListResponse } from '@/services/jobs.service';
 import { formatRelativeTime, formatAFNEn } from '@/utils/format';
 
 interface Bid {
@@ -41,11 +40,11 @@ type TabView = 'bids' | 'active';
 
 const ACTIVE_STATUSES = ['ASSIGNED', 'EN_ROUTE', 'ARRIVED', 'IN_PROGRESS', 'COMPLETION_REQUESTED'];
 
-function getBidStatusLabel(bid: Bid): string {
-  if (bid.isWithdrawn) return 'Withdrawn';
-  if (bid.job?.acceptedBidId === bid.id) return 'Accepted';
-  if (bid.job?.status === 'OPEN') return 'Pending';
-  return 'Not Selected';
+function getBidStatusLabel(bid: Bid, t: (k: string) => string): string {
+  if (bid.isWithdrawn) return t('expert.myBids.statusWithdrawn');
+  if (bid.job?.acceptedBidId === bid.id) return t('expert.myBids.statusAccepted');
+  if (bid.job?.status === 'OPEN') return t('expert.myBids.statusPending');
+  return t('expert.myBids.statusNotSelected');
 }
 
 function getBidStatusVariant(bid: Bid): 'success' | 'warning' | 'gray' {
@@ -55,25 +54,25 @@ function getBidStatusVariant(bid: Bid): 'success' | 'warning' | 'gray' {
   return 'gray';
 }
 
-function getActiveJobCTALabel(status: string): string {
+function getActiveJobCTALabel(status: string, t: (k: string) => string): string {
   switch (status) {
-    case 'ASSIGNED':             return "I'm On My Way";
-    case 'EN_ROUTE':             return "I've Arrived";
-    case 'ARRIVED':              return 'Start Job';
-    case 'IN_PROGRESS':         return 'Request Completion';
-    case 'COMPLETION_REQUESTED': return 'Waiting for confirmation...';
+    case 'ASSIGNED':             return t('expert.myBids.ctaOnMyWay');
+    case 'EN_ROUTE':             return t('expert.myBids.ctaArrived');
+    case 'ARRIVED':              return t('expert.myBids.ctaStart');
+    case 'IN_PROGRESS':          return t('expert.myBids.ctaRequestCompletion');
+    case 'COMPLETION_REQUESTED': return t('expert.myBids.ctaWaiting');
     default:                     return '';
   }
 }
 
-function getStatusLabel(status: string): string {
+function getStatusLabel(status: string, t: (k: string) => string): string {
   const map: Record<string, string> = {
-    ASSIGNED: 'Assigned',
-    EN_ROUTE: 'On My Way',
-    ARRIVED: 'Arrived',
-    IN_PROGRESS: 'In Progress',
-    COMPLETION_REQUESTED: 'Completion Req.',
-    COMPLETED: 'Completed',
+    ASSIGNED: t('common.status.assigned'),
+    EN_ROUTE: t('common.status.enRoute'),
+    ARRIVED: t('common.status.arrived'),
+    IN_PROGRESS: t('common.status.inProgress'),
+    COMPLETION_REQUESTED: t('common.status.completionRequested'),
+    COMPLETED: t('common.status.completed'),
   };
   return map[status] ?? status;
 }
@@ -83,7 +82,7 @@ export default function MyBidsScreen() {
   const [activeTab, setActiveTab] = useState<TabView>('bids');
 
   const [bids, setBids] = useState<Bid[]>([]);
-  const [activeJobs, setActiveJobs] = useState<Job[]>([]);
+  const [activeJobs, setActiveJobs] = useState<Bid['job'][]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -91,16 +90,14 @@ export default function MyBidsScreen() {
   const load = useCallback(async () => {
     try {
       setError(false);
-      const [bidsRes, jobsRes] = await Promise.all([
-        bidsService.mine(),
-        jobsService.list({ limit: 50, page: 1 }),
-      ]);
+      const bidsRes = await bidsService.mine();
       const bidsData = bidsRes.data as Bid[] | { data: Bid[] };
-      setBids(Array.isArray(bidsData) ? bidsData : bidsData.data ?? []);
-
-      const jobsBody = jobsRes.data as JobListResponse;
+      const allBids = Array.isArray(bidsData) ? bidsData : bidsData.data ?? [];
+      setBids(allBids);
       setActiveJobs(
-        jobsBody.data.filter((j) => ACTIVE_STATUSES.includes(j.status)),
+        allBids
+          .filter((b) => b.job.acceptedBidId === b.id && ACTIVE_STATUSES.includes(b.job.status))
+          .map((b) => b.job),
       );
     } catch {
       setError(true);
@@ -128,7 +125,7 @@ export default function MyBidsScreen() {
           <Text style={styles.cardTitle} numberOfLines={2}>
             {bid.job?.title ?? '—'}
           </Text>
-          <Pill label={getBidStatusLabel(bid)} variant={getBidStatusVariant(bid)} />
+          <Pill label={getBidStatusLabel(bid, t)} variant={getBidStatusVariant(bid)} />
         </View>
         <Text style={styles.cardMeta}>
           {bid.job?.zone?.nameEn ?? ''}
@@ -154,8 +151,8 @@ export default function MyBidsScreen() {
     );
   };
 
-  const renderActiveJobItem = ({ item: job }: { item: Job }) => {
-    const ctaLabel = getActiveJobCTALabel(job.status);
+  const renderActiveJobItem = ({ item: job }: { item: Bid['job'] }) => {
+    const ctaLabel = getActiveJobCTALabel(job.status, t);
     const isWaiting = job.status === 'COMPLETION_REQUESTED';
     return (
       <Card
@@ -166,7 +163,7 @@ export default function MyBidsScreen() {
           <Text style={styles.cardTitle} numberOfLines={2}>
             {job.title}
           </Text>
-          <Pill label={getStatusLabel(job.status)} variant={getStatusVariant(job.status)} />
+          <Pill label={getStatusLabel(job.status, t)} variant={getStatusVariant(job.status)} />
         </View>
         <Text style={styles.cardMeta}>
           {job.zone?.nameEn ?? ''}
