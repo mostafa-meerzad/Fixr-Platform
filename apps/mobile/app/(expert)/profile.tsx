@@ -29,7 +29,7 @@ import { useAuthStore } from "@/stores/auth.store";
 import { useLangStore, type Lang } from "@/stores/lang.store";
 import { authService } from "@/services/auth.service";
 import { usersService, type UserProfile } from "@/services/users.service";
-import { lookupService, type Zone } from "@/services/lookup.service";
+import { lookupService, type Category, type Zone } from "@/services/lookup.service";
 
 interface SettingRow {
   key: string;
@@ -67,18 +67,21 @@ export default function ExpertProfileScreen() {
 
   const editSheetRef = useRef<BottomSheetModal>(null);
   const zonesSheetRef = useRef<BottomSheetModal>(null);
+  const categoriesSheetRef = useRef<BottomSheetModal>(null);
   const langSheetRef = useRef<BottomSheetModal>(null);
   const buySheetRef = useRef<BottomSheetModal>(null);
   const notifSheetRef = useRef<BottomSheetModal>(null);
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [allZones, setAllZones] = useState<Zone[]>([]);
+  const [allCategories, setAllCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [editName, setEditName] = useState("");
   const [editNameError, setEditNameError] = useState("");
   const [saving, setSaving] = useState(false);
   const [zonesLoading, setZonesLoading] = useState(false);
+  const [categoriesLoading, setCategoriesLoading] = useState(false);
   const [notifGranted, setNotifGranted] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -156,6 +159,47 @@ export default function ExpertProfileScreen() {
     }
   };
 
+  const loadCategoriesIfNeeded = async () => {
+    if (allCategories.length > 0) return;
+    setCategoriesLoading(true);
+    try {
+      const res = await lookupService.categories();
+      setAllCategories(res.data ?? []);
+    } catch {
+      toast.show({ message: t("common.error"), variant: "error" });
+    } finally {
+      setCategoriesLoading(false);
+    }
+  };
+
+  const handleToggleCategory = async (cat: Category) => {
+    const current = new Set(
+      expertProfile?.serviceCategories.map((sc) => sc.category.id) ?? [],
+    );
+    if (current.has(cat.id)) {
+      if (current.size === 1) {
+        toast.show({
+          message: t("expert.profile.minOneCategory"),
+          variant: "error",
+        });
+        return;
+      }
+      current.delete(cat.id);
+    } else {
+      current.add(cat.id);
+    }
+    setCategoriesLoading(true);
+    try {
+      await usersService.updateCategories(Array.from(current));
+      const profileRes = await usersService.getMe();
+      setProfile(profileRes.data);
+    } catch {
+      toast.show({ message: t("common.error"), variant: "error" });
+    } finally {
+      setCategoriesLoading(false);
+    }
+  };
+
   const handleLogout = async () => {
     try {
       const refreshToken = await SecureStore.getItemAsync("fixr_refresh_token");
@@ -201,6 +245,15 @@ export default function ExpertProfileScreen() {
         label: t("expert.profile.serviceZones"),
         icon: Icons.location,
         onPress: () => zonesSheetRef.current?.present(),
+      },
+      {
+        key: "categories",
+        label: t("expert.profile.serviceCategories"),
+        icon: Icons.category,
+        onPress: () => {
+          loadCategoriesIfNeeded();
+          categoriesSheetRef.current?.present();
+        },
       },
     ],
     [
@@ -522,6 +575,71 @@ export default function ExpertProfileScreen() {
         )}
       </BottomSheet>
 
+      {/* Service categories sheet */}
+      <BottomSheet ref={categoriesSheetRef} snapPoints={["60%"]}>
+        <Text style={styles.sheetTitle}>
+          {t("expert.profile.serviceCategoriesTitle")}
+        </Text>
+        {categoriesLoading ? (
+          <View style={styles.zonesLoading}>
+            <ActivityIndicator color={Colors.primary600} />
+          </View>
+        ) : (
+          <>
+            <FlatList
+              data={allCategories}
+              keyExtractor={(c) => c.id}
+              renderItem={({ item: cat, index }) => {
+                const isSelected = expertProfile?.serviceCategories.some(
+                  (sc) => sc.category.id === cat.id,
+                );
+                return (
+                  <View>
+                    <TouchableOpacity
+                      style={styles.zoneRow}
+                      onPress={() => handleToggleCategory(cat)}
+                      activeOpacity={0.7}
+                    >
+                      <Text
+                        style={[
+                          styles.zoneName,
+                          isSelected && styles.zoneNameSelected,
+                        ]}
+                      >
+                        {cat.nameEn ?? cat.name}
+                      </Text>
+                      {isSelected ? (
+                        <MaterialIcons
+                          name={"check_box" as any}
+                          size={22}
+                          color={Colors.primary600}
+                        />
+                      ) : (
+                        <MaterialIcons
+                          name={"check_box_outline_blank" as any}
+                          size={22}
+                          color={Colors.gray400}
+                        />
+                      )}
+                    </TouchableOpacity>
+                    {index < allCategories.length - 1 && (
+                      <Divider style={styles.zoneDivider} />
+                    )}
+                  </View>
+                );
+              }}
+              showsVerticalScrollIndicator={false}
+              style={styles.categoriesList}
+            />
+            <Button
+              label={t("common.done")}
+              onPress={() => categoriesSheetRef.current?.dismiss()}
+              style={styles.categoriesDoneBtn}
+            />
+          </>
+        )}
+      </BottomSheet>
+
       {/* Buy Credits sheet */}
       <BottomSheet ref={buySheetRef} snapPoints={["55%"]}>
         <View style={styles.buySheetIconWrap}>
@@ -837,6 +955,12 @@ const styles = StyleSheet.create({
   },
   zoneDivider: {
     marginVertical: 0,
+  },
+  categoriesList: {
+    flex: 1,
+  },
+  categoriesDoneBtn: {
+    marginTop: Spacing.s4,
   },
   // Notification settings sheet
   notifRow: {

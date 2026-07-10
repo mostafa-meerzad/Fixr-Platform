@@ -33,6 +33,9 @@ export const Icons = {
   handyman: "handyman",
   homeRepair: "home-repair-service",
 
+  // Categories
+  category: "category",
+
   // Trust / verification
   verified: "verified",
   star: "star",

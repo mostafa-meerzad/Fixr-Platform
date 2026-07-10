@@ -457,8 +457,8 @@ Add `help`, `about`, `notifications` screens to the Stack. No special options ne
 
 **Goal:** Experts can edit their service categories after onboarding (mirrors the existing zones multi-select sheet).
 
-**Completed:** [ ]  
-**TypeScript clean:** [ ]
+**Completed:** [x]  
+**TypeScript clean:** [x]
 
 ---
 
@@ -537,7 +537,7 @@ Add `category: 'category'` to `apps/mobile/src/constants/icons.ts` if not alread
 | 14 | Help & Support screen | [x] |
 | 14 | About Fixr screen | [x] |
 | 14 | Notification settings sheet | [x] |
-| 15 | Expert category management in profile | [ ] |
+| 15 | Expert category management in profile | [x] |
 
 ---
 
