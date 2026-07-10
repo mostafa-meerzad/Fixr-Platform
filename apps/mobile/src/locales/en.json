@@ -310,7 +310,9 @@
       "saveChanges": "Save changes",
       "errorName": "Please enter your name",
       "errorNetwork": "Something went wrong. Please try again.",
-      "savedToast": "Profile updated"
+      "savedToast": "Profile updated",
+      "changePhoto": "Change profile photo",
+      "loadError": "Couldn't load profile. Showing cached data."
     },
     "disputes": {
       "title": "Reported Issues",
@@ -475,7 +477,8 @@
       "statusPending": "Pending",
       "statusVerified": "Verified",
       "statusRejected": "Rejected",
-      "statusNotSubmitted": "Not submitted"
+      "statusNotSubmitted": "Not submitted",
+      "loadError": "Couldn't load profile. Showing cached data."
     },
     "credits": {
       "title": "Credit History",

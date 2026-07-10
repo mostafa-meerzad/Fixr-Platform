@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Linking,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -11,12 +12,12 @@ import {
 import * as ImagePicker from "expo-image-picker";
 import * as Notifications from "expo-notifications";
 import { router, useFocusEffect } from "expo-router";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import * as SecureStore from "expo-secure-store";
 import { useTranslation } from "react-i18next";
 import type { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { MaterialIcons } from "@expo/vector-icons";
-import { Colors, Spacing, Typography } from "@/constants/theme";
+import { Colors, IconSize, Radius, Shadows, Spacing, Typography } from "@/constants/theme";
 import { Icons } from "@/constants/icons";
 import { Avatar } from "@/components/ui/Avatar";
 import { BottomSheet } from "@/components/ui/BottomSheet";
@@ -55,7 +56,10 @@ export default function ProfileScreen() {
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [totalJobs, setTotalJobs] = useState(0);
+  const [totalCompleted, setTotalCompleted] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [hasError, setHasError] = useState(false);
 
   const [editName, setEditName] = useState("");
   const [editNameError, setEditNameError] = useState("");
@@ -90,24 +94,33 @@ export default function ProfileScreen() {
     }
   };
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (isRefresh = false) => {
+    if (!isRefresh) setHasError(false);
     try {
-      const [profileRes, jobsRes] = await Promise.all([
+      const [profileRes, jobsRes, completedRes] = await Promise.all([
         usersService.getMe(),
         jobsService.list({ limit: 1, page: 1 }),
+        jobsService.list({ limit: 1, page: 1, status: 'COMPLETED' }),
       ]);
       const p = profileRes.data;
       setProfile(p);
       setTotalJobs((jobsRes.data as JobListResponse).total);
+      setTotalCompleted((completedRes.data as JobListResponse).total);
       if (p.avatarUrl) await updateUser({ avatarUrl: p.avatarUrl });
     } catch {
-      // show what we have from auth store
+      setHasError(true);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   }, [updateUser]);
 
-  useFocusEffect(useCallback(() => { load(); }, [load]));
+  const handleRefresh = useCallback(() => {
+    setRefreshing(true);
+    load(true);
+  }, [load]);
+
+  useFocusEffect(useCallback(() => { load(false); }, [load]));
 
   const openEditSheet = () => {
     setEditName(user?.name ?? "");
@@ -192,6 +205,7 @@ export default function ProfileScreen() {
   ];
 
   const positivePoints = profile?.homeownerProfile?.positivePoints ?? 0;
+  const insets = useSafeAreaInsets();
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
@@ -204,27 +218,47 @@ export default function ProfileScreen() {
           <ActivityIndicator color={Colors.primary600} size="large" />
         </View>
       ) : (
-        <ScrollView showsVerticalScrollIndicator={false}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: insets.bottom + 80 }}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              tintColor={Colors.primary600}
+              colors={[Colors.primary600]}
+            />
+          }
+        >
           {/* Profile card */}
           <View style={styles.profileCard}>
             <View style={styles.profileRow}>
-              <TouchableOpacity onPress={handleAvatarChange} disabled={avatarUploading} style={styles.avatarWrap}>
+              <TouchableOpacity
+                onPress={handleAvatarChange}
+                disabled={avatarUploading}
+                style={styles.avatarWrap}
+                accessibilityLabel={t("homeowner.profile.changePhoto")}
+                accessibilityRole="button"
+              >
                 <Avatar size={56} name={user?.name} uri={profile?.avatarUrl ?? user?.avatarUrl} />
-                {avatarUploading ? (
-                  <View style={styles.avatarOverlay}>
+                <View style={styles.avatarOverlay}>
+                  {avatarUploading ? (
                     <ActivityIndicator size="small" color={Colors.white} />
-                  </View>
-                ) : (
-                  <View style={styles.avatarOverlay}>
-                    <MaterialIcons name="photo-camera" size={16} color={Colors.white} />
-                  </View>
-                )}
+                  ) : (
+                    <MaterialIcons name="photo-camera" size={14} color={Colors.white} />
+                  )}
+                </View>
               </TouchableOpacity>
               <View style={styles.profileInfo}>
                 <Text style={styles.profileName}>{user?.name}</Text>
                 <Text style={styles.profilePhone}>{'\u200E'}{user?.phone}</Text>
               </View>
-              <TouchableOpacity onPress={openEditSheet} style={styles.editBtn}>
+              <TouchableOpacity
+                onPress={openEditSheet}
+                style={styles.editBtn}
+                accessibilityLabel={t("homeowner.profile.editProfile")}
+                accessibilityRole="button"
+              >
                 <Text style={styles.editBtnText}>
                   {t("homeowner.profile.editProfile")}
                 </Text>
@@ -242,16 +276,23 @@ export default function ProfileScreen() {
               </View>
               <View style={styles.statSep} />
               <View style={styles.statItem}>
-                <Text style={styles.statValue}>0</Text>
+                <Text style={styles.statValue}>{totalCompleted}</Text>
                 <Text style={styles.statLabel}>
                   {t("homeowner.profile.completed")}
                 </Text>
               </View>
               <View style={styles.statSep} />
               <View style={styles.statItem}>
-                <Text style={[styles.statValue, styles.statPositive]}>
-                  {positivePoints > 0 ? `+${positivePoints}` : positivePoints}
-                </Text>
+                <View style={styles.statValueRow}>
+                  <MaterialIcons
+                    name={Icons.thumbUp as any}
+                    size={IconSize.status}
+                    color={Colors.primary600}
+                  />
+                  <Text style={[styles.statValue, styles.statPositive]}>
+                    {positivePoints > 0 ? `+${positivePoints}` : positivePoints}
+                  </Text>
+                </View>
                 <Text style={styles.statLabel}>
                   {t("homeowner.profile.positive")}
                 </Text>
@@ -259,56 +300,75 @@ export default function ProfileScreen() {
             </View>
           </View>
 
+          {hasError && (
+            <View style={styles.errorBanner}>
+              <Text style={styles.errorText}>{t("homeowner.profile.loadError")}</Text>
+              <TouchableOpacity onPress={() => load(false)} accessibilityRole="button">
+                <Text style={styles.retryText}>{t("common.retry")}</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
           {/* Settings sections */}
           {settingsSections.map((section, sIdx) => (
-            <View key={sIdx} style={styles.section}>
-              {section.map((row, rIdx) => (
-                <View key={row.key}>
-                  <TouchableOpacity
-                    style={styles.settingRow}
-                    onPress={row.onPress}
-                    activeOpacity={0.7}
-                  >
-                    <MaterialIcons
-                      name={row.icon as any}
-                      size={22}
-                      color={Colors.gray600}
-                    />
-                    <Text style={styles.settingLabel}>{row.label}</Text>
-                    {row.rightLabel ? (
-                      <Text style={styles.settingRightLabel}>
-                        {row.rightLabel}
-                      </Text>
-                    ) : (
+            <View key={sIdx}>
+              <View style={styles.sectionGap} />
+              <View style={styles.section}>
+                {section.map((row, rIdx) => (
+                  <View key={row.key}>
+                    <TouchableOpacity
+                      style={styles.settingRow}
+                      onPress={row.onPress}
+                      activeOpacity={0.7}
+                      accessibilityLabel={row.label}
+                      accessibilityRole="button"
+                    >
                       <MaterialIcons
-                        name={Icons.chevronRight as any}
-                        size={20}
-                        color={Colors.gray400}
+                        name={row.icon as any}
+                        size={22}
+                        color={Colors.gray600}
+                        accessibilityElementsHidden
+                        importantForAccessibility="no"
                       />
-                    )}
-                  </TouchableOpacity>
-                  {rIdx < section.length - 1 ? (
-                    <Divider style={styles.rowDivider} />
-                  ) : null}
-                </View>
-              ))}
+                      <Text style={styles.settingLabel}>{row.label}</Text>
+                      {row.rightLabel ? (
+                        <Text style={styles.settingRightLabel}>
+                          {row.rightLabel}
+                        </Text>
+                      ) : (
+                        <MaterialIcons
+                          name={Icons.chevronRight as any}
+                          size={20}
+                          color={Colors.gray400}
+                          accessibilityElementsHidden
+                          importantForAccessibility="no"
+                        />
+                      )}
+                    </TouchableOpacity>
+                    {rIdx < section.length - 1 ? (
+                      <Divider style={styles.rowDivider} />
+                    ) : null}
+                  </View>
+                ))}
+              </View>
             </View>
           ))}
 
           {/* Log out */}
+          <View style={styles.sectionGap} />
           <View style={styles.section}>
             <TouchableOpacity
               style={styles.logoutRow}
               onPress={handleLogout}
               activeOpacity={0.7}
+              accessibilityLabel={t("homeowner.profile.logout")}
+              accessibilityRole="button"
             >
               <Text style={styles.logoutText}>
                 {t("homeowner.profile.logout")}
               </Text>
             </TouchableOpacity>
           </View>
-
-          <View style={styles.bottomPad} />
         </ScrollView>
       )}
 
@@ -428,10 +488,12 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white,
     marginHorizontal: Spacing.s4,
     marginTop: Spacing.s4,
-    borderRadius: 12,
+    marginBottom: Spacing.s3,
+    borderRadius: Radius.lg,
     padding: Spacing.s4,
     borderWidth: 1,
     borderColor: Colors.gray200,
+    ...Shadows.sm,
   },
   profileRow: {
     flexDirection: "row",
@@ -447,9 +509,9 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 0,
     right: 0,
-    width: 22,
-    height: 22,
-    borderRadius: 11,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
     backgroundColor: Colors.primary600,
     alignItems: "center",
     justifyContent: "center",
@@ -465,16 +527,14 @@ const styles = StyleSheet.create({
     ...Typography.caption,
     writingDirection: "ltr",
   },
+  // Ghost button — no border, minimum 44pt touch target
   editBtn: {
-    borderWidth: 1.5,
-    borderColor: Colors.primary600,
-    borderRadius: 9999,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    minHeight: 44,
+    justifyContent: "center",
+    paddingHorizontal: Spacing.s2,
   },
   editBtnText: {
-    fontSize: 13,
-    fontWeight: "500",
+    ...Typography.label,
     color: Colors.primary600,
   },
   statsDivider: {
@@ -489,18 +549,21 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 2,
   },
+  statValueRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.s1,
+  },
   statValue: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: "700",
     color: Colors.gray900,
   },
   statPositive: {
-    color: Colors.success600,
+    color: Colors.primary600,
   },
   statLabel: {
-    fontSize: 12,
-    fontWeight: "400",
-    color: Colors.gray600,
+    ...Typography.caption,
     textAlign: "center",
   },
   statSep: {
@@ -508,15 +571,41 @@ const styles = StyleSheet.create({
     height: 32,
     backgroundColor: Colors.gray200,
   },
+  // Error banner
+  errorBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: Colors.danger100,
+    marginHorizontal: Spacing.s4,
+    marginTop: Spacing.s2,
+    borderRadius: Radius.sm,
+    paddingHorizontal: Spacing.s4,
+    paddingVertical: Spacing.s3,
+  },
+  errorText: {
+    ...Typography.label,
+    color: Colors.danger600,
+  },
+  retryText: {
+    ...Typography.label,
+    color: Colors.danger600,
+    fontWeight: "600",
+  },
+  // Section gap — iOS Settings-style gray-100 strip between sections
+  sectionGap: {
+    height: 8,
+    backgroundColor: Colors.gray100,
+  },
   // Settings
   section: {
     backgroundColor: Colors.white,
     marginHorizontal: Spacing.s4,
-    marginTop: Spacing.s3,
-    borderRadius: 12,
+    borderRadius: Radius.lg,
     borderWidth: 1,
     borderColor: Colors.gray200,
     overflow: "hidden",
+    ...Shadows.sm,
   },
   settingRow: {
     flexDirection: "row",
@@ -544,12 +633,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   logoutText: {
-    fontSize: 15,
-    fontWeight: "600",
+    ...Typography.bodyMd,
     color: Colors.danger600,
-  },
-  bottomPad: {
-    height: Spacing.s6,
   },
   // Bottom sheet
   sheetTitle: {
@@ -590,19 +675,20 @@ const styles = StyleSheet.create({
     color: Colors.gray900,
   },
   notifEnabled: {
-    fontSize: 13,
+    ...Typography.label,
     fontWeight: "600",
     color: Colors.success600,
   },
   notifSettingsBtn: {
+    minHeight: 44,
+    justifyContent: "center",
     borderWidth: 1.5,
     borderColor: Colors.primary600,
-    borderRadius: 8,
+    borderRadius: Radius.sm,
     paddingHorizontal: Spacing.s3,
-    paddingVertical: 6,
   },
   notifSettingsBtnText: {
-    fontSize: 13,
+    ...Typography.label,
     fontWeight: "600",
     color: Colors.primary600,
   },

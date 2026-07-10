@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   FlatList,
   Linking,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -11,12 +12,12 @@ import {
 } from "react-native";
 import * as Notifications from "expo-notifications";
 import { router, useFocusEffect } from "expo-router";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import * as SecureStore from "expo-secure-store";
 import { useTranslation } from "react-i18next";
 import { MaterialIcons } from "@expo/vector-icons";
 import type { BottomSheetModal } from "@gorhom/bottom-sheet";
-import { Colors, Radius, Spacing, Typography } from "@/constants/theme";
+import { Colors, IconSize, Radius, Shadows, Spacing, Typography } from "@/constants/theme";
 import { Icons } from "@/constants/icons";
 import { Avatar } from "@/components/ui/Avatar";
 import { BottomSheet } from "@/components/ui/BottomSheet";
@@ -76,6 +77,8 @@ export default function ExpertProfileScreen() {
   const [allZones, setAllZones] = useState<Zone[]>([]);
   const [allCategories, setAllCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [hasError, setHasError] = useState(false);
 
   const [editName, setEditName] = useState("");
   const [editNameError, setEditNameError] = useState("");
@@ -90,7 +93,8 @@ export default function ExpertProfileScreen() {
     });
   }, []);
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (isRefresh = false) => {
+    if (!isRefresh) setHasError(false);
     try {
       const [profileRes, zonesRes] = await Promise.all([
         usersService.getMe(),
@@ -102,13 +106,19 @@ export default function ExpertProfileScreen() {
       const resolvedAvatar = p.avatarUrl ?? p.expertProfile?.selfieUrl ?? undefined;
       if (resolvedAvatar) await updateUser({ avatarUrl: resolvedAvatar });
     } catch {
-      // show what we have from auth store
+      setHasError(true);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   }, [updateUser]);
 
-  useFocusEffect(useCallback(() => { load(); }, [load]));
+  const handleRefresh = useCallback(() => {
+    setRefreshing(true);
+    load(true);
+  }, [load]);
+
+  useFocusEffect(useCallback(() => { load(false); }, [load]));
 
   const openEditSheet = () => {
     setEditName(user?.name ?? "");
@@ -209,6 +219,7 @@ export default function ExpertProfileScreen() {
     router.replace("/(auth)/phone");
   };
 
+  const insets = useSafeAreaInsets();
   const expertProfile = profile?.expertProfile;
   const verificationStatus = expertProfile?.verificationStatus;
   const creditBalance = expertProfile?.creditBalance?.balance ?? 0;
@@ -298,11 +309,26 @@ export default function ExpertProfileScreen() {
           <ActivityIndicator color={Colors.primary600} size="large" />
         </View>
       ) : (
-        <ScrollView showsVerticalScrollIndicator={false}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: insets.bottom + 80 }}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              tintColor={Colors.primary600}
+              colors={[Colors.primary600]}
+            />
+          }
+        >
           {/* Profile card */}
           <View style={styles.profileCard}>
             <View style={styles.profileRow}>
-              <Avatar size={56} name={user?.name} uri={profile?.avatarUrl ?? profile?.expertProfile?.selfieUrl ?? user?.avatarUrl} />
+              <Avatar
+                size={56}
+                name={user?.name}
+                uri={profile?.avatarUrl ?? profile?.expertProfile?.selfieUrl ?? user?.avatarUrl}
+              />
               <View style={styles.profileInfo}>
                 <Text style={styles.profileName}>{user?.name}</Text>
                 <View style={styles.verifyRow}>
@@ -316,7 +342,12 @@ export default function ExpertProfileScreen() {
                   {user?.phone}
                 </Text>
               </View>
-              <TouchableOpacity onPress={openEditSheet} style={styles.editBtn}>
+              <TouchableOpacity
+                onPress={openEditSheet}
+                style={styles.editBtn}
+                accessibilityLabel={t("expert.profile.edit")}
+                accessibilityRole="button"
+              >
                 <Text style={styles.editBtnText}>
                   {t("expert.profile.edit")}
                 </Text>
@@ -324,30 +355,44 @@ export default function ExpertProfileScreen() {
             </View>
           </View>
 
+          {hasError && (
+            <View style={styles.errorBanner}>
+              <Text style={styles.errorText}>{t("expert.profile.loadError")}</Text>
+              <TouchableOpacity onPress={() => load(false)} accessibilityRole="button">
+                <Text style={styles.retryText}>{t("common.retry")}</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
           {/* Credits card */}
+          <View style={styles.sectionGap} />
           <View style={styles.creditsCard}>
             <Text style={styles.creditsSectionLabel}>
               {t("expert.profile.yourCredits")}
             </Text>
-            <TouchableOpacity
-              onPress={() => router.push("/(expert)/credits" as any)}
-              activeOpacity={0.7}
-            >
-              <View style={styles.creditsRow}>
-                <Text style={styles.creditCount}>{creditBalance}</Text>
-                <Text style={styles.creditsAvailable}>
-                  {t("expert.profile.creditsAvailable")}
-                </Text>
-              </View>
-            </TouchableOpacity>
+            <View style={styles.creditsRow}>
+              <Text style={styles.creditCount}>{creditBalance}</Text>
+              <Text style={styles.creditsAvailable}>
+                {t("expert.profile.creditsAvailable")}
+              </Text>
+            </View>
             <TouchableOpacity
               onPress={() => router.push("/(expert)/credits" as any)}
               activeOpacity={0.7}
               style={styles.viewHistoryBtn}
+              accessibilityLabel={t("expert.profile.viewHistory")}
+              accessibilityRole="button"
             >
               <Text style={styles.viewHistoryText}>
                 {t("expert.profile.viewHistory")}
               </Text>
+              <MaterialIcons
+                name={Icons.chevronRight as any}
+                size={14}
+                color={Colors.primary600}
+                accessibilityElementsHidden
+                importantForAccessibility="no"
+              />
             </TouchableOpacity>
             <Button
               label={t("expert.profile.buyCredits")}
@@ -360,6 +405,7 @@ export default function ExpertProfileScreen() {
           </View>
 
           {/* Stats row */}
+          <View style={styles.sectionGap} />
           <View style={styles.statsCard}>
             <View style={styles.statItem}>
               <Text style={styles.statValue}>{completedJobs}</Text>
@@ -378,9 +424,18 @@ export default function ExpertProfileScreen() {
             </View>
             <View style={styles.statSep} />
             <View style={styles.statItem}>
-              <Text style={[styles.statValue, styles.statRating]}>
-                ★ {rating.toFixed(1)}
-              </Text>
+              <View style={styles.ratingRow}>
+                <MaterialIcons
+                  name={Icons.star as any}
+                  size={IconSize.status}
+                  color={Colors.primary600}
+                  accessibilityElementsHidden
+                  importantForAccessibility="no"
+                />
+                <Text style={[styles.statValue, styles.statRating]}>
+                  {rating.toFixed(1)}
+                </Text>
+              </View>
               <Text style={styles.statLabel}>{t("expert.profile.rating")}</Text>
             </View>
             {noShowCount > 0 && (
@@ -392,6 +447,8 @@ export default function ExpertProfileScreen() {
                       name="cancel"
                       size={14}
                       color={Colors.danger600}
+                      accessibilityElementsHidden
+                      importantForAccessibility="no"
                     />
                     <Text style={[styles.statValue, styles.statDanger]}>
                       {noShowCount}
@@ -407,54 +464,64 @@ export default function ExpertProfileScreen() {
 
           {/* Settings sections */}
           {settingsSections.map((section, sIdx) => (
-            <View key={sIdx} style={styles.section}>
-              {section.map((row, rIdx) => (
-                <View key={row.key}>
-                  <TouchableOpacity
-                    style={styles.settingRow}
-                    onPress={row.onPress}
-                    activeOpacity={0.7}
-                  >
-                    <MaterialIcons
-                      name={row.icon as any}
-                      size={22}
-                      color={Colors.gray600}
-                    />
-                    <Text style={styles.settingLabel}>{row.label}</Text>
-                    {row.rightLabel ? (
-                      <Text style={styles.settingRightLabel}>
-                        {row.rightLabel}
-                      </Text>
-                    ) : (
+            <View key={sIdx}>
+              <View style={styles.sectionGap} />
+              <View style={styles.section}>
+                {section.map((row, rIdx) => (
+                  <View key={row.key}>
+                    <TouchableOpacity
+                      style={styles.settingRow}
+                      onPress={row.onPress}
+                      activeOpacity={0.7}
+                      accessibilityLabel={row.label}
+                      accessibilityRole="button"
+                    >
                       <MaterialIcons
-                        name={Icons.chevronRight as any}
-                        size={20}
-                        color={Colors.gray400}
+                        name={row.icon as any}
+                        size={22}
+                        color={Colors.gray600}
+                        accessibilityElementsHidden
+                        importantForAccessibility="no"
                       />
-                    )}
-                  </TouchableOpacity>
-                  {rIdx < section.length - 1 ? (
-                    <Divider style={styles.rowDivider} />
-                  ) : null}
-                </View>
-              ))}
+                      <Text style={styles.settingLabel}>{row.label}</Text>
+                      {row.rightLabel ? (
+                        <Text style={styles.settingRightLabel}>
+                          {row.rightLabel}
+                        </Text>
+                      ) : (
+                        <MaterialIcons
+                          name={Icons.chevronRight as any}
+                          size={20}
+                          color={Colors.gray400}
+                          accessibilityElementsHidden
+                          importantForAccessibility="no"
+                        />
+                      )}
+                    </TouchableOpacity>
+                    {rIdx < section.length - 1 ? (
+                      <Divider style={styles.rowDivider} />
+                    ) : null}
+                  </View>
+                ))}
+              </View>
             </View>
           ))}
 
           {/* Log out */}
+          <View style={styles.sectionGap} />
           <View style={styles.section}>
             <TouchableOpacity
               style={styles.logoutRow}
               onPress={handleLogout}
               activeOpacity={0.7}
+              accessibilityLabel={t("expert.profile.logout")}
+              accessibilityRole="button"
             >
               <Text style={styles.logoutText}>
                 {t("expert.profile.logout")}
               </Text>
             </TouchableOpacity>
           </View>
-
-          <View style={styles.bottomPad} />
         </ScrollView>
       )}
 
@@ -557,11 +624,7 @@ export default function ExpertProfileScreen() {
                         color={Colors.primary600}
                       />
                     ) : (
-                      <MaterialIcons
-                        name={"check_box_outline_blank" as any}
-                        size={22}
-                        color={Colors.gray400}
-                      />
+                      <View style={styles.uncheckedBox} />
                     )}
                   </TouchableOpacity>
                   {index < allZones.length - 1 && (
@@ -615,11 +678,7 @@ export default function ExpertProfileScreen() {
                           color={Colors.primary600}
                         />
                       ) : (
-                        <MaterialIcons
-                          name={"check_box_outline_blank" as any}
-                          size={22}
-                          color={Colors.gray400}
-                        />
+                        <View style={styles.uncheckedBox} />
                       )}
                     </TouchableOpacity>
                     {index < allCategories.length - 1 && (
@@ -726,15 +785,43 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  // Error banner
+  errorBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: Colors.danger100,
+    marginHorizontal: Spacing.s4,
+    marginTop: Spacing.s2,
+    borderRadius: Radius.sm,
+    paddingHorizontal: Spacing.s4,
+    paddingVertical: Spacing.s3,
+  },
+  errorText: {
+    ...Typography.label,
+    color: Colors.danger600,
+  },
+  retryText: {
+    ...Typography.label,
+    fontWeight: "600",
+    color: Colors.danger600,
+  },
+  // Section gap — iOS Settings-style gray-100 strip between sections
+  sectionGap: {
+    height: 8,
+    backgroundColor: Colors.gray100,
+  },
   // Profile card
   profileCard: {
     backgroundColor: Colors.white,
     marginHorizontal: Spacing.s4,
     marginTop: Spacing.s4,
-    borderRadius: Radius.md,
+    marginBottom: Spacing.s3,
+    borderRadius: Radius.lg,
     padding: Spacing.s4,
     borderWidth: 1,
     borderColor: Colors.gray200,
+    ...Shadows.sm,
   },
   profileRow: {
     flexDirection: "row",
@@ -755,32 +842,29 @@ const styles = StyleSheet.create({
     ...Typography.caption,
     writingDirection: "ltr",
   },
+  // Ghost button — no border, 44pt minimum touch target
   editBtn: {
-    borderWidth: 1.5,
-    borderColor: Colors.primary600,
-    borderRadius: Radius.full,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    minHeight: 44,
+    justifyContent: "center",
     alignSelf: "flex-start",
+    paddingHorizontal: Spacing.s2,
   },
   editBtnText: {
-    fontSize: 13,
-    fontWeight: "500",
+    ...Typography.label,
     color: Colors.primary600,
   },
-  // Credits card
+  // Credits card — primary-50 bg / primary-100 border per spec
   creditsCard: {
     backgroundColor: Colors.primary50,
     marginHorizontal: Spacing.s4,
-    marginTop: Spacing.s3,
-    borderRadius: Radius.md,
+    borderRadius: Radius.lg,
     padding: Spacing.s4,
     borderWidth: 1.5,
     borderColor: Colors.primary100,
+    ...Shadows.sm,
   },
   creditsSectionLabel: {
-    fontSize: 12,
-    fontWeight: "600",
+    ...Typography.captionMd,
     color: Colors.primary600,
     letterSpacing: 0.72,
     textTransform: "uppercase",
@@ -802,12 +886,15 @@ const styles = StyleSheet.create({
     color: Colors.gray600,
   },
   viewHistoryBtn: {
-    alignSelf: 'flex-start',
-    marginBottom: Spacing.s3,
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "flex-start",
+    minHeight: 44,
+    marginBottom: Spacing.s1,
+    gap: Spacing.s1,
   },
   viewHistoryText: {
-    fontSize: 13,
-    fontWeight: '500',
+    ...Typography.label,
     color: Colors.primary600,
   },
   buyBtn: {
@@ -824,12 +911,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     backgroundColor: Colors.white,
     marginHorizontal: Spacing.s4,
-    marginTop: Spacing.s3,
-    borderRadius: Radius.md,
+    borderRadius: Radius.lg,
     padding: Spacing.s4,
     borderWidth: 1,
     borderColor: Colors.gray200,
     alignItems: "center",
+    ...Shadows.sm,
   },
   statItem: {
     flex: 1,
@@ -841,17 +928,19 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: Colors.gray900,
   },
+  ratingRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.s1,
+  },
   statRating: {
     color: Colors.primary600,
   },
   statDanger: {
     color: Colors.danger600,
-    fontSize: 16,
   },
   statLabel: {
-    fontSize: 11,
-    fontWeight: "400",
-    color: Colors.gray600,
+    ...Typography.caption,
     textAlign: "center",
   },
   statLabelDanger: {
@@ -871,11 +960,11 @@ const styles = StyleSheet.create({
   section: {
     backgroundColor: Colors.white,
     marginHorizontal: Spacing.s4,
-    marginTop: Spacing.s3,
-    borderRadius: Radius.md,
+    borderRadius: Radius.lg,
     borderWidth: 1,
     borderColor: Colors.gray200,
     overflow: "hidden",
+    ...Shadows.sm,
   },
   settingRow: {
     flexDirection: "row",
@@ -899,17 +988,19 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   logoutText: {
-    fontSize: 15,
-    fontWeight: "600",
+    ...Typography.bodyMd,
     color: Colors.danger600,
   },
-  bottomPad: {
-    height: Spacing.s6,
-  },
   settingRightLabel: {
-    fontSize: 13,
-    fontWeight: "500" as const,
+    ...Typography.label,
     color: Colors.gray400,
+  },
+  uncheckedBox: {
+    width: 22,
+    height: 22,
+    borderRadius: 4,
+    borderWidth: 2,
+    borderColor: Colors.gray400,
   },
   // Bottom sheets
   sheetTitle: {
@@ -944,6 +1035,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     height: 48,
+    paddingHorizontal: Spacing.s4,
   },
   zoneName: {
     ...Typography.bodyMd,
@@ -977,20 +1069,21 @@ const styles = StyleSheet.create({
     color: Colors.gray900,
   },
   notifEnabled: {
-    fontSize: 13,
-    fontWeight: "600" as const,
+    ...Typography.label,
+    fontWeight: "600",
     color: Colors.success600,
   },
   notifSettingsBtn: {
+    minHeight: 44,
+    justifyContent: "center",
     borderWidth: 1.5,
     borderColor: Colors.primary600,
-    borderRadius: 8,
+    borderRadius: Radius.sm,
     paddingHorizontal: Spacing.s3,
-    paddingVertical: 6,
   },
   notifSettingsBtnText: {
-    fontSize: 13,
-    fontWeight: "600" as const,
+    ...Typography.label,
+    fontWeight: "600",
     color: Colors.primary600,
   },
   // Buy Credits sheet
