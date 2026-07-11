@@ -11,9 +11,6 @@
     "admin": "bun run --cwd apps/admin dev",
     "mobile": "bun run --cwd apps/mobile start",
     "postinstall": "patch-package"
-  },
-  "devDependencies": {
-    "patch-package": "^8.0.1",
-    "typescript": "^5.9.0"
   }
+
 }
