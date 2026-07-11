@@ -7,7 +7,7 @@ services:
     repo: https://github.com/mostafa-meerzad/Fixr-Platform
     branch: mobile-ui-v2
     root: .
-    buildCommand: npm install --workspace=@fixr/backend --include-workspace-root && npm run build --workspace=@fixr/shared && npm run prisma:generate --workspace=@fixr/backend && npm run build --workspace=@fixr/backend
+    buildCommand: npm install --workspace=@fixr/backend --include-workspace-root --legacy-peer-deps && npm run build --workspace=@fixr/shared && npm run prisma:generate --workspace=@fixr/backend && npm run build --workspace=@fixr/backend
     startCommand: npm run start:prod --workspace=@fixr/backend
     envVars:
       - key: DATABASE_URL
