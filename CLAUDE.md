@@ -64,15 +64,17 @@ Fixr-Platform/
 ```bash
 bun install
 
-# Backend (do not touch)
-cd apps/backend && bun run start:dev
+# Build everything
+bun run build
+
+# Development (using Turbo)
+bun run backend
+bun run admin
+bun run mobile
+
+# Specific Backend commands
 cd apps/backend && bun run prisma:migrate
 cd apps/backend && bun run prisma:seed
-
-# Mobile
-cd apps/mobile && bun run start
-cd apps/mobile && bun run ios
-cd apps/mobile && bun run android
 ```
 
 ---
