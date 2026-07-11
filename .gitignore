@@ -34,6 +34,18 @@ Thumbs.db
 *.swp
 *.swo
 
+# Turbo
+.turbo/
+
+# Bun
+bun.lockb
+.bun-build/
+
+# Agent
+.junie/memory/
+.junie/plans/
+.claude/
+
 # Expo
 .expo/
 apps/mobile/.expo/
