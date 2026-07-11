@@ -6,7 +6,7 @@ services:
     plan: free
     repo: https://github.com/mostafa-meerzad/Fixr-Platform
     branch: mobile-ui-v2
-    root: .
+    rootDir: .
     buildCommand: |
       bun install
       bun x turbo build --filter=@fixr/backend
