@@ -119,42 +119,80 @@ export class OtpService {
     return String(Math.floor(100000 + Math.random() * 900000));
   }
 
-  private async sendWhatsAppMessage(phone: string, code: string): Promise<void> {
-    const apiUrl = this.config.getOrThrow<string>('WHATSAPP_API_URL');
-    const phoneNumberId = this.config.getOrThrow<string>('WHATSAPP_PHONE_NUMBER_ID');
-    const accessToken = this.config.getOrThrow<string>('WHATSAPP_ACCESS_TOKEN');
+  // private async sendWhatsAppMessage(phone: string, code: string): Promise<void> {
+  //   const apiUrl = this.config.getOrThrow<string>('WHATSAPP_API_URL');
+  //   const phoneNumberId = this.config.getOrThrow<string>('WHATSAPP_PHONE_NUMBER_ID');
+  //   const accessToken = this.config.getOrThrow<string>('WHATSAPP_ACCESS_TOKEN');
 
-    try {
-      await axios.post(
-        `${apiUrl}/${phoneNumberId}/messages`,
-        {
-          messaging_product: 'whatsapp',
-          to: phone,
-          type: 'template',
-          template: {
-            name: 'fixr_otp',
-            language: { code: 'fa' },
-            components: [
-              {
-                type: 'body',
-                parameters: [{ type: 'text', text: code }],
-              },
-            ],
-          },
+  //   try {
+  //     await axios.post(
+  //       `${apiUrl}/${phoneNumberId}/messages`,
+  //       {
+  //         messaging_product: 'whatsapp',
+  //         to: phone,
+  //         type: 'template',
+  //         template: {
+  //           name: 'fixr_otp',
+  //           language: { code: 'fa' },
+  //           components: [
+  //             {
+  //               type: 'body',
+  //               parameters: [{ type: 'text', text: code }],
+  //             },
+  //           ],
+  //         },
+  //       },
+  //       {
+  //         headers: {
+  //           Authorization: `Bearer ${accessToken}`,
+  //           'Content-Type': 'application/json',
+  //         },
+  //       },
+  //     );
+  //   } catch (err: unknown) {
+  //     const message =
+  //       err instanceof Error ? err.message : 'Unknown error';
+  //     throw new InternalServerErrorException(
+  //       `Failed to send WhatsApp message: ${message}`,
+  //     );
+  //   }
+  // }
+  
+  private async sendWhatsAppMessage(phone: string, code: string): Promise<void> {
+  const apiUrl = this.config.getOrThrow<string>('WHATSAPP_API_URL'); // Ensure .env uses v25.0
+  const phoneNumberId = this.config.getOrThrow<string>('WHATSAPP_PHONE_NUMBER_ID');
+  const accessToken = this.config.getOrThrow<string>('WHATSAPP_ACCESS_TOKEN');
+
+  // Strip all non-numeric characters (removes +, spaces, hyphens)
+  const cleanPhone = phone.replace(/\D/g, '');
+
+  try {
+    await axios.post(
+      `${apiUrl}/${phoneNumberId}/messages`,
+      {
+        messaging_product: 'whatsapp',
+        to: cleanPhone,
+        type: 'template',
+        template: {
+          name: 'hello_world', // Verify this template exists or use Meta's default testing name
+          language: { code: 'en_US' }, // Meta requires this to match your approved template language exactly
+          
         },
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            'Content-Type': 'application/json',
-          },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
         },
-      );
-    } catch (err: unknown) {
-      const message =
-        err instanceof Error ? err.message : 'Unknown error';
-      throw new InternalServerErrorException(
-        `Failed to send WhatsApp message: ${message}`,
-      );
-    }
+      },
+    );
+  } catch (err: any) {
+    // Log the exact error object returned from Meta's servers for debugging
+    const metaError = err.response?.data?.error?.message || err.message;
+    throw new InternalServerErrorException(
+      `Failed to send WhatsApp message: ${metaError}`,
+    );
   }
+}
+
 }

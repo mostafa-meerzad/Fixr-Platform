@@ -56,8 +56,9 @@
     "scheme": "fixr",
     "extra": {
       "eas": {
-        "projectId": "your-eas-project-id"
-      }
+        "projectId": "19674c53-d7d5-4dba-aa67-3a677eb16bf9"
+      },
+      "router": {}
     }
   }
 }
