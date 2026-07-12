@@ -1,13 +1,17 @@
 import {
-  Injectable,
   BadRequestException,
   HttpException,
   HttpStatus,
-  InternalServerErrorException,
+  Inject,
+  Injectable,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
-import axios from 'axios';
+import {
+  OTP_PROVIDER_TOKEN,
+  OtpProvider,
+  VerifyResult,
+} from './providers/otp-provider.interface';
 
 const OTP_COOLDOWN_SECONDS = 60;
 const MAX_ATTEMPTS = 3;
@@ -17,10 +21,10 @@ export class OtpService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly config: ConfigService,
+    @Inject(OTP_PROVIDER_TOKEN) private readonly provider: OtpProvider,
   ) {}
 
   async sendOtp(phone: string): Promise<{ message: string }> {
-    // Enforce cooldown: block if a non-expired, recent session exists
     const recent = await this.prisma.otpSession.findFirst({
       where: {
         phone,
@@ -40,24 +44,46 @@ export class OtpService {
     }
 
     const isDev = this.config.get('NODE_ENV') !== 'production';
-    const code = isDev
-      ? (this.config.get<string>('DEV_OTP_CODE') ?? '000000')
-      : this.generateCode();
-
-    const expiryMinutes = this.config.get<number>('OTP_EXPIRY_MINUTES', 5);
-    const expiresAt = new Date(Date.now() + expiryMinutes * 60 * 1000);
-
-    await this.prisma.otpSession.create({
-      data: { phone, code, expiresAt },
-    });
 
     if (isDev) {
-      return { message: `[DEV] OTP bypass active. Use code: ${code}` };
+      const devCode = this.config.get<string>('DEV_OTP_CODE') ?? '000000';
+      const expiryMinutes = this.config.get<number>('OTP_EXPIRY_MINUTES') ?? 5;
+      await this.prisma.otpSession.create({
+        data: {
+          phone,
+          code: devCode,
+          providerRequestId: devCode,
+          expiresAt: new Date(Date.now() + expiryMinutes * 60 * 1000),
+        },
+      });
+      return { message: `[DEV] OTP bypass active. Use code: ${devCode}` };
     }
 
-    await this.sendWhatsAppMessage(phone, code);
+    // checkSendAbility: returns null if the number can't receive on this channel
+    const checkRequestId = await this.provider.checkSendAbility(phone);
+    if (checkRequestId === null) {
+      throw new HttpException(
+        {
+          error: 'PHONE_NOT_ON_TELEGRAM',
+          message:
+            'This phone number cannot receive Telegram messages. Please use a different contact method.',
+        },
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    }
 
-    return { message: 'Verification code sent via WhatsApp.' };
+    const result = await this.provider.send(phone, { checkRequestId });
+
+    await this.prisma.otpSession.create({
+      data: {
+        phone,
+        code: result.code ?? null,
+        providerRequestId: result.requestId,
+        expiresAt: new Date(Date.now() + result.ttlSeconds * 1000),
+      },
+    });
+
+    return { message: 'Verification code sent.' };
   }
 
   async verifyOtp(
@@ -74,32 +100,63 @@ export class OtpService {
     });
 
     if (!session) {
-      throw new BadRequestException('No active verification session found. Request a new code.');
-    }
-
-    if (session.attempts >= MAX_ATTEMPTS) {
-      throw new BadRequestException('Too many incorrect attempts. Request a new code.');
-    }
-
-    if (session.code !== code) {
-      await this.prisma.otpSession.update({
-        where: { id: session.id },
-        data: { attempts: { increment: 1 } },
-      });
-      const remaining = MAX_ATTEMPTS - session.attempts - 1;
       throw new BadRequestException(
-        `Incorrect code. ${remaining} attempt${remaining !== 1 ? 's' : ''} remaining.`,
+        'No active verification session found. Request a new code.',
       );
     }
 
+    if (session.attempts >= MAX_ATTEMPTS) {
+      throw new BadRequestException(
+        'Too many incorrect attempts. Request a new code.',
+      );
+    }
+
+    // Dev bypass: short-circuit regardless of active provider
+    const isDev = this.config.get('NODE_ENV') !== 'production';
+    const devCode = this.config.get<string>('DEV_OTP_CODE') ?? '000000';
+    let verifyResult: VerifyResult;
+
+    if (isDev && code === devCode) {
+      verifyResult = 'valid';
+    } else {
+      // providerRequestId is the key passed to verify:
+      //   - WhatsApp sessions: contains the locally generated code
+      //   - Telegram sessions: contains the Telegram request_id
+      //   - Legacy sessions (pre-migration): fall back to code column
+      const key = session.providerRequestId ?? session.code ?? '';
+      verifyResult = await this.provider.verify(key, code);
+    }
+
+    if (verifyResult === 'valid') {
+      await this.prisma.otpSession.update({
+        where: { id: session.id },
+        data: { verified: true },
+      });
+      const existingUser = await this.prisma.user.findUnique({ where: { phone } });
+      return { sessionId: session.id, isNewUser: !existingUser };
+    }
+
+    if (verifyResult === 'expired') {
+      throw new BadRequestException(
+        'Verification code has expired. Request a new code.',
+      );
+    }
+
+    if (verifyResult === 'max_attempts_exceeded') {
+      throw new BadRequestException(
+        'Too many incorrect attempts. Request a new code.',
+      );
+    }
+
+    // 'invalid' — increment local attempt counter and report remaining tries
     await this.prisma.otpSession.update({
       where: { id: session.id },
-      data: { verified: true },
+      data: { attempts: { increment: 1 } },
     });
-
-    const existingUser = await this.prisma.user.findUnique({ where: { phone } });
-
-    return { sessionId: session.id, isNewUser: !existingUser };
+    const remaining = MAX_ATTEMPTS - session.attempts - 1;
+    throw new BadRequestException(
+      `Incorrect code. ${remaining} attempt${remaining !== 1 ? 's' : ''} remaining.`,
+    );
   }
 
   async consumeSession(sessionId: string, phone: string): Promise<void> {
@@ -111,88 +168,6 @@ export class OtpService {
       throw new BadRequestException('Invalid or expired verification session.');
     }
 
-    // Delete so it cannot be reused
     await this.prisma.otpSession.delete({ where: { id: sessionId } });
   }
-
-  private generateCode(): string {
-    return String(Math.floor(100000 + Math.random() * 900000));
-  }
-
-  // private async sendWhatsAppMessage(phone: string, code: string): Promise<void> {
-  //   const apiUrl = this.config.getOrThrow<string>('WHATSAPP_API_URL');
-  //   const phoneNumberId = this.config.getOrThrow<string>('WHATSAPP_PHONE_NUMBER_ID');
-  //   const accessToken = this.config.getOrThrow<string>('WHATSAPP_ACCESS_TOKEN');
-
-  //   try {
-  //     await axios.post(
-  //       `${apiUrl}/${phoneNumberId}/messages`,
-  //       {
-  //         messaging_product: 'whatsapp',
-  //         to: phone,
-  //         type: 'template',
-  //         template: {
-  //           name: 'fixr_otp',
-  //           language: { code: 'fa' },
-  //           components: [
-  //             {
-  //               type: 'body',
-  //               parameters: [{ type: 'text', text: code }],
-  //             },
-  //           ],
-  //         },
-  //       },
-  //       {
-  //         headers: {
-  //           Authorization: `Bearer ${accessToken}`,
-  //           'Content-Type': 'application/json',
-  //         },
-  //       },
-  //     );
-  //   } catch (err: unknown) {
-  //     const message =
-  //       err instanceof Error ? err.message : 'Unknown error';
-  //     throw new InternalServerErrorException(
-  //       `Failed to send WhatsApp message: ${message}`,
-  //     );
-  //   }
-  // }
-  
-  private async sendWhatsAppMessage(phone: string, code: string): Promise<void> {
-  const apiUrl = this.config.getOrThrow<string>('WHATSAPP_API_URL'); // Ensure .env uses v25.0
-  const phoneNumberId = this.config.getOrThrow<string>('WHATSAPP_PHONE_NUMBER_ID');
-  const accessToken = this.config.getOrThrow<string>('WHATSAPP_ACCESS_TOKEN');
-
-  // Strip all non-numeric characters (removes +, spaces, hyphens)
-  const cleanPhone = phone.replace(/\D/g, '');
-
-  try {
-    await axios.post(
-      `${apiUrl}/${phoneNumberId}/messages`,
-      {
-        messaging_product: 'whatsapp',
-        to: cleanPhone,
-        type: 'template',
-        template: {
-          name: 'hello_world', // Verify this template exists or use Meta's default testing name
-          language: { code: 'en_US' }, // Meta requires this to match your approved template language exactly
-          
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-        },
-      },
-    );
-  } catch (err: any) {
-    // Log the exact error object returned from Meta's servers for debugging
-    const metaError = err.response?.data?.error?.message || err.message;
-    throw new InternalServerErrorException(
-      `Failed to send WhatsApp message: ${metaError}`,
-    );
-  }
-}
-
 }

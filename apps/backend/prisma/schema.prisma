@@ -307,13 +307,18 @@ model Dispute {
 }
 
 model OtpSession {
-  id        String   @id @default(cuid())
-  phone     String
-  code      String
-  attempts  Int      @default(0)
-  verified  Boolean  @default(false)
-  expiresAt DateTime
-  createdAt DateTime @default(now())
+  id                String   @id @default(cuid())
+  phone             String
+  /// Null for Telegram sessions (code is generated and held by Telegram).
+  code              String?
+  /// Telegram: Telegram request_id from sendVerificationMessage.
+  /// WhatsApp: the locally generated OTP code (used as the verify key).
+  /// Legacy rows (pre-migration): null — OtpService falls back to code column.
+  providerRequestId String?
+  attempts          Int      @default(0)
+  verified          Boolean  @default(false)
+  expiresAt         DateTime
+  createdAt         DateTime @default(now())
 
   @@index([phone])
   @@map("otp_sessions")
