@@ -1,5 +1,6 @@
 {
   "$schema": "https://turbo.build/schema.json",
+  "packages": ["apps/*", "packages/*"],
   "tasks": {
     "build": {
       "dependsOn": ["^build", "prisma:generate"],

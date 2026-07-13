@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import * as SecureStore from 'expo-secure-store';
-import { UserRole } from '@fixr/shared';
+import { UserRole } from '@/shared';
 
 interface AuthUser {
   id: string;

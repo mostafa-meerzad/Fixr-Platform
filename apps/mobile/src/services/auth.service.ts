@@ -1,4 +1,4 @@
-import { UserRole } from '@fixr/shared';
+import { UserRole } from '@/shared';
 import { api } from './api';
 
 export const authService = {

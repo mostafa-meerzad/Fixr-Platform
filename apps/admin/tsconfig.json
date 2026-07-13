@@ -26,9 +26,6 @@
     "paths": {
       "@/*": [
         "./src/*"
-      ],
-      "@fixr/shared": [
-        "../../packages/shared/src/index.ts"
       ]
     }
   },

@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { UserRole } from '@fixr/shared';
+import { UserRole } from '@/shared';
 
 // Handles navigation from both FCM push payloads and in-app notification inbox rows.
 // FCM uses its own type strings (VERIFICATION_APPROVED, JOB_POSTED, EXPERT_EN_ROUTE …).

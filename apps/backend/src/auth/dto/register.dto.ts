@@ -1,6 +1,6 @@
 import { IsString, IsEnum, IsOptional, MinLength, MaxLength, Matches } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { UserRole } from '@fixr/shared';
+import { UserRole } from '../../shared/enums';
 
 export class RegisterDto {
   @ApiProperty({ example: '+93701234567' })

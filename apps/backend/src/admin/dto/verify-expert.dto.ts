@@ -1,6 +1,6 @@
 import { IsEnum, IsOptional, IsString, MaxLength } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { VerificationStatus } from '@fixr/shared';
+import { VerificationStatus } from '../../shared/enums';
 
 export class VerifyExpertDto {
   @ApiProperty({ enum: [VerificationStatus.VERIFIED, VerificationStatus.REJECTED] })
