@@ -51,6 +51,23 @@ bun.lockb
 apps/mobile/.expo/
 apps/mobile/dist/
 
+# Android build artifacts
+apps/mobile/android/build/
+apps/mobile/android/.gradle/
+apps/mobile/android/app/build/
+apps/mobile/android/local.properties
+apps/mobile/android/app/release/
+
+# iOS build artifacts
+apps/mobile/ios/Pods/
+apps/mobile/ios/DerivedData/
+apps/mobile/ios/build/
+apps/mobile/ios/*.xcworkspace/xcuserdata/
+apps/mobile/ios/PodsFromCarthage/
+
+# Stray lockfiles
+apps/admin/package-lock.json
+
 # Firebase secrets
 google-services.json
 GoogleService-Info.plist
