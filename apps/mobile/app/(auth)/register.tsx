@@ -131,7 +131,7 @@ export default function RegisterScreen() {
       await setAuth(data.user, data.accessToken, data.refreshToken);
 
       if (role === "EXPERT") {
-        router.replace("/(auth)/expert-onboarding/selfie" as any);
+        router.replace("/(auth)/expert-onboarding/" as any);
       } else {
         router.replace("/");
       }

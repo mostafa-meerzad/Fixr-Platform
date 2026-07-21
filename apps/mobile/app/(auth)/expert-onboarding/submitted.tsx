@@ -21,11 +21,15 @@ export default function SubmittedScreen() {
     <ScreenWrapper>
       <View style={styles.container}>
         <View style={styles.iconCircle}>
-          <MaterialIcons name="check" size={48} color={Colors.success600} />
+          <MaterialIcons name="fact_check" size={48} color={Colors.primary600} />
         </View>
 
         <Text style={styles.title}>{t('auth.onboarding.submittedTitle')}</Text>
         <Text style={styles.body}>{t('auth.onboarding.submittedBody')}</Text>
+
+        <DocsStatusCard label={t('auth.onboarding.submittedDocsRow')} />
+
+        <Text style={styles.creditsNote}>{t('auth.onboarding.submittedCreditsNote')}</Text>
 
         <View style={styles.footer}>
           <Button
@@ -37,6 +41,23 @@ export default function SubmittedScreen() {
     </ScreenWrapper>
   );
 }
+
+// ─── Sub-components ──────────────────────────────────────────────────────────
+
+function DocsStatusCard({ label }: { label: string }) {
+  return (
+    <View style={styles.docsCard}>
+      <View style={styles.dotsRow}>
+        {Array.from({ length: 5 }).map((_, i) => (
+          <View key={i} style={styles.dot} />
+        ))}
+      </View>
+      <Text style={styles.docsLabel}>{label}</Text>
+    </View>
+  );
+}
+
+// ─── Styles ──────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
   container: {
@@ -50,7 +71,7 @@ const styles = StyleSheet.create({
     width: 96,
     height: 96,
     borderRadius: Radius.full,
-    backgroundColor: Colors.success100,
+    backgroundColor: Colors.primary100,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: Spacing.s6,
@@ -68,9 +89,42 @@ const styles = StyleSheet.create({
     color: Colors.gray600,
     textAlign: 'center',
     lineHeight: 22,
+    marginBottom: Spacing.s6,
+  },
+  docsCard: {
+    width: '100%',
+    backgroundColor: Colors.success100,
+    borderRadius: Radius.md,
+    paddingVertical: Spacing.s3,
+    paddingHorizontal: Spacing.s4,
+    alignItems: 'center',
+    gap: Spacing.s2,
+    marginBottom: Spacing.s5,
+  },
+  dotsRow: {
+    flexDirection: 'row',
+    gap: Spacing.s2,
+  },
+  dot: {
+    width: 10,
+    height: 10,
+    borderRadius: Radius.full,
+    backgroundColor: Colors.success600,
+  },
+  docsLabel: {
+    fontSize: Typography.caption.fontSize,
+    fontWeight: '500',
+    color: Colors.success600,
+    textAlign: 'center',
+  },
+  creditsNote: {
+    fontSize: Typography.caption.fontSize,
+    fontWeight: Typography.caption.fontWeight,
+    color: Colors.gray400,
+    textAlign: 'center',
+    marginBottom: Spacing.s8,
   },
   footer: {
     width: '100%',
-    marginTop: Spacing.s10,
   },
 });

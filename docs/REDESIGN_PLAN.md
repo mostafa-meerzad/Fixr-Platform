@@ -27,7 +27,7 @@ never hardcode colors, sizes, or spacing. Use t() for every user-visible string.
 
 ## Status
 
-**Last completed:** Phase 1d — Name entry step redesign (Phase 1 complete)
+**Last completed:** Phase 2f — Submitted screen redesign
 **Current phase:** Phase 0 — Design System Token Swap
 
 ---
@@ -137,7 +137,7 @@ Design refs: `04a-auth-phone.png`, `04b-auth-otp.png`, `04c-registration-role-se
 Design refs: `02e-expert-onboarding-overview.png`, `05b-expert-onboarding-selfie.png`, `05c-expert-onboarding-tazkira.png`, `05d-expert-onboarding-categories.png`, `05e-expert-onboarding-business.png`, `05f-expert-onboarding-submitted.png`
 
 ### 2a — Onboarding overview screen (NEW)
-- [ ] Create `apps/mobile/app/(auth)/expert-onboarding/index.tsx`
+- [x] Create `apps/mobile/app/(auth)/expert-onboarding/index.tsx`
   - "fixr. for experts" small header
   - "Your craft deserves more customers." large headline
   - "Get vetted once — then bid on jobs in your neighbourhood every day." subtitle
@@ -151,7 +151,7 @@ Design refs: `02e-expert-onboarding-overview.png`, `05b-expert-onboarding-selfie
   - Footnote: "Free to join · Fixr takes 5% only when you win a job"
 
 ### 2b — Selfie screen
-- [ ] `apps/mobile/app/(auth)/expert-onboarding/selfie.tsx`
+- [x] `apps/mobile/app/(auth)/expert-onboarding/selfie.tsx`
   - Step indicator bar at top (4 segments, 1 filled)
   - "Take a selfie" heading + "Live camera only — this proves it's really you." subtitle
   - Large circle: avatar placeholder → captured photo preview on success
@@ -160,7 +160,7 @@ Design refs: `02e-expert-onboarding-overview.png`, `05b-expert-onboarding-selfie
   - CTA "Next" → `variant="primary"`, disabled until photo captured
 
 ### 2c — Tazkira screen
-- [ ] `apps/mobile/app/(auth)/expert-onboarding/tazkira.tsx`
+- [x] `apps/mobile/app/(auth)/expert-onboarding/tazkira.tsx`
   - Step indicator bar (2 of 4 filled)
   - "Photograph your Tazkira" heading + "Both sides of your national ID, with the camera." subtitle
   - FRONT SIDE: captured → shows preview + green check + "Retake front" link
@@ -168,7 +168,7 @@ Design refs: `02e-expert-onboarding-overview.png`, `05b-expert-onboarding-selfie
   - CTA "Next" → disabled until both sides captured
 
 ### 2d — Categories screen
-- [ ] `apps/mobile/app/(auth)/expert-onboarding/categories.tsx`
+- [x] `apps/mobile/app/(auth)/expert-onboarding/categories.tsx`
   - Step indicator bar (3 of 4 filled)
   - "What work do you do?" heading + "Choose all your trades — at least one." subtitle
   - 2-column grid of category tiles (icon + label)
@@ -178,7 +178,7 @@ Design refs: `02e-expert-onboarding-overview.png`, `05b-expert-onboarding-selfie
   - CTA "Next" → disabled until ≥ 1 selected
 
 ### 2e — Business screen
-- [ ] `apps/mobile/app/(auth)/expert-onboarding/business.tsx`
+- [x] `apps/mobile/app/(auth)/expert-onboarding/business.tsx`
   - Step indicator bar (4 of 4 filled)
   - "Your shop" heading
   - SHOP NAME * field
@@ -190,7 +190,7 @@ Design refs: `02e-expert-onboarding-overview.png`, `05b-expert-onboarding-selfie
   - CTA "Submit for review" → `variant="primary"`, disabled until all 5 docs uploaded
 
 ### 2f — Submitted screen
-- [ ] `apps/mobile/app/(auth)/expert-onboarding/submitted.tsx`
+- [x] `apps/mobile/app/(auth)/expert-onboarding/submitted.tsx`
   - Full cream bg, no header
   - Document-check icon in a light circle (no teal — use `primary100` tint)
   - "Application submitted!" heading

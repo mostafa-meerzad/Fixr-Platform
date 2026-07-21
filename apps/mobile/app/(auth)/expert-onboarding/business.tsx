@@ -17,7 +17,6 @@ import * as ImagePicker from 'expo-image-picker';
 import { ScreenWrapper } from '@/components/ui/ScreenWrapper';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { ProgressBar } from '@/components/ui/ProgressBar';
 import { useToast } from '@/components/ui/Toast';
 import { mediaService } from '@/services/media.service';
 import { lookupService, type Zone } from '@/services/lookup.service';
@@ -27,53 +26,6 @@ import { useAuthStore } from '@/stores/auth.store';
 import { Colors, IconSize, Radius, Spacing, Typography } from '@/constants/theme';
 import { Icons } from '@/constants/icons';
 
-interface CompactUploadCardProps {
-  label: string;
-  idleLabel: string;
-  uri: string | null;
-  onPress: () => void;
-  onRetake: () => void;
-  disabled?: boolean;
-}
-
-function CompactUploadCard({ label, idleLabel, uri, onPress, onRetake, disabled }: CompactUploadCardProps) {
-  const { t } = useTranslation();
-
-  return (
-    <View style={styles.uploadCardWrapper}>
-      <Text style={styles.uploadCardLabel}>{label}</Text>
-      <TouchableOpacity
-        style={[styles.uploadCard, uri ? styles.uploadCardDone : null]}
-        onPress={uri ? undefined : onPress}
-        disabled={uri !== null || disabled}
-        activeOpacity={0.75}
-      >
-        {uri ? (
-          <View style={styles.imageWrap}>
-            <Image source={{ uri }} style={styles.image} />
-            <View style={styles.overlay}>
-              <View style={styles.checkCircle}>
-                <MaterialIcons name="check" size={20} color={Colors.white} />
-              </View>
-            </View>
-          </View>
-        ) : (
-          <View style={styles.idlePlaceholder}>
-            <MaterialIcons name={Icons.image as any} size={28} color={Colors.primary600} />
-            <Text style={styles.idleLabel}>{idleLabel}</Text>
-          </View>
-        )}
-      </TouchableOpacity>
-      {uri !== null && !disabled && (
-        <TouchableOpacity style={styles.retakeBtn} onPress={onRetake}>
-          <MaterialIcons name={Icons.camera as any} size={IconSize.status} color={Colors.primary600} />
-          <Text style={styles.retakeBtnLabel}>{t('auth.onboarding.retake')}</Text>
-        </TouchableOpacity>
-      )}
-    </View>
-  );
-}
-
 export default function BusinessScreen() {
   const { t } = useTranslation();
   const router = useRouter();
@@ -81,12 +33,9 @@ export default function BusinessScreen() {
   const updateUser = useAuthStore((s) => s.updateUser);
 
   const {
-    selfieUri,
-    selfieMime,
-    tazkiraFrontUri,
-    tazkiraFrontMime,
-    tazkiraBackUri,
-    tazkiraBackMime,
+    selfieUri, selfieMime,
+    tazkiraFrontUri, tazkiraFrontMime,
+    tazkiraBackUri, tazkiraBackMime,
     clear: clearOnboarding,
   } = useOnboardingStore();
 
@@ -104,6 +53,7 @@ export default function BusinessScreen() {
 
   const [shopPhotoUri, setShopPhotoUri] = useState<string | null>(null);
   const [shopPhotoMime, setShopPhotoMime] = useState<string | undefined>(undefined);
+  const [shopPhotoPickerVisible, setShopPhotoPickerVisible] = useState(false);
 
   const [licenseUri, setLicenseUri] = useState<string | null>(null);
   const [licenseMime, setLicenseMime] = useState<string | undefined>(undefined);
@@ -171,21 +121,11 @@ export default function BusinessScreen() {
 
   async function handleSubmit() {
     let hasError = false;
-    if (!shopName.trim()) {
-      setShopNameError(t('auth.onboarding.errorShopName'));
-      hasError = true;
-    }
-    if (!selectedZone) {
-      setZoneError(t('auth.onboarding.errorShopZone'));
-      hasError = true;
-    }
-    if (!shopAddress.trim()) {
-      setShopAddressError(t('auth.onboarding.errorShopAddress'));
-      hasError = true;
-    }
+    if (!shopName.trim()) { setShopNameError(t('auth.onboarding.errorShopName')); hasError = true; }
+    if (!selectedZone)    { setZoneError(t('auth.onboarding.errorShopZone'));     hasError = true; }
+    if (!shopAddress.trim()) { setShopAddressError(t('auth.onboarding.errorShopAddress')); hasError = true; }
     if (hasError) return;
 
-    // Guard: if user somehow reached this screen without completing earlier steps
     if (!selfieUri || !tazkiraFrontUri || !tazkiraBackUri) {
       toast.show({ message: t('auth.onboarding.errorMissingUploads'), variant: 'error' });
       router.replace('/(auth)/expert-onboarding/selfie' as any);
@@ -194,7 +134,6 @@ export default function BusinessScreen() {
 
     setSubmitting(true);
     try {
-      // Upload all 5 verification files then avatar — nothing hits the server before this point
       await mediaService.uploadExpert('selfie', selfieUri, selfieMime);
       await mediaService.uploadExpert('tazkira_front', tazkiraFrontUri, tazkiraFrontMime);
       await mediaService.uploadExpert('tazkira_back', tazkiraBackUri, tazkiraBackMime);
@@ -220,19 +159,13 @@ export default function BusinessScreen() {
 
   return (
     <ScreenWrapper scroll keyboardAvoiding>
-      <ProgressBar currentStep={4} totalSteps={4} />
+      <StepIndicator total={4} current={4} />
 
       <View style={styles.container}>
-        <View style={styles.headerRow}>
-          <Text style={styles.stepLabel}>
-            {t('auth.onboarding.stepLabel', { current: 4, total: 4 })}
-          </Text>
-        </View>
-
         <Text style={styles.title}>{t('auth.onboarding.businessTitle')}</Text>
-        <Text style={styles.subtitle}>{t('auth.onboarding.businessSubtitle')}</Text>
 
         <View style={styles.fields}>
+          {/* Shop name */}
           <Input
             label={t('auth.onboarding.shopNameLabel')}
             placeholder={t('auth.onboarding.shopNamePlaceholder')}
@@ -245,6 +178,44 @@ export default function BusinessScreen() {
             autoCapitalize="words"
           />
 
+          {/* Zone + Address — 2-column row */}
+          <View style={styles.twoCol}>
+            <View style={styles.colHalf}>
+              <Text style={styles.fieldLabel}>{t('auth.onboarding.shopZoneLabel')}</Text>
+              <TouchableOpacity
+                style={[styles.zoneSelector, zoneError ? styles.zoneSelectorError : null]}
+                onPress={() => setZonePickerVisible(true)}
+                disabled={zonesLoading || submitting}
+              >
+                <Text
+                  style={[
+                    styles.zoneSelectorText,
+                    !selectedZone && styles.zoneSelectorPlaceholder,
+                  ]}
+                  numberOfLines={1}
+                >
+                  {selectedZone?.nameEn ?? t('auth.onboarding.shopZonePlaceholder')}
+                </Text>
+                <MaterialIcons name={Icons.chevronDown as any} size={18} color={Colors.gray400} />
+              </TouchableOpacity>
+              {zoneError ? <Text style={styles.fieldError}>{zoneError}</Text> : null}
+            </View>
+
+            <View style={styles.colHalf}>
+              <Input
+                label={t('auth.onboarding.shopAddressLabel')}
+                placeholder={t('auth.onboarding.shopAddressPlaceholder')}
+                value={shopAddress}
+                onChangeText={(v) => { setShopAddress(v); setShopAddressError(''); }}
+                error={shopAddressError}
+                onBlur={() => {
+                  if (!shopAddress.trim()) setShopAddressError(t('auth.onboarding.errorShopAddress'));
+                }}
+              />
+            </View>
+          </View>
+
+          {/* About (optional) */}
           <Input
             label={t('auth.onboarding.shopDescLabel')}
             placeholder={t('auth.onboarding.shopDescPlaceholder')}
@@ -254,67 +225,23 @@ export default function BusinessScreen() {
             style={styles.textarea}
           />
 
-          <View style={styles.fieldGroup}>
-            <Text style={styles.fieldLabel}>{t('auth.onboarding.shopZoneLabel')}</Text>
-            <TouchableOpacity
-              style={[styles.zoneSelector, zoneError ? styles.zoneSelectorError : null]}
-              onPress={() => setZonePickerVisible(true)}
-              disabled={zonesLoading || submitting}
-            >
-              {zonesLoading ? null : (
-                <>
-                  <Text
-                    style={[
-                      styles.zoneSelectorText,
-                      !selectedZone && styles.zoneSelectorPlaceholder,
-                    ]}
-                  >
-                    {selectedZone?.nameEn ?? t('auth.onboarding.shopZonePlaceholder')}
-                  </Text>
-                  <MaterialIcons name={Icons.chevronDown as any} size={20} color={Colors.gray400} />
-                </>
-              )}
-            </TouchableOpacity>
-            {zoneError ? <Text style={styles.fieldError}>{zoneError}</Text> : null}
+          {/* Shop Photo + Work License — 2-column upload grid */}
+          <View style={styles.twoCol}>
+            <UploadSlot
+              label={t('auth.onboarding.shopPhotoLabel')}
+              uri={shopPhotoUri}
+              disabled={submitting}
+              onPress={() => setShopPhotoPickerVisible(true)}
+              onRetake={() => { setShopPhotoUri(null); setShopPhotoMime(undefined); setShopPhotoPickerVisible(true); }}
+            />
+            <UploadSlot
+              label={t('auth.onboarding.workLicenseLabel')}
+              uri={licenseUri}
+              disabled={submitting}
+              onPress={() => setLicensePickerVisible(true)}
+              onRetake={() => { setLicenseUri(null); setLicenseMime(undefined); setLicensePickerVisible(true); }}
+            />
           </View>
-
-          <Input
-            label={t('auth.onboarding.shopAddressLabel')}
-            placeholder={t('auth.onboarding.shopAddressPlaceholder')}
-            value={shopAddress}
-            onChangeText={(v) => { setShopAddress(v); setShopAddressError(''); }}
-            error={shopAddressError}
-            onBlur={() => {
-              if (!shopAddress.trim()) setShopAddressError(t('auth.onboarding.errorShopAddress'));
-            }}
-            multiline
-          />
-
-          <CompactUploadCard
-            label={t('auth.onboarding.shopPhotoLabel')}
-            idleLabel={t('auth.onboarding.addPhoto')}
-            uri={shopPhotoUri}
-            disabled={submitting}
-            onPress={() => pickWithCamera(setShopPhotoUri, setShopPhotoMime)}
-            onRetake={() => {
-              setShopPhotoUri(null);
-              setShopPhotoMime(undefined);
-              pickWithCamera(setShopPhotoUri, setShopPhotoMime);
-            }}
-          />
-
-          <CompactUploadCard
-            label={t('auth.onboarding.workLicenseLabel')}
-            idleLabel={t('auth.onboarding.addDocument')}
-            uri={licenseUri}
-            disabled={submitting}
-            onPress={() => setLicensePickerVisible(true)}
-            onRetake={() => {
-              setLicenseUri(null);
-              setLicenseMime(undefined);
-              setLicensePickerVisible(true);
-            }}
-          />
         </View>
 
         <View style={styles.footer}>
@@ -328,12 +255,7 @@ export default function BusinessScreen() {
       </View>
 
       {/* Zone picker */}
-      <Modal
-        visible={zonePickerVisible}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setZonePickerVisible(false)}
-      >
+      <Modal visible={zonePickerVisible} transparent animationType="slide" onRequestClose={() => setZonePickerVisible(false)}>
         <View style={styles.modalContainer}>
           <Pressable style={StyleSheet.absoluteFillObject} onPress={() => setZonePickerVisible(false)} />
           <View style={styles.modalSheet}>
@@ -357,76 +279,147 @@ export default function BusinessScreen() {
                   )}
                 </TouchableOpacity>
               )}
-              ItemSeparatorComponent={() => <View style={styles.zoneDivider} />}
+              ItemSeparatorComponent={() => <View style={styles.divider} />}
               showsVerticalScrollIndicator={false}
             />
           </View>
         </View>
       </Modal>
 
+      {/* Shop photo source picker */}
+      <SourcePickerModal
+        visible={shopPhotoPickerVisible}
+        onClose={() => setShopPhotoPickerVisible(false)}
+        onCamera={() => { setShopPhotoPickerVisible(false); pickWithCamera(setShopPhotoUri, setShopPhotoMime); }}
+        onGallery={() => { setShopPhotoPickerVisible(false); pickFromLibrary(setShopPhotoUri, setShopPhotoMime); }}
+      />
+
       {/* Work license source picker */}
-      <Modal
+      <SourcePickerModal
         visible={licensePickerVisible}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setLicensePickerVisible(false)}
-      >
-        <View style={styles.modalContainer}>
-          <Pressable style={StyleSheet.absoluteFillObject} onPress={() => setLicensePickerVisible(false)} />
-          <View style={styles.actionSheet}>
-            <View style={styles.sheetHandle} />
-            <TouchableOpacity
-              style={styles.actionRow}
-              onPress={() => {
-                setLicensePickerVisible(false);
-                pickWithCamera(setLicenseUri, setLicenseMime);
-              }}
-            >
-              <MaterialIcons name={Icons.camera as any} size={IconSize.inline} color={Colors.gray900} />
-              <Text style={styles.actionLabel}>{t('auth.onboarding.takePhoto')}</Text>
-            </TouchableOpacity>
-            <View style={styles.zoneDivider} />
-            <TouchableOpacity
-              style={styles.actionRow}
-              onPress={() => {
-                setLicensePickerVisible(false);
-                pickFromLibrary(setLicenseUri, setLicenseMime);
-              }}
-            >
-              <MaterialIcons name={Icons.image as any} size={IconSize.inline} color={Colors.gray900} />
-              <Text style={styles.actionLabel}>{t('auth.onboarding.chooseFromGallery')}</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
+        onClose={() => setLicensePickerVisible(false)}
+        onCamera={() => { setLicensePickerVisible(false); pickWithCamera(setLicenseUri, setLicenseMime); }}
+        onGallery={() => { setLicensePickerVisible(false); pickFromLibrary(setLicenseUri, setLicenseMime); }}
+      />
     </ScreenWrapper>
   );
 }
 
+// ─── Sub-components ──────────────────────────────────────────────────────────
+
+function StepIndicator({ total, current }: { total: number; current: number }) {
+  return (
+    <View style={indicatorStyles.row}>
+      {Array.from({ length: total }).map((_, i) => (
+        <View
+          key={i}
+          style={[
+            indicatorStyles.segment,
+            i < current ? indicatorStyles.segmentFilled : indicatorStyles.segmentEmpty,
+          ]}
+        />
+      ))}
+    </View>
+  );
+}
+
+interface UploadSlotProps {
+  label: string;
+  uri: string | null;
+  disabled?: boolean;
+  onPress: () => void;
+  onRetake: () => void;
+}
+
+function UploadSlot({ label, uri, disabled, onPress, onRetake }: UploadSlotProps) {
+  const { t } = useTranslation();
+  return (
+    <View style={styles.slotWrapper}>
+      <Text style={styles.slotLabel}>{label}</Text>
+      <TouchableOpacity
+        style={[styles.slot, uri ? styles.slotDone : null]}
+        onPress={uri ? undefined : onPress}
+        disabled={uri !== null || disabled}
+        activeOpacity={0.8}
+      >
+        {uri ? (
+          <>
+            <Image source={{ uri }} style={styles.slotImage} />
+            <View style={styles.checkBadge}>
+              <MaterialIcons name="check" size={12} color={Colors.white} />
+            </View>
+          </>
+        ) : (
+          <View style={styles.slotIdle}>
+            <MaterialIcons name={Icons.camera as any} size={IconSize.btn} color={Colors.gray400} />
+            <Text style={styles.slotIdleLabel}>{t('auth.onboarding.cameraOrGallery')}</Text>
+          </View>
+        )}
+      </TouchableOpacity>
+      {uri && !disabled && (
+        <TouchableOpacity style={styles.retakeBtn} onPress={onRetake}>
+          <Text style={styles.retakeBtnLabel}>{t('auth.onboarding.retake')}</Text>
+        </TouchableOpacity>
+      )}
+    </View>
+  );
+}
+
+interface SourcePickerModalProps {
+  visible: boolean;
+  onClose: () => void;
+  onCamera: () => void;
+  onGallery: () => void;
+}
+
+function SourcePickerModal({ visible, onClose, onCamera, onGallery }: SourcePickerModalProps) {
+  const { t } = useTranslation();
+  return (
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+      <View style={styles.modalContainer}>
+        <Pressable style={StyleSheet.absoluteFillObject} onPress={onClose} />
+        <View style={styles.actionSheet}>
+          <View style={styles.sheetHandle} />
+          <TouchableOpacity style={styles.actionRow} onPress={onCamera}>
+            <MaterialIcons name={Icons.camera as any} size={IconSize.inline} color={Colors.gray900} />
+            <Text style={styles.actionLabel}>{t('auth.onboarding.takePhoto')}</Text>
+          </TouchableOpacity>
+          <View style={styles.divider} />
+          <TouchableOpacity style={styles.actionRow} onPress={onGallery}>
+            <MaterialIcons name={Icons.image as any} size={IconSize.inline} color={Colors.gray900} />
+            <Text style={styles.actionLabel}>{t('auth.onboarding.chooseFromGallery')}</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
+// ─── Styles ──────────────────────────────────────────────────────────────────
+
+const indicatorStyles = StyleSheet.create({
+  row: {
+    flexDirection: 'row',
+    gap: Spacing.s2,
+    paddingHorizontal: Spacing.s4,
+    paddingTop: Spacing.s4,
+    paddingBottom: Spacing.s2,
+  },
+  segment: { flex: 1, height: 4, borderRadius: Radius.full },
+  segmentFilled: { backgroundColor: Colors.primary600 },
+  segmentEmpty:  { backgroundColor: Colors.sand },
+});
+
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: Spacing.s4,
+    paddingTop: Spacing.s4,
     paddingBottom: Spacing.s8,
-  },
-  headerRow: {
-    marginTop: Spacing.s4,
-    marginBottom: Spacing.s4,
-  },
-  stepLabel: {
-    fontSize: Typography.label.fontSize,
-    fontWeight: Typography.label.fontWeight as any,
-    color: Colors.gray400,
   },
   title: {
     fontSize: Typography.heading1.fontSize,
     fontWeight: Typography.heading1.fontWeight as any,
     color: Colors.primary600,
-    marginBottom: Spacing.s2,
-  },
-  subtitle: {
-    fontSize: Typography.body.fontSize,
-    fontWeight: Typography.body.fontWeight as any,
-    color: Colors.gray600,
     marginBottom: Spacing.s6,
   },
   fields: {
@@ -436,9 +429,18 @@ const styles = StyleSheet.create({
     minHeight: 100,
     textAlignVertical: 'top',
   },
-  fieldGroup: {
+
+  // 2-col layout
+  twoCol: {
+    flexDirection: 'row',
+    gap: Spacing.s3,
+  },
+  colHalf: {
+    flex: 1,
     gap: 6,
   },
+
+  // Zone selector
   fieldLabel: {
     fontSize: 13,
     fontWeight: '500',
@@ -456,7 +458,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.gray200,
     borderRadius: Radius.sm,
     height: 52,
-    paddingHorizontal: Spacing.s4,
+    paddingHorizontal: Spacing.s3,
   },
   zoneSelectorError: {
     borderColor: Colors.danger600,
@@ -464,80 +466,73 @@ const styles = StyleSheet.create({
   zoneSelectorText: {
     flex: 1,
     fontSize: 15,
-    fontWeight: '400',
     color: Colors.gray900,
   },
   zoneSelectorPlaceholder: {
     color: Colors.gray400,
   },
 
-  // Compact upload card
-  uploadCardWrapper: {
+  // Upload slots
+  slotWrapper: {
+    flex: 1,
     gap: 6,
   },
-  uploadCardLabel: {
+  slotLabel: {
     fontSize: 13,
     fontWeight: '500',
     color: Colors.gray600,
   },
-  uploadCard: {
-    height: 120,
+  slot: {
+    height: 110,
     borderWidth: 1.5,
     borderStyle: 'dashed',
-    borderColor: Colors.primary600,
-    borderRadius: Radius.lg,
-    backgroundColor: Colors.primary50,
+    borderColor: Colors.sand,
+    borderRadius: Radius.md,
+    backgroundColor: Colors.bgApp,
     overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  uploadCardDone: {
+  slotDone: {
     borderStyle: 'solid',
     borderColor: Colors.success600,
-    borderWidth: 2,
+    backgroundColor: Colors.white,
   },
-  imageWrap: {
-    width: '100%',
-    height: '100%',
-  },
-  image: {
+  slotImage: {
     width: '100%',
     height: '100%',
     resizeMode: 'cover',
   },
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.45)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  checkCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+  checkBadge: {
+    position: 'absolute',
+    top: Spacing.s2,
+    right: Spacing.s2,
+    width: 20,
+    height: 20,
+    borderRadius: Radius.full,
     backgroundColor: Colors.success600,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1.5,
+    borderColor: Colors.white,
   },
-  idlePlaceholder: {
+  slotIdle: {
     alignItems: 'center',
     gap: Spacing.s2,
   },
-  idleLabel: {
-    fontSize: Typography.label.fontSize,
-    fontWeight: '500' as any,
-    color: Colors.primary600,
+  slotIdleLabel: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: Colors.gray400,
+    textAlign: 'center',
   },
   retakeBtn: {
-    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: Spacing.s1,
     paddingVertical: Spacing.s1,
   },
   retakeBtnLabel: {
-    fontSize: Typography.label.fontSize,
-    fontWeight: '500',
+    fontSize: 12,
+    fontWeight: '600',
     color: Colors.primary600,
   },
 
@@ -545,7 +540,7 @@ const styles = StyleSheet.create({
     marginTop: Spacing.s6,
   },
 
-  // Zone picker modal
+  // Modals
   modalContainer: {
     flex: 1,
     justifyContent: 'flex-end',
@@ -585,12 +580,10 @@ const styles = StyleSheet.create({
     fontWeight: Typography.bodyMd.fontWeight as any,
     color: Colors.gray900,
   },
-  zoneDivider: {
+  divider: {
     height: 1,
     backgroundColor: Colors.gray200,
   },
-
-  // License source action sheet
   actionSheet: {
     backgroundColor: Colors.white,
     borderTopLeftRadius: Radius.xl,

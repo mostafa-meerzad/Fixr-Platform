@@ -13,11 +13,12 @@ import * as ImagePicker from 'expo-image-picker';
 
 import { ScreenWrapper } from '@/components/ui/ScreenWrapper';
 import { Button } from '@/components/ui/Button';
-import { ProgressBar } from '@/components/ui/ProgressBar';
 import { useToast } from '@/components/ui/Toast';
 import { useOnboardingStore } from '@/stores/onboarding.store';
 import { Colors, IconSize, Radius, Spacing, Typography } from '@/constants/theme';
 import { Icons } from '@/constants/icons';
+
+const CIRCLE_SIZE = 200;
 
 export default function SelfieScreen() {
   const { t } = useTranslation();
@@ -45,51 +46,63 @@ export default function SelfieScreen() {
 
   return (
     <ScreenWrapper>
-      <ProgressBar currentStep={1} totalSteps={4} />
+      <StepIndicator total={4} current={1} />
 
       <View style={styles.container}>
-        <View style={styles.headerRow}>
-          <Text style={styles.stepLabel}>
-            {t('auth.onboarding.stepLabel', { current: 1, total: 4 })}
-          </Text>
-        </View>
-
         <Text style={styles.title}>{t('auth.onboarding.selfieTitle')}</Text>
         <Text style={styles.subtitle}>{t('auth.onboarding.selfieSubtitle')}</Text>
 
-        <TouchableOpacity
-          style={[styles.uploadZone, imageUri ? styles.uploadZoneDone : null]}
-          onPress={imageUri ? undefined : pickImage}
-          disabled={imageUri !== null}
-          activeOpacity={0.75}
-        >
-          {imageUri ? (
-            <View style={styles.imageWrap}>
-              <Image source={{ uri: imageUri }} style={styles.image} />
-              <View style={styles.overlay}>
-                <View style={styles.checkCircle}>
-                  <MaterialIcons name="check" size={28} color={Colors.white} />
-                </View>
+        {/* Circle upload zone */}
+        <View style={styles.circleArea}>
+          <TouchableOpacity
+            style={styles.circle}
+            onPress={imageUri ? undefined : pickImage}
+            disabled={imageUri !== null}
+            activeOpacity={0.8}
+          >
+            {imageUri ? (
+              <Image source={{ uri: imageUri }} style={styles.circleImage} />
+            ) : (
+              <View style={styles.circlePlaceholder}>
+                <MaterialIcons
+                  name={Icons.camera as any}
+                  size={IconSize.large}
+                  color={Colors.primary600}
+                />
+                <Text style={styles.circlePrompt}>
+                  {t('auth.onboarding.takeSelfie')}
+                </Text>
               </View>
-            </View>
-          ) : (
-            <View style={styles.idlePlaceholder}>
-              <MaterialIcons name={Icons.camera as any} size={IconSize.large} color={Colors.primary600} />
-              <Text style={styles.idleLabel}>{t('auth.onboarding.takeSelfie')}</Text>
+            )}
+          </TouchableOpacity>
+
+          {/* Green check badge */}
+          {imageUri && (
+            <View style={styles.checkBadge}>
+              <MaterialIcons name="check" size={18} color={Colors.white} />
             </View>
           )}
-        </TouchableOpacity>
+        </View>
 
-        {imageUri !== null && (
+        {/* Retake button (shown only after capture) */}
+        {imageUri && (
           <TouchableOpacity style={styles.retakeBtn} onPress={pickImage}>
-            <MaterialIcons name={Icons.camera as any} size={IconSize.status} color={Colors.primary600} />
-            <Text style={styles.retakeBtnLabel}>{t('auth.onboarding.retake')}</Text>
+            <MaterialIcons
+              name={Icons.camera as any}
+              size={IconSize.status}
+              color={Colors.primary600}
+            />
+            <Text style={styles.retakeBtnLabel}>
+              {t('auth.onboarding.retake')}
+            </Text>
           </TouchableOpacity>
         )}
 
-        <View style={styles.tips}>
-          <TipRow label={t('auth.onboarding.selfieTip1')} />
-          <TipRow label={t('auth.onboarding.selfieTip2')} />
+        {/* Checklist card */}
+        <View style={styles.checklistCard}>
+          <CheckRow label={t('auth.onboarding.selfieCheck1')} />
+          <CheckRow label={t('auth.onboarding.selfieCheck2')} />
+          <CheckRow label={t('auth.onboarding.selfieCheck3')} />
         </View>
 
         <View style={styles.footer}>
@@ -104,29 +117,64 @@ export default function SelfieScreen() {
   );
 }
 
-function TipRow({ label }: { label: string }) {
+// ─── Sub-components ──────────────────────────────────────────────────────────
+
+function StepIndicator({ total, current }: { total: number; current: number }) {
   return (
-    <View style={styles.tipRow}>
-      <MaterialIcons name="check" size={IconSize.status} color={Colors.success600} />
-      <Text style={styles.tipText}>{label}</Text>
+    <View style={indicatorStyles.row}>
+      {Array.from({ length: total }).map((_, i) => (
+        <View
+          key={i}
+          style={[
+            indicatorStyles.segment,
+            i < current
+              ? indicatorStyles.segmentFilled
+              : indicatorStyles.segmentEmpty,
+          ]}
+        />
+      ))}
     </View>
   );
 }
+
+function CheckRow({ label }: { label: string }) {
+  return (
+    <View style={styles.checkRow}>
+      <MaterialIcons name="check" size={16} color={Colors.success600} />
+      <Text style={styles.checkLabel}>{label}</Text>
+    </View>
+  );
+}
+
+// ─── Styles ──────────────────────────────────────────────────────────────────
+
+const indicatorStyles = StyleSheet.create({
+  row: {
+    flexDirection: 'row',
+    gap: Spacing.s2,
+    paddingHorizontal: Spacing.s4,
+    paddingTop: Spacing.s4,
+    paddingBottom: Spacing.s2,
+  },
+  segment: {
+    flex: 1,
+    height: 4,
+    borderRadius: Radius.full,
+  },
+  segmentFilled: {
+    backgroundColor: Colors.primary600,
+  },
+  segmentEmpty: {
+    backgroundColor: Colors.sand,
+  },
+});
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: Spacing.s4,
+    paddingTop: Spacing.s4,
     paddingBottom: Spacing.s6,
-  },
-  headerRow: {
-    marginTop: Spacing.s4,
-    marginBottom: Spacing.s4,
-  },
-  stepLabel: {
-    fontSize: Typography.label.fontSize,
-    fontWeight: Typography.label.fontWeight as any,
-    color: Colors.gray400,
   },
   title: {
     fontSize: Typography.heading1.fontSize,
@@ -140,83 +188,89 @@ const styles = StyleSheet.create({
     color: Colors.gray600,
     marginBottom: Spacing.s6,
   },
-  uploadZone: {
-    height: 220,
-    borderWidth: 1.5,
-    borderStyle: 'dashed',
-    borderColor: Colors.primary600,
-    borderRadius: Radius.lg,
+
+  // Circle
+  circleArea: {
+    alignItems: 'center',
+    marginBottom: Spacing.s4,
+    position: 'relative',
+  },
+  circle: {
+    width: CIRCLE_SIZE,
+    height: CIRCLE_SIZE,
+    borderRadius: CIRCLE_SIZE / 2,
     backgroundColor: Colors.primary50,
+    borderWidth: 2,
+    borderColor: Colors.primary100,
     overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  uploadZoneDone: {
-    borderStyle: 'solid',
-    borderColor: Colors.success600,
-    borderWidth: 2,
-  },
-  imageWrap: {
-    width: '100%',
-    height: '100%',
-  },
-  image: {
-    width: '100%',
-    height: '100%',
+  circleImage: {
+    width: CIRCLE_SIZE,
+    height: CIRCLE_SIZE,
     resizeMode: 'cover',
   },
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.45)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  checkCircle: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: Colors.success600,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  idlePlaceholder: {
+  circlePlaceholder: {
     alignItems: 'center',
     gap: Spacing.s3,
   },
-  idleLabel: {
-    fontSize: Typography.bodyMd.fontSize,
-    fontWeight: Typography.bodyMd.fontWeight as any,
+  circlePrompt: {
+    fontSize: Typography.label.fontSize,
+    fontWeight: '600',
     color: Colors.primary600,
   },
+  checkBadge: {
+    position: 'absolute',
+    bottom: 8,
+    right: '50%',
+    marginRight: -(CIRCLE_SIZE / 2) + 12,
+    width: 32,
+    height: 32,
+    borderRadius: Radius.full,
+    backgroundColor: Colors.success600,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: Colors.white,
+  },
+
+  // Retake
   retakeBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: Spacing.s1,
     paddingVertical: Spacing.s2,
-    marginTop: Spacing.s2,
+    marginBottom: Spacing.s4,
   },
   retakeBtnLabel: {
     fontSize: Typography.label.fontSize,
-    fontWeight: '500',
+    fontWeight: '600',
     color: Colors.primary600,
   },
-  tips: {
-    flexDirection: 'row',
-    gap: Spacing.s6,
-    marginTop: Spacing.s5,
-    flexWrap: 'wrap',
+
+  // Checklist card
+  checklistCard: {
+    backgroundColor: Colors.white,
+    borderWidth: 1,
+    borderColor: Colors.gray200,
+    borderRadius: Radius.md,
+    padding: Spacing.s4,
+    gap: Spacing.s3,
   },
-  tipRow: {
+  checkRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.s1,
+    gap: Spacing.s3,
   },
-  tipText: {
-    fontSize: Typography.label.fontSize,
-    fontWeight: Typography.label.fontWeight as any,
+  checkLabel: {
+    fontSize: Typography.body.fontSize,
+    fontWeight: Typography.body.fontWeight as any,
     color: Colors.gray600,
+    flex: 1,
   },
+
   footer: {
     marginTop: 'auto',
   },

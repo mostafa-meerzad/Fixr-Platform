@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  FlatList,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
-  FlatList,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -13,12 +13,10 @@ import { MaterialIcons } from '@expo/vector-icons';
 
 import { ScreenWrapper } from '@/components/ui/ScreenWrapper';
 import { Button } from '@/components/ui/Button';
-import { ProgressBar } from '@/components/ui/ProgressBar';
 import { useToast } from '@/components/ui/Toast';
 import { lookupService, type Category } from '@/services/lookup.service';
 import { usersService } from '@/services/users.service';
 import { Colors, IconSize, Radius, Spacing, Typography } from '@/constants/theme';
-import { Icons } from '@/constants/icons';
 
 export default function CategoriesScreen() {
   const { t } = useTranslation();
@@ -29,7 +27,6 @@ export default function CategoriesScreen() {
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [saving, setSaving] = useState(false);
-  const [selectionError, setSelectionError] = useState('');
 
   useEffect(() => {
     loadCategories();
@@ -50,21 +47,12 @@ export default function CategoriesScreen() {
   function toggleCategory(id: string) {
     setSelected((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-      }
+      next.has(id) ? next.delete(id) : next.add(id);
       return next;
     });
-    if (selectionError) setSelectionError('');
   }
 
   async function handleNext() {
-    if (selected.size === 0) {
-      setSelectionError(t('auth.onboarding.categoriesError'));
-      return;
-    }
     setSaving(true);
     try {
       await usersService.updateCategories(Array.from(selected));
@@ -77,16 +65,10 @@ export default function CategoriesScreen() {
   }
 
   return (
-    <ScreenWrapper>
-      <ProgressBar currentStep={3} totalSteps={4} />
+    <ScreenWrapper scroll>
+      <StepIndicator total={4} current={3} />
 
       <View style={styles.container}>
-        <View style={styles.headerRow}>
-          <Text style={styles.stepLabel}>
-            {t('auth.onboarding.stepLabel', { current: 3, total: 4 })}
-          </Text>
-        </View>
-
         <Text style={styles.title}>{t('auth.onboarding.categoriesTitle')}</Text>
         <Text style={styles.subtitle}>{t('auth.onboarding.categoriesSubtitle')}</Text>
 
@@ -95,54 +77,49 @@ export default function CategoriesScreen() {
             <ActivityIndicator size="large" color={Colors.primary600} />
           </View>
         ) : (
-          <>
-            <FlatList
-              data={categories}
-              keyExtractor={(item) => item.id}
-              numColumns={2}
-              scrollEnabled={false}
-              columnWrapperStyle={styles.row}
-              contentContainerStyle={styles.grid}
-              renderItem={({ item }) => {
-                const isSelected = selected.has(item.id);
-                return (
-                  <TouchableOpacity
-                    style={[styles.chip, isSelected && styles.chipSelected]}
-                    onPress={() => toggleCategory(item.id)}
-                    activeOpacity={0.75}
-                  >
-                    {item.icon ? (
-                      <MaterialIcons
-                        name={item.icon as any}
-                        size={IconSize.inline}
-                        color={isSelected ? Colors.white : Colors.primary600}
-                      />
-                    ) : null}
-                    <Text style={[styles.chipLabel, isSelected && styles.chipLabelSelected]}>
-                      {item.nameEn ?? item.name}
-                    </Text>
-                    {isSelected && (
-                      <MaterialIcons
-                        name={Icons.check as any}
-                        size={IconSize.status}
-                        color={Colors.white}
-                      />
-                    )}
-                  </TouchableOpacity>
-                );
-              }}
-            />
-            {selectionError ? (
-              <Text style={styles.errorText}>{selectionError}</Text>
-            ) : null}
-          </>
+          <FlatList
+            data={categories}
+            keyExtractor={(item) => item.id}
+            numColumns={2}
+            scrollEnabled={false}
+            columnWrapperStyle={styles.row}
+            contentContainerStyle={styles.grid}
+            renderItem={({ item }) => {
+              const isSelected = selected.has(item.id);
+              return (
+                <TouchableOpacity
+                  style={[styles.tile, isSelected && styles.tileSelected]}
+                  onPress={() => toggleCategory(item.id)}
+                  activeOpacity={0.75}
+                >
+                  {item.icon ? (
+                    <MaterialIcons
+                      name={item.icon as any}
+                      size={IconSize.btn}
+                      color={isSelected ? Colors.white : Colors.gray600}
+                    />
+                  ) : null}
+                  <Text style={[styles.tileLabel, isSelected && styles.tileLabelSelected]}>
+                    {item.nameEn ?? item.name}
+                  </Text>
+                </TouchableOpacity>
+              );
+            }}
+          />
         )}
+
+        {/* Selection counter */}
+        <Text style={[styles.counter, selected.size === 0 && styles.counterZero]}>
+          {selected.size === 0
+            ? t('auth.onboarding.categoriesNoneSelected')
+            : t('auth.onboarding.categoriesSelected', { count: selected.size })}
+        </Text>
 
         <View style={styles.footer}>
           <Button
             label={saving ? t('auth.onboarding.categoriesSaving') : t('common.next')}
             onPress={handleNext}
-            disabled={loading || saving}
+            disabled={loading || saving || selected.size === 0}
             loading={saving}
           />
         </View>
@@ -151,20 +128,55 @@ export default function CategoriesScreen() {
   );
 }
 
+// ─── Sub-components ──────────────────────────────────────────────────────────
+
+function StepIndicator({ total, current }: { total: number; current: number }) {
+  return (
+    <View style={indicatorStyles.row}>
+      {Array.from({ length: total }).map((_, i) => (
+        <View
+          key={i}
+          style={[
+            indicatorStyles.segment,
+            i < current
+              ? indicatorStyles.segmentFilled
+              : indicatorStyles.segmentEmpty,
+          ]}
+        />
+      ))}
+    </View>
+  );
+}
+
+// ─── Styles ──────────────────────────────────────────────────────────────────
+
+const indicatorStyles = StyleSheet.create({
+  row: {
+    flexDirection: 'row',
+    gap: Spacing.s2,
+    paddingHorizontal: Spacing.s4,
+    paddingTop: Spacing.s4,
+    paddingBottom: Spacing.s2,
+  },
+  segment: {
+    flex: 1,
+    height: 4,
+    borderRadius: Radius.full,
+  },
+  segmentFilled: {
+    backgroundColor: Colors.primary600,
+  },
+  segmentEmpty: {
+    backgroundColor: Colors.sand,
+  },
+});
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: Spacing.s4,
+    paddingTop: Spacing.s4,
     paddingBottom: Spacing.s6,
-  },
-  headerRow: {
-    marginTop: Spacing.s4,
-    marginBottom: Spacing.s4,
-  },
-  stepLabel: {
-    fontSize: Typography.label.fontSize,
-    fontWeight: Typography.label.fontWeight as any,
-    color: Colors.gray400,
   },
   title: {
     fontSize: Typography.heading1.fontSize,
@@ -182,6 +194,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    paddingVertical: Spacing.s10,
   },
   grid: {
     gap: Spacing.s3,
@@ -189,41 +202,44 @@ const styles = StyleSheet.create({
   row: {
     gap: Spacing.s3,
   },
-  chip: {
+  tile: {
     flex: 1,
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: Spacing.s2,
-    paddingVertical: Spacing.s3,
+    paddingVertical: Spacing.s4,
     paddingHorizontal: Spacing.s3,
     borderRadius: Radius.md,
     borderWidth: 1.5,
-    borderColor: Colors.primary600,
+    borderColor: Colors.gray200,
     backgroundColor: Colors.white,
-    minHeight: 52,
+    minHeight: 80,
   },
-  chipSelected: {
+  tileSelected: {
     backgroundColor: Colors.primary600,
     borderColor: Colors.primary600,
   },
-  chipLabel: {
+  tileLabel: {
     fontSize: Typography.label.fontSize,
     fontWeight: '600',
-    color: Colors.primary600,
+    color: Colors.gray600,
     textAlign: 'center',
-    flexShrink: 1,
   },
-  chipLabelSelected: {
+  tileLabelSelected: {
     color: Colors.white,
   },
-  errorText: {
-    fontSize: Typography.caption.fontSize,
-    color: Colors.danger600,
-    marginTop: Spacing.s2,
+  counter: {
+    fontSize: Typography.label.fontSize,
+    fontWeight: '500',
+    color: Colors.primary600,
+    textAlign: 'center',
+    marginTop: Spacing.s4,
+    marginBottom: Spacing.s2,
+  },
+  counterZero: {
+    color: Colors.gray400,
   },
   footer: {
-    marginTop: 'auto',
-    paddingTop: Spacing.s4,
+    marginTop: Spacing.s4,
   },
 });
