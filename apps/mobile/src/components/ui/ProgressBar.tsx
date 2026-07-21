@@ -40,7 +40,7 @@ const styles = StyleSheet.create({
   track: {
     height: 3,
     width: '100%',
-    backgroundColor: Colors.gray200,
+    backgroundColor: Colors.sand,
   },
   fill: {
     height: 3,

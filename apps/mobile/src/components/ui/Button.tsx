@@ -10,7 +10,7 @@ import {
 import { MaterialIcons } from '@expo/vector-icons';
 import { Colors, Spacing, Radius, IconSize } from '@/constants/theme';
 
-export type ButtonVariant = 'primary' | 'secondary' | 'destructive' | 'ghost';
+export type ButtonVariant = 'primary' | 'secondary' | 'destructive' | 'ghost' | 'dark' | 'success';
 
 interface ButtonProps {
   label: string;
@@ -23,10 +23,12 @@ interface ButtonProps {
 }
 
 const variantMap: Record<ButtonVariant, { bg: string; border?: string; text: string }> = {
-  primary:     { bg: Colors.primary600,                           text: Colors.white   },
+  primary:     { bg: Colors.primary600,                           text: Colors.white      },
   secondary:   { bg: Colors.white,   border: Colors.primary600,  text: Colors.primary600 },
   destructive: { bg: Colors.danger100,                           text: Colors.danger600  },
   ghost:       { bg: 'transparent',                              text: Colors.primary600 },
+  dark:        { bg: Colors.dark,                                text: Colors.white      },
+  success:     { bg: Colors.success700,                          text: Colors.white      },
 };
 
 export function Button({
@@ -58,7 +60,7 @@ export function Button({
       {loading ? (
         <ActivityIndicator
           size="small"
-          color={variant === 'primary' ? Colors.white : Colors.primary600}
+          color={['primary', 'dark', 'success'].includes(variant) ? Colors.white : Colors.primary600}
         />
       ) : (
         <View style={styles.content}>

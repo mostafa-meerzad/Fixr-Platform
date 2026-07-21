@@ -1,9 +1,9 @@
 export const Colors = {
-  // Primary (Teal)
-  primary600: '#0D9488',
-  primary500: '#14B8A6',
-  primary100: '#CCFBF1',
-  primary50:  '#F0FDFA',
+  // Primary (Terra Cotta / Burnt Sienna)
+  primary600: '#B5432A',
+  primary500: '#C96347',
+  primary100: '#F5D4CC',
+  primary50:  '#FDF4F2',
 
   // Neutrals
   gray900: '#111827',
@@ -14,18 +14,24 @@ export const Colors = {
   white:   '#FFFFFF',
 
   // Backgrounds
-  bgApp:  '#F9FAFB',
+  bgApp:  '#FAF6F1',
   bgCard: '#FFFFFF',
 
   // Semantic
   success600: '#16A34A',
   success100: '#DCFCE7',
+  success700: '#1B3D10',
   warning600: '#D97706',
   warning100: '#FEF3C7',
   danger600:  '#DC2626',
   danger100:  '#FEE2E2',
   info600:    '#2563EB',
   info100:    '#DBEAFE',
+
+  // Extended palette
+  dark:  '#1A1A1A',
+  sand:  '#E8DDD0',
+  amber: '#E8A020',
 } as const;
 
 export const Typography = {
