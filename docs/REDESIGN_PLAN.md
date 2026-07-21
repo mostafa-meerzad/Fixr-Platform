@@ -27,7 +27,7 @@ never hardcode colors, sizes, or spacing. Use t() for every user-visible string.
 
 ## Status
 
-**Last completed:** Phase 0c — ProgressBar track color → sand
+**Last completed:** Phase 1d — Name entry step redesign (Phase 1 complete)
 **Current phase:** Phase 0 — Design System Token Swap
 
 ---
@@ -96,7 +96,7 @@ All other tokens (gray*, success600/100, warning*, danger*, info*, Spacing, Radi
 Design refs: `04a-auth-phone.png`, `04b-auth-otp.png`, `04c-registration-role-select.png`, `05a-registration-expert-name.png`
 
 ### 1a — Phone screen
-- [ ] `apps/mobile/app/(auth)/phone.tsx`
+- [x] `apps/mobile/app/(auth)/phone.tsx`
   - Add "fixr." wordmark + "Post it. Pick your price. Fixed." tagline at top
   - `+93` country code becomes a sand-bg pill left of the input (not inside it)
   - WhatsApp hint row below input (chat bubble icon + "The code arrives on WhatsApp — no SMS charges")
@@ -104,7 +104,7 @@ Design refs: `04a-auth-phone.png`, `04b-auth-otp.png`, `04c-registration-role-se
   - Background: `bgApp` (warm cream)
 
 ### 1b — OTP screen
-- [ ] `apps/mobile/app/(auth)/otp.tsx`
+- [x] `apps/mobile/app/(auth)/otp.tsx`
   - 6 individual box-digit inputs (large, rounded squares)
   - Active box: terra cotta border (`primary600`)
   - Filled boxes: white bg, bold digit
@@ -115,7 +115,7 @@ Design refs: `04a-auth-phone.png`, `04b-auth-otp.png`, `04c-registration-role-se
   - "Verifies automatically when all 6 digits are in" footnote at bottom
 
 ### 1c — Role select (register screen, step 1)
-- [ ] `apps/mobile/app/(auth)/register.tsx` — role selection step
+- [x] `apps/mobile/app/(auth)/register.tsx` — role selection step
   - "Welcome to Fixr! / How will you use the app?" header
   - Two full-width card options, each with icon + bold title + subtitle + radio circle
   - Selected card: terra cotta border + terra cotta bg tint (`primary50`)
@@ -123,7 +123,7 @@ Design refs: `04a-auth-phone.png`, `04b-auth-otp.png`, `04c-registration-role-se
   - CTA: `variant="dark"` (black "Continue" button)
 
 ### 1d — Name entry step (expert path `05a`, homeowner path)
-- [ ] `apps/mobile/app/(auth)/register.tsx` — name entry step
+- [x] `apps/mobile/app/(auth)/register.tsx` — name entry step
   - Expert: FIRST NAME (required) + LAST NAME (optional) fields
   - Expert: hint note "Next: a quick one-time verification (selfie, Tazkira, shop info)"
   - Expert: CTA "Create Account" → `variant="primary"` (terra cotta)
@@ -511,7 +511,7 @@ Design ref: `03a-splash-screen.png`
 ## Completion Checklist
 
 - [ ] Phase 0 — Design system tokens + Button variants
-- [ ] Phase 1 — Auth screens (phone, OTP, role select, name)
+- [x] Phase 1 — Auth screens (phone, OTP, role select, name)
 - [ ] Phase 2 — Expert onboarding (overview, selfie, tazkira, categories, business, submitted)
 - [ ] Phase 3 — Expert tabs (browse, my-bids, active-job, profile, credits)
 - [ ] Phase 4 — Homeowner tabs (home, my-jobs, messages, profile)

@@ -15,7 +15,7 @@ import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { useToast } from "@/components/ui/Toast";
 import { authService } from "@/services/auth.service";
 import { useAuthStore } from "@/stores/auth.store";
-import { Colors, Radius, Spacing, Typography } from "@/constants/theme";
+import { Colors, Radius, Spacing } from "@/constants/theme";
 
 const CODE_LENGTH = 6;
 const RESEND_SECONDS = 60;
@@ -32,17 +32,14 @@ export default function OtpScreen() {
   const [loading, setLoading] = useState(false);
   const [secondsLeft, setSecondsLeft] = useState(RESEND_SECONDS);
   const inputRef = useRef<TextInput>(null);
-  // Guard against double-submission when the useEffect fires
   const verifyingRef = useRef(false);
 
-  // Countdown
   useEffect(() => {
     if (secondsLeft <= 0) return;
     const id = setInterval(() => setSecondsLeft((s) => s - 1), 1000);
     return () => clearInterval(id);
   }, [secondsLeft]);
 
-  // Auto-submit when 6 digits entered
   useEffect(() => {
     if (code.length === CODE_LENGTH && !verifyingRef.current) {
       verify(code);
@@ -111,41 +108,56 @@ export default function OtpScreen() {
   return (
     <ScreenWrapper>
       <View style={styles.container}>
+        {/* Back button */}
+        <TouchableOpacity
+          style={styles.backBtn}
+          onPress={() => router.back()}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          <MaterialIcons name="arrow-back" size={24} color={Colors.gray600} />
+        </TouchableOpacity>
+
         {/* Header */}
         <View style={styles.headerSection}>
-          <View style={styles.iconBox}>
-            <MaterialIcons
-              name="smartphone"
-              size={32}
-              color={Colors.primary600}
-            />
-          </View>
           <Text style={styles.title}>{t("auth.otp.title")}</Text>
-          <Text style={styles.subtitle}>{t("auth.otp.subtitle")}</Text>
-          <Text style={styles.phoneText}>{phone}</Text>
+          <Text style={styles.subtitle}>
+            {t("auth.otp.sentTo")}{" "}
+            <Text style={styles.phoneInline}>{phone}</Text>
+            {" · "}
+            <Text style={styles.wrongNumberLink} onPress={() => router.back()}>
+              {t("auth.otp.wrongNumber")}
+            </Text>
+          </Text>
         </View>
 
-        {/* 6-box code display */}
+        {/* 6 digit boxes */}
         <TouchableOpacity
           style={styles.boxesRow}
           onPress={() => inputRef.current?.focus()}
           activeOpacity={1}
         >
-          {Array.from({ length: CODE_LENGTH }).map((_, i) => (
-            <View
-              key={i}
-              style={[
-                styles.box,
-                i < code.length && styles.boxFilled,
-                i === code.length && styles.boxActive,
-              ]}
-            >
-              <Text style={styles.boxDigit}>{code[i] ?? ""}</Text>
-            </View>
-          ))}
+          {Array.from({ length: CODE_LENGTH }).map((_, i) => {
+            const isFilled = i < code.length;
+            const isActive = i === code.length && !loading;
+            return (
+              <View
+                key={i}
+                style={[
+                  styles.box,
+                  isFilled && styles.boxFilled,
+                  isActive && styles.boxActive,
+                ]}
+              >
+                {loading && i === CODE_LENGTH - 1 ? (
+                  <ActivityIndicator size="small" color={Colors.primary600} />
+                ) : (
+                  <Text style={styles.boxDigit}>{code[i] ?? ""}</Text>
+                )}
+              </View>
+            );
+          })}
         </TouchableOpacity>
 
-        {/* Hidden input captures keyboard */}
         <TextInput
           ref={inputRef}
           value={code}
@@ -159,15 +171,6 @@ export default function OtpScreen() {
           editable={!loading}
           style={styles.hiddenInput}
         />
-
-        {/* Loading indicator */}
-        {loading && (
-          <ActivityIndicator
-            style={styles.loader}
-            size="small"
-            color={Colors.primary600}
-          />
-        )}
 
         {/* Resend row */}
         <View style={styles.resendRow}>
@@ -185,7 +188,7 @@ export default function OtpScreen() {
           )}
         </View>
 
-        {/* Bottom hint */}
+        {/* Bottom footnote */}
         <Text style={styles.hint}>{t("auth.otp.hint")}</Text>
       </View>
     </ScreenWrapper>
@@ -196,75 +199,77 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: Spacing.s4,
-    paddingTop: Spacing.s12,
-    alignItems: "center",
+    paddingTop: Spacing.s8,
+    paddingBottom: Spacing.s6,
   },
 
-  // Header
-  headerSection: {
-    alignItems: "center",
-    marginBottom: Spacing.s10,
-    gap: Spacing.s2,
-  },
-  iconBox: {
-    width: 64,
-    height: 64,
-    borderRadius: Radius.md,
-    borderWidth: 1.5,
-    borderColor: Colors.primary600,
-    backgroundColor: Colors.primary50,
+  backBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: Radius.full,
+    backgroundColor: Colors.gray100,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: Spacing.s3,
-  },
-  title: {
-    fontSize: Typography.heading1.fontSize,
-    fontWeight: Typography.heading1.fontWeight as any,
-    color: Colors.primary600,
-  },
-  subtitle: {
-    fontSize: Typography.body.fontSize,
-    fontWeight: Typography.body.fontWeight as any,
-    color: Colors.gray400,
-    textAlign: "center",
-  },
-  phoneText: {
-    direction: "ltr",
-    fontSize: Typography.bodyMd.fontSize,
-    fontWeight: Typography.bodyMd.fontWeight as any,
-    color: Colors.gray900,
+    marginBottom: Spacing.s6,
   },
 
-  // Code boxes
-  boxesRow: {
-    flexDirection: "row-reverse",
+  headerSection: {
+    marginBottom: Spacing.s8,
     gap: Spacing.s2,
-    marginBottom: Spacing.s3,
-    direction: "rtl",
+  },
+  title: {
+    fontSize: 26,
+    fontWeight: "700",
+    color: Colors.gray900,
+  },
+  subtitle: {
+    fontSize: 15,
+    fontWeight: "400",
+    color: Colors.gray400,
+    lineHeight: 22,
+  },
+  phoneInline: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: Colors.gray900,
+  },
+  wrongNumberLink: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: Colors.primary600,
+  },
+
+  boxesRow: {
+    flexDirection: "row",
+    gap: Spacing.s2,
+    marginBottom: Spacing.s4,
   },
   box: {
-    width: 48,
-    height: 56,
-    borderRadius: Radius.sm,
-    borderWidth: 1.5,
-    borderColor: Colors.gray200,
-    backgroundColor: Colors.white,
+    flex: 1,
+    height: 60,
+    borderRadius: Radius.md,
+    backgroundColor: Colors.sand,
     alignItems: "center",
     justifyContent: "center",
   },
   boxFilled: {
-    borderColor: Colors.primary600,
+    backgroundColor: Colors.white,
+    borderWidth: 1.5,
+    borderColor: Colors.gray200,
   },
   boxActive: {
+    backgroundColor: Colors.white,
+    borderWidth: 1.5,
     borderColor: Colors.primary600,
     shadowColor: Colors.primary600,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.15,
-    shadowRadius: 3,
+    shadowRadius: 4,
+    elevation: 0,
   },
   boxDigit: {
-    fontSize: 22,
-    fontWeight: "600",
+    fontSize: 24,
+    fontWeight: "700",
     color: Colors.gray900,
   },
   hiddenInput: {
@@ -274,39 +279,34 @@ const styles = StyleSheet.create({
     height: 1,
   },
 
-  loader: {
-    marginBottom: Spacing.s3,
-  },
-
-  // Resend
   resendRow: {
-    marginBottom: Spacing.s6,
     minHeight: 24,
     alignItems: "center",
     justifyContent: "center",
   },
   resendCountdown: {
-    fontSize: Typography.body.fontSize,
+    fontSize: 14,
+    fontWeight: "400",
     color: Colors.gray400,
   },
   timerHighlight: {
-    color: Colors.primary600,
-    fontWeight: "600",
+    fontWeight: "700",
+    color: Colors.gray900,
   },
   resendLink: {
-    fontSize: Typography.body.fontSize,
+    fontSize: 14,
     fontWeight: "600",
     color: Colors.primary600,
   },
 
-  // Hint
   hint: {
     position: "absolute",
     bottom: Spacing.s6,
-    fontSize: Typography.caption.fontSize,
-    fontWeight: Typography.caption.fontWeight as any,
+    left: Spacing.s4,
+    right: Spacing.s4,
+    fontSize: 12,
+    fontWeight: "400",
     color: Colors.gray400,
     textAlign: "center",
-    paddingHorizontal: Spacing.s4,
   },
 });

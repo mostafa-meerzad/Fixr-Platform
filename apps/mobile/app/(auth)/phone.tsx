@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { I18nManager, StyleSheet, Text, TextInput, View } from "react-native";
+import { StyleSheet, Text, TextInput, View } from "react-native";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -8,8 +8,7 @@ import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { Button } from "@/components/ui/Button";
 import { useToast } from "@/components/ui/Toast";
 import { authService } from "@/services/auth.service";
-import { Colors, Spacing, Radius, Typography } from "@/constants/theme";
-import { useRTL } from "@/hooks/useRTL";
+import { Colors, Spacing, Radius, IconSize } from "@/constants/theme";
 
 const MIN_DIGITS = 9;
 const MAX_DIGITS = 10;
@@ -19,11 +18,9 @@ export default function PhoneScreen() {
   const router = useRouter();
   const toast = useToast();
 
-  const { isRTL } = useRTL();
-  const rtl = isRTL || I18nManager.isRTL;
-  const textAlign = rtl ? ("right" as const) : ("left" as const);
   const [digits, setDigits] = useState("");
   const [loading, setLoading] = useState(false);
+  const [focused, setFocused] = useState(false);
 
   const isValid = digits.length >= MIN_DIGITS && digits.length <= MAX_DIGITS;
 
@@ -51,25 +48,24 @@ export default function PhoneScreen() {
   return (
     <ScreenWrapper>
       <View style={styles.container}>
+        {/* Brand */}
         <View style={styles.brandSection}>
-          <View style={styles.logoBox}>
-            <MaterialIcons name="home" size={40} color={Colors.white} />
-          </View>
-          <Text style={styles.appName}>Fixr</Text>
-          <Text style={styles.tagline}>{t("auth.phone.subtitle")}</Text>
+          <Text style={styles.wordmark}>{t("auth.phone.wordmark")}</Text>
+          <Text style={styles.tagline}>{t("auth.phone.tagline")}</Text>
         </View>
 
-        <View style={styles.inputSection}>
-          <Text style={[styles.inputLabel, { textAlign }]}>
-            {t("auth.phone.label")}
-          </Text>
+        {/* Form */}
+        <View style={styles.formSection}>
+          <Text style={styles.heading}>{t("auth.phone.heading")}</Text>
+          <Text style={styles.subtitle}>{t("auth.phone.subtitle")}</Text>
+
           <View style={styles.phoneRow}>
-            <View style={styles.prefix}>
+            <View style={styles.prefixPill}>
               <Text style={styles.flag}>🇦🇫</Text>
               <Text style={styles.prefixText}>+93</Text>
             </View>
-            <View style={styles.separator} />
-            <View style={styles.digitWrapper}>
+
+            <View style={[styles.inputBox, focused && styles.inputBoxFocused]}>
               <Text
                 style={[
                   styles.digitDisplay,
@@ -79,10 +75,11 @@ export default function PhoneScreen() {
               >
                 {digits.length > 0 ? digits : t("auth.phone.placeholder")}
               </Text>
-              {/* Transparent TextInput captures numeric keyboard input */}
               <TextInput
                 value={digits}
                 onChangeText={handleChange}
+                onFocus={() => setFocused(true)}
+                onBlur={() => setFocused(false)}
                 keyboardType="number-pad"
                 autoFocus
                 caretHidden
@@ -93,15 +90,22 @@ export default function PhoneScreen() {
               />
             </View>
           </View>
-          <Text style={[styles.helperText, { textAlign }]}>
-            {t("auth.phone.helper")}
-          </Text>
+
+          <View style={styles.whatsappHint}>
+            <MaterialIcons
+              name="chat"
+              size={IconSize.status}
+              color={Colors.primary600}
+            />
+            <Text style={styles.hintText}>{t("auth.phone.whatsappHint")}</Text>
+          </View>
         </View>
 
         <View style={styles.footer}>
           <Button
             label={t("auth.phone.continue")}
             onPress={handleContinue}
+            variant="dark"
             disabled={!isValid}
             loading={loading}
           />
@@ -120,78 +124,76 @@ const styles = StyleSheet.create({
   },
 
   brandSection: {
-    alignItems: "center",
-    marginBottom: Spacing.s12,
+    marginBottom: Spacing.s10,
   },
-  logoBox: {
-    width: 72,
-    height: 72,
-    borderRadius: 18,
-    backgroundColor: Colors.primary600,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: Spacing.s3,
-  },
-  appName: {
-    fontSize: Typography.display.fontSize,
-    fontWeight: Typography.display.fontWeight as any,
+  wordmark: {
+    fontSize: 32,
+    fontWeight: "700",
     color: Colors.primary600,
-    marginBottom: Spacing.s1,
+    letterSpacing: -0.5,
   },
   tagline: {
-    fontSize: Typography.body.fontSize,
-    fontWeight: Typography.body.fontWeight as any,
+    fontSize: 15,
+    fontWeight: "400",
     color: Colors.gray400,
+    marginTop: Spacing.s1,
   },
 
-  inputSection: {
-    gap: Spacing.s2,
+  formSection: {},
+  heading: {
+    fontSize: 26,
+    fontWeight: "700",
+    color: Colors.gray900,
+    marginBottom: Spacing.s1,
   },
-  inputLabel: {
-    fontSize: 13,
-    fontWeight: "500",
+  subtitle: {
+    fontSize: 15,
+    fontWeight: "400",
     color: Colors.gray600,
+    marginBottom: Spacing.s4,
   },
+
   phoneRow: {
     flexDirection: "row",
     alignItems: "center",
-    direction: "ltr",
-    backgroundColor: Colors.white,
-    borderWidth: 1.5,
-    borderColor: Colors.primary600,
-    borderRadius: Radius.sm,
-    height: 52,
-    shadowColor: Colors.primary600,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.15,
-    shadowRadius: 3,
-    elevation: 0,
+    gap: Spacing.s2,
+    marginBottom: Spacing.s2,
   },
-  prefix: {
+  prefixPill: {
     flexDirection: "row",
     alignItems: "center",
-    paddingLeft: Spacing.s4,
-    paddingRight: Spacing.s3,
-    gap: Spacing.s2,
+    gap: Spacing.s1,
+    backgroundColor: Colors.sand,
+    paddingHorizontal: Spacing.s3,
+    borderRadius: Radius.md,
+    height: 52,
   },
   flag: {
     fontSize: 18,
   },
   prefixText: {
     fontSize: 15,
-    fontWeight: "500",
+    fontWeight: "600",
     color: Colors.gray900,
   },
-  separator: {
-    width: 1,
-    height: 28,
-    backgroundColor: Colors.gray200,
-  },
-  digitWrapper: {
+  inputBox: {
     flex: 1,
-    paddingHorizontal: Spacing.s4,
+    backgroundColor: Colors.white,
+    borderWidth: 1.5,
+    borderColor: Colors.gray200,
+    borderRadius: Radius.sm,
+    height: 52,
     justifyContent: "center",
     overflow: "hidden",
+    paddingHorizontal: Spacing.s4,
+  },
+  inputBoxFocused: {
+    borderColor: Colors.primary600,
+    shadowColor: Colors.primary600,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.15,
+    shadowRadius: 3,
+    elevation: 0,
   },
   digitDisplay: {
     fontSize: 15,
@@ -210,10 +212,16 @@ const styles = StyleSheet.create({
     opacity: 0,
     color: "transparent",
   },
-  helperText: {
+
+  whatsappHint: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.s2,
+  },
+  hintText: {
     fontSize: 12,
     fontWeight: "400",
-    color: Colors.gray400,
+    color: Colors.gray600,
   },
 
   footer: {
