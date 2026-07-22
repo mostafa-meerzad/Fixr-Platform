@@ -7,19 +7,22 @@ import { useTranslation } from 'react-i18next';
 import { Colors, IconSize, Spacing } from '@/constants/theme';
 import { Icons } from '@/constants/icons';
 import { useNotifStore } from '@/stores/notif.store';
+import { FloatingTabBar } from '@/components/ui/FloatingTabBar';
 
 function TabIcon({
   name,
   color,
+  size,
   hasBadge,
 }: {
   name: string;
   color: string;
+  size: number;
   hasBadge?: boolean;
 }) {
   return (
     <View>
-      <MaterialIcons name={name as any} size={IconSize.tab} color={color} />
+      <MaterialIcons name={name as any} size={size} color={color} />
       {hasBadge ? <View style={styles.badge} /> : null}
     </View>
   );
@@ -33,70 +36,68 @@ export default function HomeownerLayout() {
 
   return (
     <View style={styles.root}>
-    <Tabs
-      screenOptions={{
-        headerShown: false,
-        tabBarActiveTintColor: Colors.primary600,
-        tabBarInactiveTintColor: Colors.gray400,
-        tabBarLabelStyle: { fontSize: 11, fontWeight: '500' },
-        tabBarStyle: {
-          height: 64 + insets.bottom,
-          paddingBottom: insets.bottom,
-          backgroundColor: Colors.white,
-          borderTopWidth: 1,
-          borderTopColor: Colors.gray200,
-        },
-      }}
-    >
-      <Tabs.Screen
-        name="home"
-        options={{
-          title: t('homeowner.home.tabLabel'),
-          tabBarIcon: ({ color }) => <TabIcon name={Icons.tabHome} color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="my-jobs"
-        options={{
-          title: t('homeowner.myJobs.title'),
-          tabBarIcon: ({ color }) => <TabIcon name={Icons.tabWork} color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="messages"
-        options={{
-          title: t('homeowner.messages.title'),
-          tabBarIcon: ({ color }) => (
-            <TabIcon name={Icons.tabChat} color={color} hasBadge={hasUnread} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: t('homeowner.profile.title'),
-          tabBarIcon: ({ color }) => <TabIcon name={Icons.tabPerson} color={color} />,
-        }}
-      />
-      <Tabs.Screen name="disputes" options={{ href: null }} />
-      <Tabs.Screen name="job/[id]" options={{ href: null }} />
-      <Tabs.Screen name="active-job/[id]" options={{ href: null }} />
-      <Tabs.Screen name="post/create" options={{ href: null }} />
-      <Tabs.Screen name="post/media" options={{ href: null }} />
-      <Tabs.Screen name="post/review" options={{ href: null }} />
-    </Tabs>
-    <TouchableOpacity
-      style={[styles.bell, { top: insets.top + 8 }]}
-      onPress={() => router.push('/(shared)/notifications' as any)}
-      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-    >
-      <MaterialIcons
-        name={(unreadCount > 0 ? Icons.notifsActive : Icons.notifs) as any}
-        size={24}
-        color={Colors.primary600}
-      />
-      {unreadCount > 0 && <View style={styles.bellDot} />}
-    </TouchableOpacity>
+      <Tabs
+        screenOptions={{ headerShown: false }}
+        tabBar={(props) => <FloatingTabBar {...props} />}
+      >
+        <Tabs.Screen
+          name="home"
+          options={{
+            title: t('homeowner.home.tabLabel'),
+            tabBarIcon: ({ color, size }) => (
+              <TabIcon name={Icons.tabHome} color={color} size={size} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="my-jobs"
+          options={{
+            title: t('homeowner.myJobs.title'),
+            tabBarIcon: ({ color, size }) => (
+              <TabIcon name={Icons.tabWork} color={color} size={size} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="messages"
+          options={{
+            title: t('homeowner.messages.title'),
+            tabBarIcon: ({ color, size }) => (
+              <TabIcon name={Icons.tabChat} color={color} size={size} hasBadge={hasUnread} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="profile"
+          options={{
+            title: t('homeowner.profile.title'),
+            tabBarIcon: ({ color, size }) => (
+              <TabIcon name={Icons.tabPerson} color={color} size={size} />
+            ),
+          }}
+        />
+        <Tabs.Screen name="disputes" options={{ href: null }} />
+        <Tabs.Screen name="expert/[id]" options={{ href: null }} />
+        <Tabs.Screen name="job/[id]" options={{ href: null }} />
+        <Tabs.Screen name="active-job/[id]" options={{ href: null }} />
+        <Tabs.Screen name="post/create" options={{ href: null }} />
+        <Tabs.Screen name="post/details" options={{ href: null }} />
+        <Tabs.Screen name="post/media" options={{ href: null }} />
+        <Tabs.Screen name="post/review" options={{ href: null }} />
+        <Tabs.Screen name="post/success" options={{ href: null }} />
+      </Tabs>
+      <TouchableOpacity
+        style={[styles.bell, { top: insets.top + 8 }]}
+        onPress={() => router.push('/(shared)/notifications' as any)}
+        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+      >
+        <MaterialIcons
+          name={(unreadCount > 0 ? Icons.notifsActive : Icons.notifs) as any}
+          size={24}
+          color={Colors.primary600}
+        />
+        {unreadCount > 0 && <View style={styles.bellDot} />}
+      </TouchableOpacity>
     </View>
   );
 }
