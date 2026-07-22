@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { AppState, AppStateStatus, StyleSheet, View, Image } from 'react-native';
+import { AppState, AppStateStatus, StyleSheet, View } from 'react-native';
 import { Stack, router } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import {
@@ -15,6 +15,7 @@ import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import * as Notifications from 'expo-notifications';
 import '@/i18n';
 import { useAuthStore } from '@/stores/auth.store';
+import { Colors } from '@/constants/theme';
 import { useLangStore } from '@/stores/lang.store';
 import { useNotifStore } from '@/stores/notif.store';
 import { ToastProvider } from '@/components/ui/Toast';
@@ -34,7 +35,7 @@ Notifications.setNotificationHandler({
   }),
 });
 
-const SPLASH_MIN_MS = 2000;
+const SPLASH_MIN_MS = 0;
 
 export default function RootLayout() {
   const initialize = useAuthStore((s) => s.initialize);
@@ -140,15 +141,7 @@ export default function RootLayout() {
   }, [fontsLoaded, langLoaded]);
 
   if (!ready) {
-    return (
-      <View style={styles.splash}>
-        <Image
-          source={require('../assets/splash.png')}
-          style={styles.splashImage}
-          resizeMode="cover"
-        />
-      </View>
-    );
+    return <View style={styles.splash} />;
   }
 
   return (
@@ -166,6 +159,5 @@ export default function RootLayout() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  splash: { flex: 1, backgroundColor: '#F9FAFB' },
-  splashImage: { width: '100%', height: '100%' },
+  splash: { flex: 1, backgroundColor: Colors.primary600 },
 });

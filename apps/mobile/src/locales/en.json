@@ -12,6 +12,9 @@
     "confirm": "Confirm",
     "continue": "Continue",
     "unknown": "Unknown",
+    "splash": {
+      "city": "KABUL"
+    },
     "language": {
       "title": "Language / زبان",
       "en": "English",

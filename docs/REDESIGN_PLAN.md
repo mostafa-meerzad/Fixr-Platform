@@ -27,8 +27,8 @@ never hardcode colors, sizes, or spacing. Use t() for every user-visible string.
 
 ## Status
 
-**Last completed:** Phase 8f — Help & About screens
-**Current phase:** Phase 8 — Shared Screens
+**Last completed:** Phase 9a — Splash screen
+**Current phase:** Phase 9 — Splash Screen
 
 ---
 
@@ -497,7 +497,7 @@ Design refs: `04n-chat.png`, `02d-chat-with-bid-card.png`, `04o-review-form.png`
 Design ref: `03a-splash-screen.png`
 
 ### 9a — Splash / app loading screen
-- [ ] Update `apps/mobile/app/index.tsx` or create `apps/mobile/app/splash.tsx`
+- [x] Update `apps/mobile/app/index.tsx` or create `apps/mobile/app/splash.tsx`
   - Full terra cotta background (`primary600`)
   - Wrench icon (white, centered, in a cream rounded square)
   - "fixr." wordmark below (white/cream)
@@ -519,4 +519,4 @@ Design ref: `03a-splash-screen.png`
 - [ ] Phase 6 — Job detail & active job (homeowner + expert)
 - [ ] Phase 7 — Expert public profile (new screen)
 - [ ] Phase 8 — Shared screens (chat, review, dispute, notifications, reviews, help, about)
-- [ ] Phase 9 — Splash screen
+- [x] Phase 9 — Splash screen
