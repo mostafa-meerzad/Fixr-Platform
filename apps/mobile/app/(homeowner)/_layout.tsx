@@ -1,10 +1,9 @@
 import React from 'react';
-import { TouchableOpacity, View, StyleSheet } from 'react-native';
-import { Tabs, router } from 'expo-router';
+import { View, StyleSheet } from 'react-native';
+import { Tabs } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { Colors, IconSize, Spacing } from '@/constants/theme';
+import { Colors } from '@/constants/theme';
 import { Icons } from '@/constants/icons';
 import { useNotifStore } from '@/stores/notif.store';
 import { FloatingTabBar } from '@/components/ui/FloatingTabBar';
@@ -30,9 +29,7 @@ function TabIcon({
 
 export default function HomeownerLayout() {
   const { t } = useTranslation();
-  const insets = useSafeAreaInsets();
   const hasUnread = useNotifStore((s) => s.unreadChatCount > 0);
-  const unreadCount = useNotifStore((s) => s.unreadCount);
 
   return (
     <View style={styles.root}>
@@ -86,18 +83,6 @@ export default function HomeownerLayout() {
         <Tabs.Screen name="post/review" options={{ href: null, tabBarStyle: { display: 'none' } }} />
         <Tabs.Screen name="post/success" options={{ href: null, tabBarStyle: { display: 'none' } }} />
       </Tabs>
-      <TouchableOpacity
-        style={[styles.bell, { top: insets.top + 8 }]}
-        onPress={() => router.push('/(shared)/notifications' as any)}
-        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-      >
-        <MaterialIcons
-          name={(unreadCount > 0 ? Icons.notifsActive : Icons.notifs) as any}
-          size={24}
-          color={Colors.primary600}
-        />
-        {unreadCount > 0 && <View style={styles.bellDot} />}
-      </TouchableOpacity>
     </View>
   );
 }
@@ -114,24 +99,5 @@ const styles = StyleSheet.create({
     height: 8,
     borderRadius: 4,
     backgroundColor: Colors.danger600,
-  },
-  bell: {
-    position: 'absolute',
-    right: Spacing.s4,
-    width: 32,
-    height: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  bellDot: {
-    position: 'absolute',
-    top: 2,
-    right: 2,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: Colors.danger600,
-    borderWidth: 1.5,
-    borderColor: Colors.white,
   },
 });

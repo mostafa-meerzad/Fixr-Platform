@@ -20,6 +20,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { Pill, getStatusVariant } from '@/components/ui/Pill';
 import { useToast } from '@/components/ui/Toast';
 import { useAuthStore } from '@/stores/auth.store';
+import { useNotifStore } from '@/stores/notif.store';
 import { jobsService, type Job, type JobListResponse } from '@/services/jobs.service';
 import { formatRelativeTime } from '@/utils/format';
 
@@ -66,6 +67,7 @@ export default function HomeScreen() {
   const toast = useToast();
   const user = useAuthStore((s) => s.user);
   const firstName = (user?.name ?? '').split(' ')[0];
+  const unreadCount = useNotifStore((s) => s.unreadCount);
 
   const [recentJobs, setRecentJobs] = useState<Job[]>([]);
   const [draftJobs, setDraftJobs] = useState<Job[]>([]);
@@ -137,8 +139,12 @@ export default function HomeScreen() {
           onPress={() => router.push('/(shared)/notifications' as any)}
           activeOpacity={0.7}
         >
-          <MaterialIcons name={Icons.notifs as any} size={24} color={Colors.gray600} />
-          <View style={styles.bellBadge} />
+          <MaterialIcons
+            name={(unreadCount > 0 ? Icons.notifsActive : Icons.notifs) as any}
+            size={24}
+            color={Colors.primary600}
+          />
+          {unreadCount > 0 && <View style={styles.bellBadge} />}
         </TouchableOpacity>
       </View>
 
