@@ -26,7 +26,6 @@ import { Pill, getStatusVariant } from '@/components/ui/Pill';
 import { useToast } from '@/components/ui/Toast';
 import { bidsService } from '@/services/bids.service';
 import { jobsService, type JobStatus, type JobUrgency } from '@/services/jobs.service';
-import { usersService, type PublicExpertProfile } from '@/services/users.service';
 import { formatRelativeTime } from '@/utils/format';
 
 const SCREEN_W = Dimensions.get('window').width;
@@ -203,7 +202,6 @@ export default function HomeownerJobDetailScreen() {
 
   const acceptSheetRef = useRef<BottomSheetModal>(null);
   const cancelSheetRef = useRef<BottomSheetModal>(null);
-  const expertSheetRef = useRef<BottomSheetModal>(null);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -216,9 +214,6 @@ export default function HomeownerJobDetailScreen() {
   const [acceptLoading, setAcceptLoading] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
   const [cancelLoading, setCancelLoading] = useState(false);
-  const [viewingExpertBid, setViewingExpertBid] = useState<Bid | null>(null);
-  const [expertProfile, setExpertProfile] = useState<PublicExpertProfile | null>(null);
-  const [expertProfileLoading, setExpertProfileLoading] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -290,19 +285,8 @@ export default function HomeownerJobDetailScreen() {
     }
   };
 
-  const handleViewExpert = async (bid: Bid) => {
-    setViewingExpertBid(bid);
-    setExpertProfile(null);
-    expertSheetRef.current?.present();
-    setExpertProfileLoading(true);
-    try {
-      const res = await usersService.getExpertProfile(bid.expert.user.id);
-      setExpertProfile(res.data as PublicExpertProfile);
-    } catch {
-      // expertProfile stays null — sheet shows error state
-    } finally {
-      setExpertProfileLoading(false);
-    }
+  const handleViewExpert = (bid: Bid) => {
+    router.push(`/(homeowner)/expert/${bid.expert.user.id}` as any);
   };
 
   // ── Loading ─────────────────────────────────────────────────────────────────
@@ -642,140 +626,6 @@ export default function HomeownerJobDetailScreen() {
         </View>
       </BottomSheet>
 
-      {/* ── Expert profile sheet ── */}
-      <BottomSheet
-        ref={expertSheetRef}
-        snapPoints={['75%']}
-        scrollable
-        onDismiss={() => { setViewingExpertBid(null); setExpertProfile(null); }}
-      >
-        {expertProfileLoading ? (
-          <View style={styles.sheetCentered}>
-            <ActivityIndicator size="large" color={Colors.primary600} />
-          </View>
-        ) : !expertProfile ? (
-          <View style={styles.sheetCentered}>
-            <Text style={styles.errorText}>{t('common.error')}</Text>
-          </View>
-        ) : (
-          <View style={styles.expertSheetContent}>
-            {/* Avatar + name + verification */}
-            <View style={styles.expertSheetHero}>
-              <Avatar
-                size={56}
-                name={expertProfile.user.name}
-                uri={expertProfile.user.avatarUrl}
-                verified={expertProfile.verificationStatus === 'VERIFIED'}
-              />
-              <Text style={styles.expertSheetName}>{expertProfile.user.name}</Text>
-              <View style={[
-                styles.verificationPill,
-                expertProfile.verificationStatus === 'VERIFIED' ? styles.verificationPillVerified : styles.verificationPillPending,
-              ]}>
-                <Text style={[
-                  styles.verificationPillText,
-                  expertProfile.verificationStatus === 'VERIFIED' ? styles.verificationPillTextVerified : styles.verificationPillTextPending,
-                ]}>
-                  {expertProfile.verificationStatus === 'VERIFIED'
-                    ? t('homeowner.jobDetail.verifiedExpert')
-                    : t('homeowner.jobDetail.pendingVerification')}
-                </Text>
-              </View>
-            </View>
-
-            {/* Stats */}
-            <View style={styles.expertSheetStats}>
-              <View style={styles.expertSheetStatItem}>
-                <MaterialIcons name={Icons.star as any} size={16} color={Colors.primary600} />
-                <Text style={styles.expertSheetStatValue}>
-                  {expertProfile.rating?.toFixed(1) ?? '—'}
-                </Text>
-              </View>
-              <View style={styles.expertSheetStatDivider} />
-              <Text style={styles.expertSheetStatLabel}>
-                {expertProfile.completedJobs} {t('homeowner.jobDetail.jobsCompleted')}
-              </Text>
-              {expertProfile.positivePoints > 0 && (
-                <>
-                  <View style={styles.expertSheetStatDivider} />
-                  <View style={styles.expertSheetStatItem}>
-                    <MaterialIcons name={Icons.thumbUp as any} size={14} color={Colors.success600} />
-                    <Text style={styles.expertSheetStatLabel}>
-                      {expertProfile.positivePoints}
-                    </Text>
-                  </View>
-                </>
-              )}
-            </View>
-
-            {/* No-show warning */}
-            {expertProfile.noShowCount > 0 && (
-              <View style={styles.noShowRow}>
-                <MaterialIcons name={Icons.noShow as any} size={IconSize.status} color={Colors.danger600} />
-                <Text style={styles.noShowText}>
-                  {t('homeowner.jobDetail.noShowCount', { count: expertProfile.noShowCount })}
-                </Text>
-              </View>
-            )}
-
-            <Divider />
-
-            {expertProfile.shopName ? (
-              <View style={styles.expertSheetSection}>
-                <Text style={styles.sectionLabel}>{t('homeowner.jobDetail.shopLabel')}</Text>
-                <Text style={styles.expertSheetSectionValue}>{expertProfile.shopName}</Text>
-              </View>
-            ) : null}
-
-            {expertProfile.description ? (
-              <View style={styles.expertSheetSection}>
-                <Text style={styles.sectionLabel}>{t('homeowner.jobDetail.aboutLabel')}</Text>
-                <Text style={styles.expertSheetDescription}>{expertProfile.description}</Text>
-              </View>
-            ) : null}
-
-            {expertProfile.serviceCategories.length > 0 && (
-              <View style={styles.expertSheetSection}>
-                <Text style={styles.sectionLabel}>{t('homeowner.jobDetail.servicesLabel')}</Text>
-                <View style={styles.expertSheetPillRow}>
-                  {expertProfile.serviceCategories.map((sc) => (
-                    <View key={sc.category.id} style={styles.expertSheetPill}>
-                      <Text style={styles.expertSheetPillText}>{sc.category.nameEn}</Text>
-                    </View>
-                  ))}
-                </View>
-              </View>
-            )}
-
-            {expertProfile.serviceZones.length > 0 && (
-              <View style={styles.expertSheetSection}>
-                <Text style={styles.sectionLabel}>{t('homeowner.jobDetail.zonesLabel')}</Text>
-                <View style={styles.expertSheetPillRow}>
-                  {expertProfile.serviceZones.map((sz) => (
-                    <View key={sz.zone.id} style={styles.expertSheetPill}>
-                      <Text style={styles.expertSheetPillText}>{sz.zone.nameEn}</Text>
-                    </View>
-                  ))}
-                </View>
-              </View>
-            )}
-
-            {viewingExpertBid && isOpen && (
-              <>
-                <Divider />
-                <Button
-                  label={`${t('homeowner.jobDetail.acceptBid')} · ${viewingExpertBid.price.toLocaleString()} AFN`}
-                  onPress={() => {
-                    expertSheetRef.current?.dismiss();
-                    handleOpenAcceptSheet(viewingExpertBid);
-                  }}
-                  style={styles.sheetBtn}
-                />
-              </>
-            )}
-          </View>
-        )}
-      </BottomSheet>
     </>
   );
 }
@@ -1177,109 +1027,4 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.s2,
   },
 
-  // Expert profile sheet
-  sheetCentered: {
-    paddingVertical: Spacing.s10,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: Spacing.s3,
-  },
-  expertSheetContent: {
-    gap: Spacing.s4,
-  },
-  expertSheetHero: {
-    alignItems: 'center',
-    gap: Spacing.s2,
-  },
-  expertSheetName: {
-    ...Typography.heading2,
-    textAlign: 'center',
-  },
-  verificationPill: {
-    paddingVertical: 6,
-    paddingHorizontal: Spacing.s3,
-    borderRadius: Radius.full,
-  },
-  verificationPillVerified: {
-    backgroundColor: Colors.success100,
-  },
-  verificationPillPending: {
-    backgroundColor: Colors.warning100,
-  },
-  verificationPillText: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  verificationPillTextVerified: {
-    color: Colors.success600,
-  },
-  verificationPillTextPending: {
-    color: Colors.warning600,
-  },
-  expertSheetStats: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: Spacing.s3,
-  },
-  expertSheetStatItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  expertSheetStatValue: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: Colors.gray900,
-  },
-  expertSheetStatLabel: {
-    ...Typography.caption,
-  },
-  expertSheetStatDivider: {
-    width: 1,
-    height: 14,
-    backgroundColor: Colors.gray200,
-  },
-  noShowRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.s2,
-    backgroundColor: Colors.danger100,
-    paddingVertical: Spacing.s2,
-    paddingHorizontal: Spacing.s3,
-    borderRadius: Radius.sm,
-  },
-  noShowText: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: Colors.danger600,
-  },
-  expertSheetSection: {
-    gap: Spacing.s2,
-  },
-  expertSheetSectionValue: {
-    ...Typography.bodyMd,
-  },
-  expertSheetDescription: {
-    ...Typography.body,
-    lineHeight: 22,
-  },
-  expertSheetPillRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.s2,
-  },
-  expertSheetPill: {
-    backgroundColor: Colors.primary50,
-    borderWidth: 1,
-    borderColor: Colors.primary100,
-    paddingVertical: 5,
-    paddingHorizontal: Spacing.s3,
-    borderRadius: Radius.full,
-  },
-  expertSheetPillText: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: Colors.primary600,
-  },
 });

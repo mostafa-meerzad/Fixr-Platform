@@ -700,6 +700,23 @@
       "pushNotifications": "Push Notifications",
       "enabled": "Enabled",
       "openSettings": "Enable in Settings"
+    },
+    "expertPublicProfile": {
+      "title": "Expert profile",
+      "idVerified": "ID Verified",
+      "guildMember": "Guild Member",
+      "statRating": "Rating",
+      "statJobs": "Jobs done",
+      "statPositive": "+Points",
+      "statOnTime": "Positive",
+      "servicesLabel": "Services",
+      "pastWorkLabel": "Past work",
+      "noPhotosYet": "No photos added yet",
+      "reviewsLabel": "Reviews",
+      "noReviewsYet": "No reviews yet",
+      "inviteToBid": "Invite to bid",
+      "chat": "Chat",
+      "noShowWarning": "{{count}} no-show(s) recorded"
     }
   }
 }

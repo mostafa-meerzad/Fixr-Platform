@@ -27,7 +27,7 @@ never hardcode colors, sizes, or spacing. Use t() for every user-visible string.
 
 ## Status
 
-**Last completed:** Phase 6c — Expert job detail + bid form
+**Last completed:** Phase 7a — Expert public profile screen
 **Current phase:** Phase 0 — Design System Token Swap
 
 ---
@@ -421,7 +421,7 @@ Design refs: `04l-homeowner-job-detail-open.png`, `04m-homeowner-active-job-comp
 Design refs: `02c-expert-public-profile.png`, `02e-expert-onboarding-overview.png` (done in Phase 2)
 
 ### 7a — Expert public profile (viewed by homeowner)
-- [ ] Create `apps/mobile/app/(homeowner)/expert/[id].tsx`
+- [x] Create `apps/mobile/app/(homeowner)/expert/[id].tsx`
   - Header: back arrow + "Expert profile" title + "…" overflow menu
   - Profile section: avatar initials (large, terra cotta), name + verified badge + guild badge, "ID VERIFIED · GUILD MEMBER" pills
   - Stats row: rating / jobs done / experience / on-time % (4 tiles)
