@@ -27,7 +27,7 @@ never hardcode colors, sizes, or spacing. Use t() for every user-visible string.
 
 ## Status
 
-**Last completed:** Phase 2f — Submitted screen redesign
+**Last completed:** Phase 3e — Buy credits screen
 **Current phase:** Phase 0 — Design System Token Swap
 
 ---
@@ -207,7 +207,7 @@ Design refs: `02e-expert-onboarding-overview.png`, `05b-expert-onboarding-selfie
 Design refs: `05g-expert-browse-verified.png`, `05h-expert-browse-pending.png`, `05i-expert-job-detail-place-bid.png`, `05j-expert-my-bids.png`, `05k-expert-active-job-in-progress.png`, `05l-expert-profile.png`, `05m-expert-buy-credits.png`
 
 ### 3a — Browse tab (verified state)
-- [ ] `apps/mobile/app/(expert)/browse.tsx`
+- [x] `apps/mobile/app/(expert)/browse.tsx`
   - Header row: "Jobs in / **[Zone]** Change" left + credits pill `◷ 7 credits` (dark bg, amber text) right
   - Horizontal category chip rail below header (All selected by default, scrollable)
   - Each job card: title bold, urgency badge (EMERGENCY in red, TODAY in warning, SCHEDULED in gray), zone + time-ago, homeowner trust row (avatar + name + "+24 points · 12 jobs posted"), "Place Bid" terra cotta button right-aligned
@@ -215,7 +215,7 @@ Design refs: `05g-expert-browse-verified.png`, `05h-expert-browse-pending.png`, 
   - Pending state (when verificationStatus = PENDING): amber "Verification in progress" banner replaces the zone header; empty state below with search icon + "The job feed unlocks after approval" + "Meanwhile, your 10 welcome credits are ready — each bid costs 1 credit."
 
 ### 3b — My Bids tab
-- [ ] `apps/mobile/app/(expert)/my-bids.tsx`
+- [x] `apps/mobile/app/(expert)/my-bids.tsx`
   - Replace current "Bids | Active Jobs" toggle with **Active | Won | Lost** pill tabs
   - **Active tab contents:**
     - ACCEPTED bid card: green border + "ACCEPTED" pill, bid terms summary, "I'm on my way" (`variant="success"`) + "Message [Name]" secondary buttons
@@ -225,7 +225,7 @@ Design refs: `05g-expert-browse-verified.png`, `05h-expert-browse-pending.png`, 
   - **Lost tab:** final-state (rejected/withdrawn/expired) cards
 
 ### 3c — Expert active job
-- [ ] `apps/mobile/app/(expert)/active-job/[id].tsx`
+- [x] `apps/mobile/app/(expert)/active-job/[id].tsx`
   - Homeowner contact card at top: avatar, name, address, phone call icon button (green circle)
   - "Update your status" section with 4-node stepper: Accepted → En route → Working → Done
     - Completed nodes: terra cotta filled circle + check
@@ -239,7 +239,7 @@ Design refs: `05g-expert-browse-verified.png`, `05h-expert-browse-pending.png`, 
     - IN_PROGRESS → "Mark work as finished" (`variant="success"`)
 
 ### 3d — Expert profile
-- [ ] `apps/mobile/app/(expert)/profile.tsx`
+- [x] `apps/mobile/app/(expert)/profile.tsx`
   - Terra cotta header card (full-width, rounded lg): avatar initials (white on terra cotta), name + verified icon, shop name + zone, trade pills (white outline pills)
   - Stats row inside card: ★ rating / jobs done / win % / years exp (4 tiles)
   - Dark credits card below: charcoal bg, credit count + "1 credit per bid · refunds on cancelled jobs", "Buy credits" amber-bg button right
@@ -247,7 +247,7 @@ Design refs: `05g-expert-browse-verified.png`, `05h-expert-browse-pending.png`, 
   - "Log out" terra cotta text link below menu
 
 ### 3e — Buy credits screen
-- [ ] `apps/mobile/app/(expert)/credits.tsx`
+- [x] `apps/mobile/app/(expert)/credits.tsx`
   - Header: back arrow + "Buy credits" title + current credits pill top-right
   - Explainer: "Each bid costs 1 credit. Credits are refunded when a homeowner cancels a job you bid on."
   - 3 tier cards (Starter / Regular / Pro):

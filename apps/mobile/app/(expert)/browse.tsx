@@ -22,7 +22,7 @@ import {
   Typography,
 } from "@/constants/theme";
 import { Icons } from "@/constants/icons";
-import { Button } from "@/components/ui/Button";
+import { Avatar } from "@/components/ui/Avatar";
 import { Card } from "@/components/ui/Card";
 import { Divider } from "@/components/ui/Divider";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -53,16 +53,16 @@ interface BrowseJob {
   homeowner: { firstName: string; positivePoints: number; jobsPosted: number };
 }
 
-function getUrgencyLabel(urgency: string): string {
-  if (urgency === "EMERGENCY") return "Emergency";
-  if (urgency === "TODAY") return "Today";
-  return "Scheduled";
-}
-
 function getUrgencyVariant(urgency: string) {
   if (urgency === "EMERGENCY") return "danger" as const;
   if (urgency === "TODAY") return "warning" as const;
   return "gray" as const;
+}
+
+function getUrgencyLabel(urgency: string): string {
+  if (urgency === "EMERGENCY") return "Emergency";
+  if (urgency === "TODAY") return "Today";
+  return "Scheduled";
 }
 
 export default function BrowseScreen() {
@@ -74,9 +74,7 @@ export default function BrowseScreen() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [zones, setZones] = useState<Zone[]>([]);
   const [jobs, setJobs] = useState<BrowseJob[]>([]);
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
-    null,
-  );
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [feedLoading, setFeedLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -132,10 +130,8 @@ export default function BrowseScreen() {
     }
   }, [selectedCategoryId]);
 
-  // Reload whenever the tab is focused (catches tab navigation)
   useFocusEffect(useCallback(() => { load(); }, [load]));
 
-  // Reload when AppState/notification triggers a profile refresh (catches verification approval)
   useEffect(() => {
     if (profileRefreshKey > 0) load();
   }, [profileRefreshKey]);
@@ -158,7 +154,6 @@ export default function BrowseScreen() {
     setZoneUpdating(true);
     try {
       await usersService.updateZones([zone.id]);
-      // Refresh profile so zone shows updated
       const profileRes = await usersService.getMe();
       setProfile(profileRes.data);
       await loadFeed(selectedCategoryId);
@@ -171,16 +166,18 @@ export default function BrowseScreen() {
 
   useEffect(() => {
     if (!loading && !error && !verificationStatus) {
-      router.replace('/(auth)/expert-onboarding/selfie' as any);
+      router.replace("/(auth)/expert-onboarding/selfie" as any);
     }
   }, [loading, error, verificationStatus]);
 
   if (loading || (!error && !verificationStatus)) {
     return (
       <SafeAreaView style={styles.safe} edges={["top"]}>
-        <View style={styles.loadingHeader}>
-          <Text style={styles.subtitle}>{t("expert.browse.subtitle")}</Text>
-          <Text style={styles.title}>{t("expert.browse.title")}</Text>
+        <View style={styles.header}>
+          <Text style={styles.jobsInLabel}>{t("expert.browse.jobsIn")}</Text>
+          <View style={styles.headerRow}>
+            <Text style={styles.zoneTitle}>–</Text>
+          </View>
         </View>
         <View style={styles.centered}>
           <ActivityIndicator color={Colors.primary600} size="large" />
@@ -192,118 +189,88 @@ export default function BrowseScreen() {
   if (error) {
     return (
       <SafeAreaView style={styles.safe} edges={["top"]}>
-        <View style={styles.loadingHeader}>
-          <Text style={styles.subtitle}>{t("expert.browse.subtitle")}</Text>
-          <Text style={styles.title}>{t("expert.browse.title")}</Text>
-        </View>
+        <BrowseHeader
+          jobsInLabel={t("expert.browse.jobsIn")}
+          zoneName={primaryZoneName}
+          creditBalance={creditBalance}
+          creditsLabel={t("expert.browse.credits")}
+          showChange={false}
+        />
         <View style={styles.centered}>
           <Text style={styles.errorText}>{t("common.error")}</Text>
-          <Button
-            label={t("common.retry")}
-            onPress={load}
-            style={styles.retryBtn}
-          />
+          <TouchableOpacity style={styles.retryBtn} onPress={load}>
+            <Text style={styles.retryText}>{t("common.retry")}</Text>
+          </TouchableOpacity>
         </View>
       </SafeAreaView>
     );
   }
 
-  // PENDING / REJECTED STATES
+  // PENDING / REJECTED state
   if (verificationStatus === "PENDING" || verificationStatus === "REJECTED") {
     const isPending = verificationStatus === "PENDING";
+    const bannerColor = isPending ? Colors.warning600 : Colors.danger600;
     const bannerBg = isPending ? Colors.warning100 : Colors.danger100;
-    const bannerText = isPending ? Colors.warning600 : Colors.danger600;
-    const bannerMsg = isPending
-      ? t("expert.browse.pendingBanner")
-      : t("expert.browse.rejectedBanner");
-    const emptyIcon = isPending ? "hourglass_empty" : "cancel";
-    const emptyIconColor = isPending ? Colors.warning600 : Colors.danger600;
-    const emptyTitle = isPending
-      ? t("expert.browse.pendingTitle")
-      : t("expert.browse.rejectedTitle");
-    const emptySubtitle = isPending
-      ? t("expert.browse.pendingSubtitle")
-      : t("expert.browse.rejectedSubtitle");
 
     return (
       <SafeAreaView style={styles.safe} edges={["top"]}>
-        <View style={styles.verifyHeader}>
-          <Text style={styles.subtitle}>{t("expert.browse.subtitle")}</Text>
-          <View style={styles.headerRow}>
-            <Text style={styles.title}>{t("expert.browse.title")}</Text>
-            <View
-              style={[
-                styles.creditChip,
-                { backgroundColor: Colors.primary100 },
-              ]}
-            >
-              <Text style={styles.creditText}>
-                {t("expert.browse.creditDot")} {creditBalance}{" "}
-                {t("expert.browse.credits")}
-              </Text>
-            </View>
+        <BrowseHeader
+          jobsInLabel={t("expert.browse.jobsIn")}
+          zoneName={primaryZoneName}
+          creditBalance={creditBalance}
+          creditsLabel={t("expert.browse.credits")}
+          showChange={false}
+        />
+        {/* Amber / danger verification banner */}
+        <View style={[styles.pendingBanner, { backgroundColor: bannerBg }]}>
+          <MaterialIcons
+            name={isPending ? "hourglass-empty" : "cancel"}
+            size={IconSize.inline}
+            color={bannerColor}
+          />
+          <View style={styles.pendingBannerContent}>
+            <Text style={[styles.pendingBannerTitle, { color: bannerColor }]}>
+              {isPending
+                ? t("expert.browse.pendingTitle")
+                : t("expert.browse.rejectedTitle")}
+            </Text>
+            <Text style={[styles.pendingBannerSubtitle, { color: bannerColor }]}>
+              {isPending
+                ? t("expert.browse.pendingBannerSubtitle")
+                : t("expert.browse.rejectedBanner")}
+            </Text>
           </View>
         </View>
-        <View style={[styles.banner, { backgroundColor: bannerBg }]}>
-          <MaterialIcons
-            name={"info" as any}
-            size={IconSize.inline}
-            color={bannerText}
-          />
-          <Text style={[styles.bannerText, { color: bannerText }]}>
-            {bannerMsg}
-          </Text>
-        </View>
+        {/* Empty feed state */}
         <View style={styles.centered}>
-          <MaterialIcons
-            name={emptyIcon as any}
-            size={64}
-            color={emptyIconColor}
-          />
-          <Text style={styles.emptyTitle}>{emptyTitle}</Text>
-          <Text style={styles.emptySubtitle}>{emptySubtitle}</Text>
+          <View style={styles.searchIconBox}>
+            <MaterialIcons name="search" size={40} color={Colors.gray400} />
+          </View>
+          <Text style={styles.pendingFeedTitle}>
+            {t("expert.browse.pendingFeedTitle")}
+          </Text>
+          <Text style={styles.pendingFeedSubtitle}>
+            {t("expert.browse.pendingFeedSubtitle")}
+          </Text>
         </View>
       </SafeAreaView>
     );
   }
 
-  // VERIFIED STATE — normal feed
+  // VERIFIED state — normal feed
   const hasZones = serviceZones.length > 0;
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
-      {/* Header */}
-      <View style={styles.verifyHeader}>
-        <Text style={styles.subtitle}>{t("expert.browse.subtitle")}</Text>
-        <View style={styles.headerRow}>
-          <View style={styles.headerLeft}>
-            <Text style={styles.title} numberOfLines={1}>
-              {primaryZoneName}
-            </Text>
-          </View>
-          <View style={styles.headerActions}>
-            <TouchableOpacity
-              style={styles.changeZoneBtn}
-              onPress={() => zoneSheetRef.current?.present()}
-              activeOpacity={0.7}
-            >
-              <MaterialIcons
-                name={Icons.location as any}
-                size={IconSize.inline}
-                color={Colors.primary600}
-              />
-              <Text style={styles.changeZoneText}>
-                {t("expert.browse.change")}
-              </Text>
-            </TouchableOpacity>
-            <View style={styles.creditChip}>
-              <Text style={styles.creditText}>
-                ● {creditBalance} {t("expert.browse.credits")}
-              </Text>
-            </View>
-          </View>
-        </View>
-      </View>
+      <BrowseHeader
+        jobsInLabel={t("expert.browse.jobsIn")}
+        zoneName={primaryZoneName}
+        creditBalance={creditBalance}
+        creditsLabel={t("expert.browse.credits")}
+        changeLabel={t("expert.browse.change")}
+        showChange
+        onChangePress={() => zoneSheetRef.current?.present()}
+      />
 
       {/* Category filter chips */}
       {hasZones && (
@@ -450,6 +417,52 @@ export default function BrowseScreen() {
   );
 }
 
+function BrowseHeader({
+  jobsInLabel,
+  zoneName,
+  creditBalance,
+  creditsLabel,
+  changeLabel,
+  showChange = false,
+  onChangePress,
+}: {
+  jobsInLabel: string;
+  zoneName: string;
+  creditBalance: number;
+  creditsLabel: string;
+  changeLabel?: string;
+  showChange?: boolean;
+  onChangePress?: () => void;
+}) {
+  return (
+    <View style={styles.header}>
+      <Text style={styles.jobsInLabel}>{jobsInLabel}</Text>
+      <View style={styles.headerRow}>
+        <View style={styles.zoneChangeRow}>
+          <Text style={styles.zoneTitle} numberOfLines={1}>
+            {zoneName}
+          </Text>
+          {showChange && changeLabel ? (
+            <TouchableOpacity onPress={onChangePress} activeOpacity={0.7}>
+              <Text style={styles.changeLink}>{changeLabel}</Text>
+            </TouchableOpacity>
+          ) : null}
+        </View>
+        <View style={styles.creditsPill}>
+          <MaterialIcons
+            name={Icons.credit as any}
+            size={14}
+            color={Colors.amber}
+          />
+          <Text style={styles.creditsText}>
+            {creditBalance} {creditsLabel}
+          </Text>
+        </View>
+      </View>
+    </View>
+  );
+}
+
 function BrowseJobCard({
   job,
   t,
@@ -458,51 +471,64 @@ function BrowseJobCard({
   t: (key: string) => string;
 }) {
   const dateStr = job.openedAt ?? job.createdAt ?? "";
+  const bidCount = job._count?.bids ?? 0;
+
+  const metaParts = [
+    job.zone?.nameEn,
+    dateStr ? formatRelativeTime(dateStr, "en") : null,
+    bidCount > 0 ? `${bidCount} ${t("expert.browse.bids")}` : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+
   return (
     <Card
       variant={job.urgency === "EMERGENCY" ? "emergency" : "default"}
       style={styles.jobCard}
     >
-      {/* Row 1: title + urgency pill */}
-      <View style={styles.cardRow}>
-        <Text style={styles.jobTitle} numberOfLines={2}>
-          {job.title}
-        </Text>
+      {/* Row 1: urgency pill + zone/time/bids meta */}
+      <View style={styles.cardTopRow}>
         <Pill
           label={getUrgencyLabel(job.urgency)}
           variant={getUrgencyVariant(job.urgency)}
         />
+        <Text style={styles.jobMeta} numberOfLines={1}>
+          {metaParts}
+        </Text>
       </View>
 
-      {/* Row 2: zone + time */}
-      <Text style={styles.jobMeta}>
-        {job.zone?.nameEn}
-        {dateStr ? ` · ${formatRelativeTime(dateStr, "en")}` : ""}
+      {/* Row 2: title */}
+      <Text style={styles.jobTitle} numberOfLines={2}>
+        {job.title}
       </Text>
 
-      {/* Row 3: description */}
+      {/* Row 3: description (optional) */}
       {job.description ? (
         <Text style={styles.jobDesc} numberOfLines={2}>
           {job.description}
         </Text>
       ) : null}
 
-      {/* Row 4: divider */}
       <Divider />
 
-      {/* Row 5: homeowner trust block */}
-      <Text style={styles.trustText}>
-        {t("expert.browse.postedBy")} {job.homeowner?.firstName ?? "–"} · ★{" "}
-        {job.homeowner?.positivePoints ?? 0} · {job.homeowner?.jobsPosted ?? 0}{" "}
-        {t("expert.browse.jobs")}
-      </Text>
-
-      {/* CTA */}
-      <Button
-        label={t("expert.browse.placeBid")}
-        onPress={() => router.push(`/(expert)/job/${job.id}` as any)}
-        style={styles.bidBtn}
-      />
+      {/* Row 4: homeowner trust + place bid button */}
+      <View style={styles.cardBottomRow}>
+        <View style={styles.trustRow}>
+          <Avatar size={32} name={job.homeowner?.firstName} />
+          <Text style={styles.trustText} numberOfLines={1}>
+            {job.homeowner?.firstName ?? "–"} · +
+            {job.homeowner?.positivePoints ?? 0} {t("expert.browse.points")} ·{" "}
+            {job.homeowner?.jobsPosted ?? 0} {t("expert.browse.jobsPosted")}
+          </Text>
+        </View>
+        <TouchableOpacity
+          style={styles.placeBidBtn}
+          onPress={() => router.push(`/(expert)/job/${job.id}` as any)}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.placeBidText}>{t("expert.browse.placeBid")}</Text>
+        </TouchableOpacity>
+      </View>
     </Card>
   );
 }
@@ -512,7 +538,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.bgApp,
   },
-  loadingHeader: {
+
+  // ── Header ──────────────────────────────────────────────────────────────────
+  header: {
     backgroundColor: Colors.white,
     borderBottomWidth: 1,
     borderBottomColor: Colors.gray200,
@@ -520,22 +548,10 @@ const styles = StyleSheet.create({
     paddingTop: Spacing.s4,
     paddingBottom: Spacing.s3,
   },
-  verifyHeader: {
-    backgroundColor: Colors.white,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.gray200,
-    paddingHorizontal: Spacing.s4,
-    paddingTop: Spacing.s4,
-    paddingBottom: Spacing.s3,
-  },
-  subtitle: {
+  jobsInLabel: {
     fontSize: 12,
     color: Colors.gray400,
     marginBottom: 2,
-  },
-  title: {
-    ...Typography.display,
-    flex: 1,
   },
   headerRow: {
     flexDirection: "row",
@@ -543,78 +559,81 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     gap: Spacing.s3,
   },
-  headerLeft: {
-    flex: 1,
-  },
-  headerActions: {
+  zoneChangeRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: Spacing.s2,
-    flexShrink: 0,
+    flex: 1,
   },
-  changeZoneBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    paddingHorizontal: Spacing.s3,
-    paddingVertical: 6,
-    borderRadius: Radius.full,
-    borderWidth: 1.5,
-    borderColor: Colors.primary600,
+  zoneTitle: {
+    ...Typography.display,
+    flexShrink: 1,
   },
-  changeZoneText: {
-    fontSize: 13,
+  changeLink: {
+    fontSize: 14,
     fontWeight: "500",
     color: Colors.primary600,
   },
-  creditChip: {
-    backgroundColor: Colors.primary100,
+  creditsPill: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    backgroundColor: Colors.dark,
     paddingHorizontal: Spacing.s3,
     paddingVertical: 6,
     borderRadius: Radius.full,
   },
-  creditText: {
-    ...Typography.captionMd,
-    color: Colors.primary600,
+  creditsText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: Colors.amber,
   },
-  banner: {
+
+  // ── Pending banner ───────────────────────────────────────────────────────────
+  pendingBanner: {
     flexDirection: "row",
     alignItems: "flex-start",
     gap: Spacing.s2,
     paddingHorizontal: Spacing.s4,
     paddingVertical: Spacing.s3,
   },
-  bannerText: {
+  pendingBannerContent: {
     flex: 1,
+    gap: 2,
+  },
+  pendingBannerTitle: {
     fontSize: 14,
-    fontWeight: "500",
+    fontWeight: "600",
     lineHeight: 20,
   },
-  centered: {
-    flex: 1,
+  pendingBannerSubtitle: {
+    fontSize: 13,
+    fontWeight: "400",
+    lineHeight: 18,
+  },
+  searchIconBox: {
+    width: 72,
+    height: 72,
+    backgroundColor: Colors.sand,
+    borderRadius: Radius.md,
     alignItems: "center",
     justifyContent: "center",
-    gap: Spacing.s3,
+    marginBottom: Spacing.s3,
   },
-  emptyTitle: {
+  pendingFeedTitle: {
     ...Typography.heading2,
     textAlign: "center",
-    color: Colors.gray600,
-    marginTop: Spacing.s3,
+    color: Colors.gray900,
   },
-  emptySubtitle: {
+  pendingFeedSubtitle: {
     ...Typography.body,
     textAlign: "center",
     color: Colors.gray400,
-    maxWidth: 240,
+    maxWidth: 260,
+    marginTop: Spacing.s2,
   },
-  errorText: {
-    ...Typography.body,
-    textAlign: "center",
-  },
-  retryBtn: {
-    maxWidth: 160,
-  },
+
+  // ── Category chips ───────────────────────────────────────────────────────────
   chipsRow: {
     backgroundColor: Colors.white,
     borderBottomWidth: 1,
@@ -648,6 +667,8 @@ const styles = StyleSheet.create({
   chipTextUnselected: {
     color: Colors.gray600,
   },
+
+  // ── Feed list ────────────────────────────────────────────────────────────────
   listContent: {
     padding: Spacing.s4,
     flexGrow: 1,
@@ -655,34 +676,86 @@ const styles = StyleSheet.create({
   separator: {
     height: Spacing.s3,
   },
+
+  // ── Job card ─────────────────────────────────────────────────────────────────
   jobCard: {
     gap: Spacing.s2,
   },
-  cardRow: {
+  cardTopRow: {
     flexDirection: "row",
-    alignItems: "flex-start",
+    alignItems: "center",
     justifyContent: "space-between",
     gap: Spacing.s2,
   },
-  jobTitle: {
-    ...Typography.heading3,
-    color: Colors.primary600,
-    flex: 1,
-  },
   jobMeta: {
     ...Typography.caption,
+    flex: 1,
+    textAlign: "right",
+  },
+  jobTitle: {
+    ...Typography.heading3,
+    color: Colors.gray900,
   },
   jobDesc: {
     ...Typography.body,
   },
+  cardBottomRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: Spacing.s2,
+    marginTop: Spacing.s1,
+  },
+  trustRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.s2,
+    flex: 1,
+  },
   trustText: {
     ...Typography.caption,
     color: Colors.gray600,
+    flex: 1,
   },
-  bidBtn: {
-    marginTop: Spacing.s1,
+  placeBidBtn: {
+    backgroundColor: Colors.primary600,
+    paddingHorizontal: Spacing.s4,
+    paddingVertical: Spacing.s2,
+    borderRadius: Radius.sm,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  // Zone sheet
+  placeBidText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: Colors.white,
+  },
+
+  // ── Shared states ────────────────────────────────────────────────────────────
+  centered: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: Spacing.s6,
+    gap: Spacing.s3,
+  },
+  errorText: {
+    ...Typography.body,
+    textAlign: "center",
+  },
+  retryBtn: {
+    backgroundColor: Colors.primary600,
+    paddingHorizontal: Spacing.s6,
+    paddingVertical: Spacing.s3,
+    borderRadius: Radius.sm,
+  },
+  retryText: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: Colors.white,
+  },
+
+  // ── Zone bottom sheet ────────────────────────────────────────────────────────
   sheetTitle: {
     ...Typography.heading2,
     marginBottom: Spacing.s3,

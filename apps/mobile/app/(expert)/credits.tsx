@@ -1,7 +1,8 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
-  FlatList,
+  Linking,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -11,195 +12,214 @@ import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { MaterialIcons } from '@expo/vector-icons';
+import type { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
 import { Icons } from '@/constants/icons';
-import { EmptyState } from '@/components/ui/EmptyState';
-import { Divider } from '@/components/ui/Divider';
-import { creditsService } from '@/services/credits.service';
+import { Button } from '@/components/ui/Button';
+import { BottomSheet } from '@/components/ui/BottomSheet';
 import { usersService } from '@/services/users.service';
-import { formatRelativeTime } from '@/utils/format';
 
-type TransactionType =
-  | 'BID_SPEND'
-  | 'BID_REFUND'
-  | 'PURCHASE'
-  | 'WELCOME_GRANT'
-  | 'ADMIN_ADJUSTMENT';
+type PackId = 'starter' | 'regular' | 'pro';
+type PayMethod = 'M-Paisa' | 'AWCC Pay' | 'Hawala';
 
-interface Transaction {
-  id: string;
-  type: TransactionType;
-  amount: number;
-  balanceAfter: number;
-  description: string;
-  createdAt: string;
+interface Pack {
+  id: PackId;
+  label: string;
+  credits: number;
+  price: number;
+  perBid: number;
+  savings: number | null;
+  popular: boolean;
+  dark: boolean;
 }
 
-function getTypeConfig(type: TransactionType) {
-  switch (type) {
-    case 'BID_SPEND':
-      return { icon: 'gavel', bg: Colors.danger100, color: Colors.danger600 };
-    case 'BID_REFUND':
-      return { icon: 'undo', bg: Colors.success100, color: Colors.success600 };
-    case 'PURCHASE':
-      return { icon: 'add-circle', bg: Colors.success100, color: Colors.success600 };
-    case 'WELCOME_GRANT':
-      return { icon: 'card-giftcard', bg: Colors.success100, color: Colors.success600 };
-    case 'ADMIN_ADJUSTMENT':
-      return { icon: 'tune', bg: Colors.info100, color: Colors.info600 };
-  }
-}
+const PACKS: Pack[] = [
+  { id: 'starter', label: 'Starter', credits: 10, price: 200, perBid: 20, savings: null, popular: false, dark: false },
+  { id: 'regular', label: 'Regular', credits: 50, price: 800, perBid: 16, savings: 20, popular: true, dark: false },
+  { id: 'pro', label: 'Pro', credits: 150, price: 2000, perBid: 13, savings: 33, popular: false, dark: true },
+];
 
+const PAY_METHODS: PayMethod[] = ['M-Paisa', 'AWCC Pay', 'Hawala'];
 
-export default function CreditsScreen() {
+export default function BuyCreditsScreen() {
   const { t } = useTranslation();
+  const purchaseSheetRef = useRef<BottomSheetModal>(null);
 
   const [balance, setBalance] = useState(0);
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [loadingMore, setLoadingMore] = useState(false);
+  const [balanceLoading, setBalanceLoading] = useState(true);
+  const [selectedPackId, setSelectedPackId] = useState<PackId>('regular');
+  const [selectedPayMethod, setSelectedPayMethod] = useState<PayMethod>('M-Paisa');
 
   const load = useCallback(async () => {
-    setLoading(true);
-    setError('');
     try {
-      const [profileRes, ledgerRes] = await Promise.all([
-        usersService.getMe(),
-        creditsService.ledger(1, 20),
-      ]);
-      setBalance(profileRes.data.expertProfile?.creditBalance?.balance ?? 0);
-      setTransactions(ledgerRes.data.data ?? []);
-      setTotalPages(ledgerRes.data.totalPages ?? 1);
-      setPage(1);
+      const res = await usersService.getMe();
+      setBalance(res.data.expertProfile?.creditBalance?.balance ?? 0);
     } catch {
-      setError(t('common.error'));
+      // fall back to 0
     } finally {
-      setLoading(false);
+      setBalanceLoading(false);
     }
-  }, [t]);
+  }, []);
 
   useEffect(() => { load(); }, [load]);
 
-  const loadMore = async () => {
-    if (loadingMore || page >= totalPages) return;
-    setLoadingMore(true);
-    try {
-      const next = page + 1;
-      const res = await creditsService.ledger(next, 20);
-      setTransactions((prev) => [...prev, ...(res.data.data ?? [])]);
-      setPage(next);
-      setTotalPages(res.data.totalPages ?? 1);
-    } catch {
-      // silently ignore load-more errors
-    } finally {
-      setLoadingMore(false);
-    }
-  };
-
-  const renderItem = ({ item }: { item: Transaction }) => {
-    const cfg = getTypeConfig(item.type);
-    const isPositive = item.amount > 0;
-    return (
-      <View style={styles.row}>
-        <View style={[styles.iconCircle, { backgroundColor: cfg.bg }]}>
-          <MaterialIcons name={cfg.icon as any} size={20} color={cfg.color} />
-        </View>
-        <View style={styles.rowMiddle}>
-          <Text style={styles.rowType}>
-            {t(`expert.credits.types.${item.type}`)}
-          </Text>
-          <Text style={styles.rowDesc} numberOfLines={1}>
-            {item.description}
-          </Text>
-        </View>
-        <View style={styles.rowRight}>
-          <Text
-            style={[
-              styles.rowAmount,
-              isPositive ? styles.positive : styles.negative,
-            ]}
-          >
-            {isPositive ? '+' : ''}
-            {item.amount}
-          </Text>
-          <Text style={styles.rowBalance}>
-            {formatRelativeTime(item.createdAt, 'en')}
-          </Text>
-        </View>
-      </View>
-    );
-  };
+  const selectedPack = PACKS.find((p) => p.id === selectedPackId) ?? PACKS[1];
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <MaterialIcons name={Icons.back as any} size={24} color={Colors.gray900} />
+        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn} activeOpacity={0.7}>
+          <MaterialIcons name={Icons.back as any} size={22} color={Colors.gray900} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>{t('expert.credits.title')}</Text>
+        <Text style={styles.headerTitle}>{t('expert.buyCredits.title')}</Text>
+        <View style={styles.creditsPill}>
+          <MaterialIcons name={Icons.credit as any} size={14} color={Colors.amber} />
+          {balanceLoading ? (
+            <ActivityIndicator size="small" color={Colors.white} style={styles.pillLoader} />
+          ) : (
+            <Text style={styles.creditsPillText}>{balance}</Text>
+          )}
+        </View>
       </View>
 
-      {loading ? (
-        <View style={styles.centered}>
-          <ActivityIndicator color={Colors.primary600} size="large" />
-        </View>
-      ) : error ? (
-        <EmptyState
-          icon="error"
-          title={t('common.error')}
-          subtitle={error}
-          action={{ label: t('common.retry'), onPress: load }}
-        />
-      ) : (
-        <FlatList
-          data={transactions}
-          keyExtractor={(item) => item.id}
-          renderItem={renderItem}
-          contentContainerStyle={styles.listContent}
-          ListHeaderComponent={
-            <View style={styles.balanceCard}>
-              <Text style={styles.balanceLabel}>
-                {t('expert.credits.currentBalance')}
-              </Text>
-              <Text style={styles.balanceValue}>{balance}</Text>
-              <Text style={styles.balanceUnit}>
-                {t('expert.profile.creditsAvailable')}
-              </Text>
-            </View>
-          }
-          ListEmptyComponent={
-            <EmptyState
-              icon="receipt_long"
-              title={t('expert.credits.empty')}
-              subtitle={t('expert.credits.emptySub')}
-            />
-          }
-          ItemSeparatorComponent={() => <Divider style={styles.separator} />}
-          onEndReached={loadMore}
-          onEndReachedThreshold={0.3}
-          ListFooterComponent={
-            loadingMore ? (
-              <View style={styles.loadMoreWrap}>
-                <ActivityIndicator color={Colors.primary600} />
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Explainer */}
+        <Text style={styles.explainer}>{t('expert.buyCredits.explainer')}</Text>
+
+        {/* Pack cards */}
+        <View style={styles.packsContainer}>
+          {PACKS.map((pack) => {
+            const isSelected = selectedPackId === pack.id;
+            const badgeStyle = pack.dark
+              ? styles.creditBadgeDark
+              : isSelected
+              ? styles.creditBadgeSelected
+              : styles.creditBadgeDefault;
+            const badgeTextStyle = pack.dark || isSelected ? styles.creditBadgeTextLight : undefined;
+            const cardStyle = pack.dark
+              ? [styles.packCard, styles.packCardDark, isSelected && styles.packCardDarkSelected]
+              : [styles.packCard, isSelected && styles.packCardSelected];
+
+            return (
+              <View key={pack.id} style={[styles.packWrapper, pack.popular && styles.packWrapperPopular]}>
+                {pack.popular && (
+                  <View style={styles.popularBadge}>
+                    <Text style={styles.popularBadgeText}>{t('expert.buyCredits.mostPopular')}</Text>
+                  </View>
+                )}
+                <TouchableOpacity style={cardStyle} onPress={() => setSelectedPackId(pack.id)} activeOpacity={0.85}>
+                  {/* Credit count badge */}
+                  <View style={[styles.creditBadge, badgeStyle]}>
+                    <Text style={[styles.creditBadgeText, badgeTextStyle]}>{pack.credits}</Text>
+                  </View>
+
+                  {/* Pack name + per-bid info */}
+                  <View style={styles.packMeta}>
+                    <Text style={[styles.packName, pack.dark && styles.textWhite]}>{pack.label}</Text>
+                    <View style={styles.packSubRow}>
+                      <Text style={[styles.packPerBid, pack.dark && styles.packPerBidDark]}>
+                        {t('expert.buyCredits.perBid', { amount: pack.perBid })}
+                      </Text>
+                      {pack.savings !== null && (
+                        <>
+                          <Text style={[styles.packDot, pack.dark && styles.packDotDark]}>{' · '}</Text>
+                          <Text style={styles.packSavings}>
+                            {t('expert.buyCredits.save', { pct: pack.savings })}
+                          </Text>
+                        </>
+                      )}
+                    </View>
+                  </View>
+
+                  {/* Price */}
+                  <Text style={[styles.packPrice, pack.dark && styles.textWhite]}>
+                    {pack.price.toLocaleString()}₾
+                  </Text>
+                </TouchableOpacity>
               </View>
-            ) : null
-          }
-          showsVerticalScrollIndicator={false}
+            );
+          })}
+        </View>
+
+        {/* Pay with */}
+        <View style={styles.paySection}>
+          <Text style={styles.payLabel}>{t('expert.buyCredits.payWith')}</Text>
+          <View style={styles.payRow}>
+            {PAY_METHODS.map((method) => {
+              const active = selectedPayMethod === method;
+              return (
+                <TouchableOpacity
+                  key={method}
+                  style={[styles.payPill, active && styles.payPillActive]}
+                  onPress={() => setSelectedPayMethod(method)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.payPillText, active && styles.payPillTextActive]}>
+                    {method}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+      </ScrollView>
+
+      {/* Fixed buy CTA */}
+      <View style={styles.ctaBar}>
+        <Button
+          label={t('expert.buyCredits.cta', {
+            credits: selectedPack.credits,
+            price: selectedPack.price.toLocaleString(),
+          })}
+          onPress={() => purchaseSheetRef.current?.present()}
         />
-      )}
+      </View>
+
+      {/* In-person purchase info sheet */}
+      <BottomSheet ref={purchaseSheetRef} snapPoints={['55%']}>
+        <View style={styles.sheetIconWrap}>
+          <MaterialIcons name={'storefront' as any} size={40} color={Colors.primary600} />
+        </View>
+        <Text style={styles.sheetTitle}>{t('expert.buySheet.title')}</Text>
+        <Text style={styles.sheetBody}>{t('expert.buySheet.body')}</Text>
+        <View style={styles.sheetRows}>
+          <View style={styles.sheetRow}>
+            <MaterialIcons name={'place' as any} size={18} color={Colors.primary600} />
+            <Text style={styles.sheetRowText}>{t('expert.buySheet.address')}</Text>
+          </View>
+          <TouchableOpacity
+            style={styles.sheetRow}
+            onPress={() => Linking.openURL(`tel:${t('expert.buySheet.phone')}`)}
+            activeOpacity={0.7}
+          >
+            <MaterialIcons name={'phone' as any} size={18} color={Colors.primary600} />
+            <Text style={[styles.sheetRowText, styles.sheetPhoneText]}>
+              {t('expert.buySheet.phone')}
+            </Text>
+          </TouchableOpacity>
+          <View style={styles.sheetRow}>
+            <MaterialIcons name={'schedule' as any} size={18} color={Colors.primary600} />
+            <Text style={styles.sheetRowText}>{t('expert.buySheet.hours')}</Text>
+          </View>
+        </View>
+        <Button
+          label={t('expert.buySheet.dismiss')}
+          onPress={() => purchaseSheetRef.current?.dismiss()}
+        />
+      </BottomSheet>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: Colors.bgApp,
-  },
+  safe: { flex: 1, backgroundColor: Colors.bgApp },
+
+  // Header
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -211,104 +231,168 @@ const styles = StyleSheet.create({
     gap: Spacing.s3,
   },
   backBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: Colors.gray100,
     alignItems: 'center',
     justifyContent: 'center',
   },
   headerTitle: {
-    ...Typography.heading1,
-    color: Colors.primary600,
-  },
-  centered: {
     flex: 1,
+    ...Typography.heading1,
+  },
+  creditsPill: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    gap: 4,
+    backgroundColor: Colors.dark,
+    borderRadius: Radius.full,
+    paddingHorizontal: Spacing.s3,
+    paddingVertical: Spacing.s1,
   },
-  listContent: {
-    paddingBottom: Spacing.s6,
+  creditsPillText: {
+    fontSize: 13,
+    fontWeight: '700' as const,
+    color: Colors.white,
   },
-  balanceCard: {
-    backgroundColor: Colors.primary50,
-    marginHorizontal: Spacing.s4,
-    marginTop: Spacing.s4,
-    marginBottom: Spacing.s3,
-    borderRadius: Radius.md,
-    padding: Spacing.s4,
-    borderWidth: 1.5,
-    borderColor: Colors.primary100,
-    alignItems: 'center',
+  pillLoader: { transform: [{ scale: 0.7 }] },
+
+  // Scroll
+  scroll: { flex: 1 },
+  scrollContent: {
+    paddingHorizontal: Spacing.s4,
+    paddingTop: Spacing.s4,
+    paddingBottom: Spacing.s10,
   },
-  balanceLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: Colors.primary600,
-    letterSpacing: 0.72,
-    textTransform: 'uppercase',
-    marginBottom: Spacing.s2,
-  },
-  balanceValue: {
-    fontSize: 40,
-    fontWeight: '700',
-    color: Colors.primary600,
-  },
-  balanceUnit: {
+
+  // Explainer
+  explainer: {
     ...Typography.body,
     color: Colors.gray600,
-    marginTop: 2,
+    lineHeight: 22,
+    marginBottom: Spacing.s5,
   },
-  row: {
+
+  // Packs
+  packsContainer: {
+    gap: Spacing.s3,
+    marginBottom: Spacing.s5,
+  },
+  packWrapper: {
+    position: 'relative',
+  },
+  packWrapperPopular: {
+    marginTop: Spacing.s3,
+  },
+  popularBadge: {
+    position: 'absolute',
+    top: -10,
+    left: Spacing.s3,
+    zIndex: 2,
+    backgroundColor: Colors.primary600,
+    borderRadius: Radius.full,
+    paddingHorizontal: Spacing.s2,
+    paddingVertical: 3,
+    elevation: 3,
+  },
+  popularBadgeText: {
+    fontSize: 9,
+    fontWeight: '700' as const,
+    color: Colors.white,
+    letterSpacing: 0.5,
+  },
+  packCard: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: Colors.white,
-    paddingHorizontal: Spacing.s4,
-    paddingVertical: Spacing.s3,
+    borderRadius: Radius.md,
+    borderWidth: 1.5,
+    borderColor: Colors.gray200,
+    padding: Spacing.s4,
     gap: Spacing.s3,
   },
-  iconCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+  packCardSelected: {
+    borderColor: Colors.primary600,
+    borderWidth: 2,
+  },
+  packCardDark: {
+    backgroundColor: Colors.dark,
+    borderColor: Colors.dark,
+  },
+  packCardDarkSelected: {
+    borderColor: Colors.primary100,
+    borderWidth: 2,
+  },
+
+  // Credit count badge inside card
+  creditBadge: {
+    width: 48,
+    height: 48,
+    borderRadius: Radius.sm,
     alignItems: 'center',
     justifyContent: 'center',
+    flexShrink: 0,
   },
-  rowMiddle: {
-    flex: 1,
-    gap: 2,
+  creditBadgeDefault: { backgroundColor: Colors.sand },
+  creditBadgeSelected: { backgroundColor: Colors.primary600 },
+  creditBadgeDark: { backgroundColor: 'rgba(255,255,255,0.1)' },
+  creditBadgeText: {
+    fontSize: 17,
+    fontWeight: '700' as const,
+    color: Colors.primary600,
   },
-  rowType: {
-    ...Typography.bodyMd,
-    color: Colors.gray900,
+  creditBadgeTextLight: { color: Colors.white },
+
+  // Pack name / sub-row
+  packMeta: { flex: 1, gap: 3 },
+  packName: { ...Typography.heading3, color: Colors.gray900 },
+  packSubRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap' },
+  packPerBid: { fontSize: 13, color: Colors.gray400 },
+  packPerBidDark: { color: 'rgba(255,255,255,0.4)' },
+  packDot: { fontSize: 13, color: Colors.gray400 },
+  packDotDark: { color: 'rgba(255,255,255,0.3)' },
+  packSavings: { fontSize: 13, fontWeight: '600' as const, color: Colors.success600 },
+  packPrice: { fontSize: 18, fontWeight: '700' as const, color: Colors.gray900, flexShrink: 0 },
+  textWhite: { color: Colors.white },
+
+  // Pay with
+  paySection: { gap: Spacing.s3 },
+  payLabel: { ...Typography.heading3, color: Colors.gray900 },
+  payRow: { flexDirection: 'row', gap: Spacing.s2, flexWrap: 'wrap' },
+  payPill: {
+    borderWidth: 1.5,
+    borderColor: Colors.gray200,
+    borderRadius: Radius.full,
+    paddingHorizontal: Spacing.s4,
+    paddingVertical: Spacing.s2,
   },
-  rowDesc: {
-    ...Typography.caption,
-    color: Colors.gray400,
+  payPillActive: { borderColor: Colors.primary600 },
+  payPillText: { fontSize: 14, fontWeight: '500' as const, color: Colors.gray600 },
+  payPillTextActive: { color: Colors.primary600, fontWeight: '600' as const },
+
+  // Bottom CTA
+  ctaBar: {
+    backgroundColor: Colors.white,
+    borderTopWidth: 1,
+    borderTopColor: Colors.gray200,
+    paddingHorizontal: Spacing.s4,
+    paddingTop: Spacing.s3,
+    paddingBottom: Spacing.s4,
   },
-  rowRight: {
-    alignItems: 'flex-end',
-    gap: 2,
+
+  // Purchase sheet
+  sheetIconWrap: { alignItems: 'center', marginBottom: Spacing.s3 },
+  sheetTitle: { ...Typography.heading2, textAlign: 'center', marginBottom: Spacing.s2 },
+  sheetBody: {
+    ...Typography.body,
+    color: Colors.gray600,
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: Spacing.s4,
   },
-  rowAmount: {
-    ...Typography.bodyMd,
-  },
-  positive: {
-    color: Colors.success600,
-  },
-  negative: {
-    color: Colors.danger600,
-  },
-  rowBalance: {
-    ...Typography.caption,
-    color: Colors.gray400,
-  },
-  separator: {
-    marginVertical: 0,
-    marginLeft: Spacing.s4 + 40 + Spacing.s3,
-  },
-  loadMoreWrap: {
-    paddingVertical: Spacing.s4,
-    alignItems: 'center',
-  },
+  sheetRows: { gap: Spacing.s3, marginBottom: Spacing.s4 },
+  sheetRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.s2 },
+  sheetRowText: { ...Typography.bodyMd, color: Colors.gray900, flex: 1 },
+  sheetPhoneText: { color: Colors.primary600 },
 });

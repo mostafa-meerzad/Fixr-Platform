@@ -18,12 +18,10 @@ import { MaterialIcons } from "@expo/vector-icons";
 import type { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { Colors, Radius, Spacing, Typography } from "@/constants/theme";
 import { Icons } from "@/constants/icons";
-import { Avatar } from "@/components/ui/Avatar";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { Button } from "@/components/ui/Button";
 import { Divider } from "@/components/ui/Divider";
 import { Input } from "@/components/ui/Input";
-import { Pill } from "@/components/ui/Pill";
 import { useToast } from "@/components/ui/Toast";
 import { useAuthStore } from "@/stores/auth.store";
 import { useLangStore, type Lang } from "@/stores/lang.store";
@@ -31,28 +29,19 @@ import { authService } from "@/services/auth.service";
 import { usersService, type UserProfile } from "@/services/users.service";
 import { lookupService, type Category, type Zone } from "@/services/lookup.service";
 
-interface SettingRow {
+function getInitials(name?: string): string {
+  if (!name) return "?";
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+  return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+}
+
+interface MenuRow {
   key: string;
   label: string;
   icon: string;
   rightLabel?: string;
   onPress?: () => void;
-}
-
-function getVerificationVariant(
-  status?: string,
-): "success" | "warning" | "danger" | "gray" {
-  if (status === "VERIFIED") return "success";
-  if (status === "PENDING") return "warning";
-  if (status === "REJECTED") return "danger";
-  return "gray";
-}
-
-function getVerificationLabel(status: string | undefined, t: (k: string) => string): string {
-  if (status === "VERIFIED") return t("expert.profile.statusVerified");
-  if (status === "PENDING") return t("expert.profile.statusPending");
-  if (status === "REJECTED") return t("expert.profile.statusRejected");
-  return t("expert.profile.statusNotSubmitted");
 }
 
 export default function ExpertProfileScreen() {
@@ -61,7 +50,6 @@ export default function ExpertProfileScreen() {
   const user = useAuthStore((s) => s.user);
   const updateUser = useAuthStore((s) => s.updateUser);
   const clearAuth = useAuthStore((s) => s.clearAuth);
-
   const lang = useLangStore((s) => s.lang);
   const setLang = useLangStore((s) => s.setLang);
 
@@ -76,7 +64,6 @@ export default function ExpertProfileScreen() {
   const [allZones, setAllZones] = useState<Zone[]>([]);
   const [allCategories, setAllCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
-
   const [editName, setEditName] = useState("");
   const [editNameError, setEditNameError] = useState("");
   const [saving, setSaving] = useState(false);
@@ -102,7 +89,7 @@ export default function ExpertProfileScreen() {
       const resolvedAvatar = p.avatarUrl ?? p.expertProfile?.selfieUrl ?? undefined;
       if (resolvedAvatar) await updateUser({ avatarUrl: resolvedAvatar });
     } catch {
-      // show what we have from auth store
+      // fall back to auth store data
     } finally {
       setLoading(false);
     }
@@ -126,10 +113,7 @@ export default function ExpertProfileScreen() {
       await usersService.updateMe({ name: editName.trim() });
       await updateUser({ name: editName.trim() });
       editSheetRef.current?.dismiss();
-      toast.show({
-        message: t("expert.profile.savedToast"),
-        variant: "success",
-      });
+      toast.show({ message: t("expert.profile.savedToast"), variant: "success" });
     } catch {
       toast.show({ message: t("common.error"), variant: "error" });
     } finally {
@@ -138,20 +122,16 @@ export default function ExpertProfileScreen() {
   };
 
   const handleToggleZone = async (zone: Zone) => {
-    const expertProfile = profile?.expertProfile;
-    const currentZoneIds =
-      expertProfile?.serviceZones?.map((sz) => sz.zone.id) ?? [];
-    let newZoneIds: string[];
-    if (currentZoneIds.includes(zone.id)) {
-      newZoneIds = currentZoneIds.filter((id) => id !== zone.id);
-    } else {
-      newZoneIds = [...currentZoneIds, zone.id];
-    }
+    const ep = profile?.expertProfile;
+    const currentIds = ep?.serviceZones?.map((sz) => sz.zone.id) ?? [];
+    const newIds = currentIds.includes(zone.id)
+      ? currentIds.filter((id) => id !== zone.id)
+      : [...currentIds, zone.id];
     setZonesLoading(true);
     try {
-      await usersService.updateZones(newZoneIds);
-      const profileRes = await usersService.getMe();
-      setProfile(profileRes.data);
+      await usersService.updateZones(newIds);
+      const res = await usersService.getMe();
+      setProfile(res.data);
     } catch {
       toast.show({ message: t("common.error"), variant: "error" });
     } finally {
@@ -178,10 +158,7 @@ export default function ExpertProfileScreen() {
     );
     if (current.has(cat.id)) {
       if (current.size === 1) {
-        toast.show({
-          message: t("expert.profile.minOneCategory"),
-          variant: "error",
-        });
+        toast.show({ message: t("expert.profile.minOneCategory"), variant: "error" });
         return;
       }
       current.delete(cat.id);
@@ -191,8 +168,8 @@ export default function ExpertProfileScreen() {
     setCategoriesLoading(true);
     try {
       await usersService.updateCategories(Array.from(current));
-      const profileRes = await usersService.getMe();
-      setProfile(profileRes.data);
+      const res = await usersService.getMe();
+      setProfile(res.data);
     } catch {
       toast.show({ message: t("common.error"), variant: "error" });
     } finally {
@@ -215,76 +192,49 @@ export default function ExpertProfileScreen() {
   const completedJobs = expertProfile?.completedJobs ?? 0;
   const completionRate = expertProfile?.completionRate ?? 0;
   const rating = expertProfile?.rating ?? 0;
-  const noShowCount = expertProfile?.noShowCount ?? 0;
   const serviceZones = expertProfile?.serviceZones ?? [];
+  const serviceCategories = expertProfile?.serviceCategories ?? [];
 
-  const settingsSections: SettingRow[][] = [
-    [
-      {
-        key: "reviews",
-        label: t("expert.profile.myReviews"),
-        icon: Icons.star,
-        onPress: () => user && router.push(`/(shared)/reviews/${user.id}` as any),
+  const shopName = expertProfile?.shopName;
+  const firstZoneEn = serviceZones[0]?.zone?.nameEn;
+  const shopLine = [shopName, firstZoneEn].filter(Boolean).join(" · ");
+
+  const createdAt = (profile as any)?.createdAt as string | undefined;
+  const experienceYears = createdAt
+    ? Math.max(1, new Date().getFullYear() - new Date(createdAt).getFullYear())
+    : null;
+
+  const initials = getInitials(user?.name);
+
+  const menuItems: MenuRow[] = [
+    {
+      key: "reviews",
+      label: t("expert.profile.myReviews"),
+      icon: Icons.star,
+      onPress: () => user && router.push(`/(shared)/reviews/${user.id}` as any),
+    },
+    {
+      key: "shopServices",
+      label: t("expert.profile.shopServices"),
+      icon: Icons.homeRepair,
+      onPress: () => {
+        loadCategoriesIfNeeded();
+        categoriesSheetRef.current?.present();
       },
-      {
-        key: "verifyDocs",
-        label: t("expert.profile.verifyDocs"),
-        icon: Icons.verified,
-        onPress: () => {
-          if (verificationStatus === "VERIFIED") {
-            toast.show({ message: t("expert.profile.alreadyVerified") });
-          } else if (verificationStatus === "PENDING") {
-            toast.show({ message: t("expert.profile.pendingVerification") });
-          } else {
-            router.push("/(auth)/expert-onboarding/selfie" as any);
-          }
-        },
-      },
-      {
-        key: "zones",
-        label: t("expert.profile.serviceZones"),
-        icon: Icons.location,
-        onPress: () => zonesSheetRef.current?.present(),
-      },
-      {
-        key: "categories",
-        label: t("expert.profile.serviceCategories"),
-        icon: Icons.category,
-        onPress: () => {
-          loadCategoriesIfNeeded();
-          categoriesSheetRef.current?.present();
-        },
-      },
-    ],
-    [
-      {
-        key: "notifications",
-        label: t("expert.profile.notificationSettings"),
-        icon: Icons.notifs,
-        onPress: () => notifSheetRef.current?.present(),
-      },
-      {
-        key: "language",
-        label: t("expert.profile.language"),
-        icon: Icons.language,
-        rightLabel: t(`common.language.${lang}`),
-        onPress: () => langSheetRef.current?.present(),
-      },
-    ],
-    [
-      {
-        key: "help",
-        label: t("expert.profile.helpSupport"),
-        icon: Icons.help,
-        onPress: () => router.push("/(shared)/help" as any),
-      },
-      {
-        key: "about",
-        label: t("expert.profile.aboutFixr"),
-        icon: Icons.about,
-        onPress: () => router.push("/(shared)/about" as any),
-      },
-    ],
+    },
+    {
+      key: "notifications",
+      label: t("expert.profile.notificationSettings"),
+      icon: Icons.notifs,
+      onPress: () => notifSheetRef.current?.present(),
+    },
+    {
+      key: "language",
+      label: t("expert.profile.language"),
+      icon: Icons.language,
+      rightLabel: t(`common.language.${lang}`),
+      onPress: () => langSheetRef.current?.present(),
+    },
   ];
 
   return (
@@ -299,160 +249,130 @@ export default function ExpertProfileScreen() {
         </View>
       ) : (
         <ScrollView showsVerticalScrollIndicator={false}>
-          {/* Profile card */}
-          <View style={styles.profileCard}>
-            <View style={styles.profileRow}>
-              <Avatar size={56} name={user?.name} uri={profile?.avatarUrl ?? profile?.expertProfile?.selfieUrl ?? user?.avatarUrl} />
-              <View style={styles.profileInfo}>
-                <Text style={styles.profileName}>{user?.name}</Text>
-                <View style={styles.verifyRow}>
-                  <Pill
-                    label={getVerificationLabel(verificationStatus, t)}
-                    variant={getVerificationVariant(verificationStatus)}
-                  />
-                </View>
-                <Text style={styles.profilePhone}>
-                  {"\u200E"}
-                  {user?.phone}
-                </Text>
+          {/* Terra cotta hero card */}
+          <View style={styles.heroCard}>
+            <View style={styles.heroTop}>
+              <View style={styles.heroAvatar}>
+                <Text style={styles.heroAvatarText}>{initials}</Text>
               </View>
-              <TouchableOpacity onPress={openEditSheet} style={styles.editBtn}>
-                <Text style={styles.editBtnText}>
-                  {t("expert.profile.edit")}
-                </Text>
+              <View style={styles.heroInfo}>
+                <View style={styles.heroNameRow}>
+                  <Text style={styles.heroName} numberOfLines={1}>{user?.name}</Text>
+                  {verificationStatus === "VERIFIED" && (
+                    <MaterialIcons name={Icons.verified as any} size={16} color={Colors.white} />
+                  )}
+                </View>
+                {!!shopLine && (
+                  <Text style={styles.heroShop} numberOfLines={1}>{shopLine}</Text>
+                )}
+                {serviceCategories.length > 0 && (
+                  <View style={styles.heroPills}>
+                    {serviceCategories.slice(0, 3).map((sc) => (
+                      <View key={sc.category.id} style={styles.heroPill}>
+                        <Text style={styles.heroPillText}>
+                          {(sc.category.nameEn ?? sc.category.name ?? "").toUpperCase()}
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
+                )}
+              </View>
+              <TouchableOpacity
+                style={styles.heroEditBtn}
+                onPress={openEditSheet}
+                activeOpacity={0.7}
+              >
+                <MaterialIcons name={Icons.edit as any} size={15} color={Colors.white} />
               </TouchableOpacity>
             </View>
-          </View>
 
-          {/* Credits card */}
-          <View style={styles.creditsCard}>
-            <Text style={styles.creditsSectionLabel}>
-              {t("expert.profile.yourCredits")}
-            </Text>
-            <TouchableOpacity
-              onPress={() => router.push("/(expert)/credits" as any)}
-              activeOpacity={0.7}
-            >
-              <View style={styles.creditsRow}>
-                <Text style={styles.creditCount}>{creditBalance}</Text>
-                <Text style={styles.creditsAvailable}>
-                  {t("expert.profile.creditsAvailable")}
+            <View style={styles.heroStatsDivider} />
+
+            <View style={styles.heroStats}>
+              <View style={styles.heroStatItem}>
+                <Text style={styles.heroStatValue}>★ {rating.toFixed(1)}</Text>
+                <Text style={styles.heroStatLabel}>
+                  {completedJobs} {t("expert.profile.reviews")}
                 </Text>
               </View>
-            </TouchableOpacity>
+              <View style={styles.heroStatSep} />
+              <View style={styles.heroStatItem}>
+                <Text style={styles.heroStatValue}>{completedJobs}</Text>
+                <Text style={styles.heroStatLabel}>{t("expert.profile.jobsDone")}</Text>
+              </View>
+              <View style={styles.heroStatSep} />
+              <View style={styles.heroStatItem}>
+                <Text style={styles.heroStatValue}>{Math.round(completionRate * 100)}%</Text>
+                <Text style={styles.heroStatLabel}>{t("expert.profile.winRate")}</Text>
+              </View>
+              <View style={styles.heroStatSep} />
+              <View style={styles.heroStatItem}>
+                <Text style={styles.heroStatValue}>
+                  {experienceYears !== null ? `${experienceYears} yrs` : "—"}
+                </Text>
+                <Text style={styles.heroStatLabel}>{t("expert.profile.experience")}</Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Dark credits card */}
+          <View style={styles.creditsCard}>
+            <View style={styles.creditsLeft}>
+              <View style={styles.creditsIconWrap}>
+                <MaterialIcons name={Icons.credit as any} size={20} color={Colors.amber} />
+              </View>
+              <View style={styles.creditsInfo}>
+                <Text style={styles.creditsCount}>
+                  {creditBalance} {t("expert.profile.credits")}
+                </Text>
+                <Text style={styles.creditsCaption}>{t("expert.profile.creditsCaption")}</Text>
+              </View>
+            </View>
             <TouchableOpacity
-              onPress={() => router.push("/(expert)/credits" as any)}
-              activeOpacity={0.7}
-              style={styles.viewHistoryBtn}
-            >
-              <Text style={styles.viewHistoryText}>
-                {t("expert.profile.viewHistory")}
-              </Text>
-            </TouchableOpacity>
-            <Button
-              label={t("expert.profile.buyCredits")}
-              onPress={() => buySheetRef.current?.present()}
               style={styles.buyBtn}
-            />
-            <Text style={styles.creditsCaption}>
-              {t("expert.profile.creditsCaption")}
-            </Text>
+              onPress={() => buySheetRef.current?.present()}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.buyBtnText}>{t("expert.profile.buyCredits")}</Text>
+            </TouchableOpacity>
           </View>
 
-          {/* Stats row */}
-          <View style={styles.statsCard}>
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>{completedJobs}</Text>
-              <Text style={styles.statLabel}>
-                {t("expert.profile.completed")}
-              </Text>
-            </View>
-            <View style={styles.statSep} />
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>
-                {Math.round(completionRate * 100)}%
-              </Text>
-              <Text style={styles.statLabel}>
-                {t("expert.profile.completion")}
-              </Text>
-            </View>
-            <View style={styles.statSep} />
-            <View style={styles.statItem}>
-              <Text style={[styles.statValue, styles.statRating]}>
-                ★ {rating.toFixed(1)}
-              </Text>
-              <Text style={styles.statLabel}>{t("expert.profile.rating")}</Text>
-            </View>
-            {noShowCount > 0 && (
-              <>
-                <View style={styles.statSep} />
-                <View style={styles.statItem}>
-                  <View style={styles.noShowRow}>
+          {/* Menu card */}
+          <View style={styles.menuCard}>
+            {menuItems.map((row, idx) => (
+              <View key={row.key}>
+                <TouchableOpacity
+                  style={styles.menuRow}
+                  onPress={row.onPress}
+                  activeOpacity={0.7}
+                >
+                  <MaterialIcons name={row.icon as any} size={22} color={Colors.gray600} />
+                  <Text style={styles.menuLabel}>{row.label}</Text>
+                  {row.rightLabel ? (
+                    <Text style={styles.menuRightLabel}>{row.rightLabel}</Text>
+                  ) : (
                     <MaterialIcons
-                      name="cancel"
-                      size={14}
-                      color={Colors.danger600}
+                      name={Icons.chevronRight as any}
+                      size={20}
+                      color={Colors.gray400}
                     />
-                    <Text style={[styles.statValue, styles.statDanger]}>
-                      {noShowCount}
-                    </Text>
-                  </View>
-                  <Text style={[styles.statLabel, styles.statLabelDanger]}>
-                    {t("expert.profile.noShows")}
-                  </Text>
-                </View>
-              </>
-            )}
+                  )}
+                </TouchableOpacity>
+                {idx < menuItems.length - 1 && (
+                  <Divider style={styles.rowDivider} />
+                )}
+              </View>
+            ))}
           </View>
-
-          {/* Settings sections */}
-          {settingsSections.map((section, sIdx) => (
-            <View key={sIdx} style={styles.section}>
-              {section.map((row, rIdx) => (
-                <View key={row.key}>
-                  <TouchableOpacity
-                    style={styles.settingRow}
-                    onPress={row.onPress}
-                    activeOpacity={0.7}
-                  >
-                    <MaterialIcons
-                      name={row.icon as any}
-                      size={22}
-                      color={Colors.gray600}
-                    />
-                    <Text style={styles.settingLabel}>{row.label}</Text>
-                    {row.rightLabel ? (
-                      <Text style={styles.settingRightLabel}>
-                        {row.rightLabel}
-                      </Text>
-                    ) : (
-                      <MaterialIcons
-                        name={Icons.chevronRight as any}
-                        size={20}
-                        color={Colors.gray400}
-                      />
-                    )}
-                  </TouchableOpacity>
-                  {rIdx < section.length - 1 ? (
-                    <Divider style={styles.rowDivider} />
-                  ) : null}
-                </View>
-              ))}
-            </View>
-          ))}
 
           {/* Log out */}
-          <View style={styles.section}>
-            <TouchableOpacity
-              style={styles.logoutRow}
-              onPress={handleLogout}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.logoutText}>
-                {t("expert.profile.logout")}
-              </Text>
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity
+            style={styles.logoutRow}
+            onPress={handleLogout}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.logoutText}>{t("expert.profile.logout")}</Text>
+          </TouchableOpacity>
 
           <View style={styles.bottomPad} />
         </ScrollView>
@@ -460,9 +380,7 @@ export default function ExpertProfileScreen() {
 
       {/* Edit name sheet */}
       <BottomSheet ref={editSheetRef} snapPoints={["40%"]}>
-        <Text style={styles.sheetTitle}>
-          {t("expert.profile.editNameTitle")}
-        </Text>
+        <Text style={styles.sheetTitle}>{t("expert.profile.editNameTitle")}</Text>
         <Input
           label={t("expert.profile.nameLabel")}
           placeholder={t("expert.profile.namePlaceholder")}
@@ -470,47 +388,30 @@ export default function ExpertProfileScreen() {
           onChangeText={setEditName}
           error={editNameError}
           onBlur={() => {
-            if (!editName.trim())
-              setEditNameError(t("expert.profile.errorName"));
+            if (!editName.trim()) setEditNameError(t("expert.profile.errorName"));
             else setEditNameError("");
           }}
           autoCapitalize="words"
           style={styles.sheetInput}
         />
-        <Button
-          label={t("expert.profile.saveChanges")}
-          onPress={handleSaveName}
-          loading={saving}
-        />
+        <Button label={t("expert.profile.saveChanges")} onPress={handleSaveName} loading={saving} />
       </BottomSheet>
 
-      {/* Language picker sheet */}
+      {/* Language sheet */}
       <BottomSheet ref={langSheetRef} snapPoints={["28%"]}>
         <Text style={styles.sheetTitle}>{t("common.language.title")}</Text>
         {(["en", "fa"] as Lang[]).map((option, idx, arr) => (
           <View key={option}>
             <TouchableOpacity
               style={styles.langRow}
-              onPress={async () => {
-                await setLang(option);
-                langSheetRef.current?.dismiss();
-              }}
+              onPress={async () => { await setLang(option); langSheetRef.current?.dismiss(); }}
               activeOpacity={0.7}
             >
-              <Text
-                style={[
-                  styles.langLabel,
-                  lang === option && styles.langLabelActive,
-                ]}
-              >
+              <Text style={[styles.langLabel, lang === option && styles.langLabelActive]}>
                 {t(`common.language.${option}`)}
               </Text>
               {lang === option && (
-                <MaterialIcons
-                  name="check"
-                  size={20}
-                  color={Colors.primary600}
-                />
+                <MaterialIcons name="check" size={20} color={Colors.primary600} />
               )}
             </TouchableOpacity>
             {idx < arr.length - 1 && <Divider style={styles.zoneDivider} />}
@@ -520,11 +421,9 @@ export default function ExpertProfileScreen() {
 
       {/* Service zones sheet */}
       <BottomSheet ref={zonesSheetRef} snapPoints={["60%"]}>
-        <Text style={styles.sheetTitle}>
-          {t("expert.profile.serviceZonesTitle")}
-        </Text>
+        <Text style={styles.sheetTitle}>{t("expert.profile.serviceZonesTitle")}</Text>
         {zonesLoading ? (
-          <View style={styles.zonesLoading}>
+          <View style={styles.sheetLoading}>
             <ActivityIndicator color={Colors.primary600} />
           </View>
         ) : (
@@ -532,9 +431,7 @@ export default function ExpertProfileScreen() {
             data={allZones}
             keyExtractor={(z) => z.id}
             renderItem={({ item: zone, index }) => {
-              const isSelected = serviceZones.some(
-                (sz) => sz.zone.id === zone.id,
-              );
+              const isSelected = serviceZones.some((sz) => sz.zone.id === zone.id);
               return (
                 <View>
                   <TouchableOpacity
@@ -542,31 +439,16 @@ export default function ExpertProfileScreen() {
                     onPress={() => handleToggleZone(zone)}
                     activeOpacity={0.7}
                   >
-                    <Text
-                      style={[
-                        styles.zoneName,
-                        isSelected && styles.zoneNameSelected,
-                      ]}
-                    >
+                    <Text style={[styles.zoneName, isSelected && styles.zoneNameSelected]}>
                       {zone.nameEn ?? zone.name}
                     </Text>
-                    {isSelected ? (
-                      <MaterialIcons
-                        name={"check_box" as any}
-                        size={22}
-                        color={Colors.primary600}
-                      />
-                    ) : (
-                      <MaterialIcons
-                        name={"check_box_outline_blank" as any}
-                        size={22}
-                        color={Colors.gray400}
-                      />
-                    )}
+                    <MaterialIcons
+                      name={(isSelected ? "check_box" : "check_box_outline_blank") as any}
+                      size={22}
+                      color={isSelected ? Colors.primary600 : Colors.gray400}
+                    />
                   </TouchableOpacity>
-                  {index < allZones.length - 1 && (
-                    <Divider style={styles.zoneDivider} />
-                  )}
+                  {index < allZones.length - 1 && <Divider style={styles.zoneDivider} />}
                 </View>
               );
             }}
@@ -577,11 +459,9 @@ export default function ExpertProfileScreen() {
 
       {/* Service categories sheet */}
       <BottomSheet ref={categoriesSheetRef} snapPoints={["60%"]}>
-        <Text style={styles.sheetTitle}>
-          {t("expert.profile.serviceCategoriesTitle")}
-        </Text>
+        <Text style={styles.sheetTitle}>{t("expert.profile.serviceCategoriesTitle")}</Text>
         {categoriesLoading ? (
-          <View style={styles.zonesLoading}>
+          <View style={styles.sheetLoading}>
             <ActivityIndicator color={Colors.primary600} />
           </View>
         ) : (
@@ -600,27 +480,14 @@ export default function ExpertProfileScreen() {
                       onPress={() => handleToggleCategory(cat)}
                       activeOpacity={0.7}
                     >
-                      <Text
-                        style={[
-                          styles.zoneName,
-                          isSelected && styles.zoneNameSelected,
-                        ]}
-                      >
+                      <Text style={[styles.zoneName, isSelected && styles.zoneNameSelected]}>
                         {cat.nameEn ?? cat.name}
                       </Text>
-                      {isSelected ? (
-                        <MaterialIcons
-                          name={"check_box" as any}
-                          size={22}
-                          color={Colors.primary600}
-                        />
-                      ) : (
-                        <MaterialIcons
-                          name={"check_box_outline_blank" as any}
-                          size={22}
-                          color={Colors.gray400}
-                        />
-                      )}
+                      <MaterialIcons
+                        name={(isSelected ? "check_box" : "check_box_outline_blank") as any}
+                        size={22}
+                        color={isSelected ? Colors.primary600 : Colors.gray400}
+                      />
                     </TouchableOpacity>
                     {index < allCategories.length - 1 && (
                       <Divider style={styles.zoneDivider} />
@@ -667,27 +534,18 @@ export default function ExpertProfileScreen() {
             <Text style={styles.buySheetRowText}>{t("expert.buySheet.hours")}</Text>
           </View>
         </View>
-        <Button
-          label={t("expert.buySheet.dismiss")}
-          onPress={() => buySheetRef.current?.dismiss()}
-        />
+        <Button label={t("expert.buySheet.dismiss")} onPress={() => buySheetRef.current?.dismiss()} />
       </BottomSheet>
 
       {/* Notification Settings sheet */}
       <BottomSheet ref={notifSheetRef} snapPoints={["30%"]}>
-        <Text style={styles.sheetTitle}>
-          {t("shared.notifSettings.title")}
-        </Text>
+        <Text style={styles.sheetTitle}>{t("shared.notifSettings.title")}</Text>
         <View style={styles.notifRow}>
           <View style={styles.notifInfo}>
-            <Text style={styles.notifLabel}>
-              {t("shared.notifSettings.pushNotifications")}
-            </Text>
+            <Text style={styles.notifLabel}>{t("shared.notifSettings.pushNotifications")}</Text>
           </View>
           {notifGranted === true ? (
-            <Text style={styles.notifEnabled}>
-              {t("shared.notifSettings.enabled")}
-            </Text>
+            <Text style={styles.notifEnabled}>{t("shared.notifSettings.enabled")}</Text>
           ) : (
             <TouchableOpacity
               onPress={() => Linking.openSettings()}
@@ -706,10 +564,7 @@ export default function ExpertProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: Colors.bgApp,
-  },
+  safe: { flex: 1, backgroundColor: Colors.bgApp },
   header: {
     backgroundColor: Colors.white,
     borderBottomWidth: 1,
@@ -718,269 +573,240 @@ const styles = StyleSheet.create({
     paddingTop: Spacing.s4,
     paddingBottom: Spacing.s3,
   },
-  title: {
-    ...Typography.display,
-  },
-  centered: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  // Profile card
-  profileCard: {
-    backgroundColor: Colors.white,
+  title: { ...Typography.display },
+  centered: { flex: 1, alignItems: "center", justifyContent: "center" },
+
+  // Hero card
+  heroCard: {
+    backgroundColor: Colors.primary600,
     marginHorizontal: Spacing.s4,
     marginTop: Spacing.s4,
-    borderRadius: Radius.md,
+    borderRadius: Radius.lg,
     padding: Spacing.s4,
-    borderWidth: 1,
-    borderColor: Colors.gray200,
   },
-  profileRow: {
+  heroTop: {
     flexDirection: "row",
     alignItems: "flex-start",
     gap: Spacing.s3,
   },
-  profileInfo: {
+  heroAvatar: {
+    width: 52,
+    height: 52,
+    borderRadius: Radius.sm,
+    backgroundColor: Colors.white,
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+  },
+  heroAvatarText: {
+    fontSize: 20,
+    fontWeight: "700" as const,
+    color: Colors.primary600,
+  },
+  heroInfo: {
     flex: 1,
     gap: 4,
   },
-  profileName: {
-    ...Typography.heading2,
-  },
-  verifyRow: {
+  heroNameRow: {
     flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
   },
-  profilePhone: {
-    ...Typography.caption,
-    writingDirection: "ltr",
+  heroName: {
+    fontSize: 17,
+    fontWeight: "700" as const,
+    color: Colors.white,
+    flexShrink: 1,
   },
-  editBtn: {
-    borderWidth: 1.5,
-    borderColor: Colors.primary600,
-    borderRadius: Radius.full,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    alignSelf: "flex-start",
-  },
-  editBtnText: {
+  heroShop: {
     fontSize: 13,
-    fontWeight: "500",
-    color: Colors.primary600,
+    color: Colors.primary100,
   },
-  // Credits card
-  creditsCard: {
-    backgroundColor: Colors.primary50,
-    marginHorizontal: Spacing.s4,
-    marginTop: Spacing.s3,
-    borderRadius: Radius.md,
-    padding: Spacing.s4,
-    borderWidth: 1.5,
-    borderColor: Colors.primary100,
-  },
-  creditsSectionLabel: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: Colors.primary600,
-    letterSpacing: 0.72,
-    textTransform: "uppercase",
-    marginBottom: Spacing.s2,
-  },
-  creditsRow: {
+  heroPills: {
     flexDirection: "row",
-    alignItems: "baseline",
-    gap: Spacing.s2,
-    marginBottom: Spacing.s3,
-  },
-  creditCount: {
-    fontSize: 22,
-    fontWeight: "700",
-    color: Colors.primary600,
-  },
-  creditsAvailable: {
-    ...Typography.body,
-    color: Colors.gray600,
-  },
-  viewHistoryBtn: {
-    alignSelf: 'flex-start',
-    marginBottom: Spacing.s3,
-  },
-  viewHistoryText: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: Colors.primary600,
-  },
-  buyBtn: {
-    marginBottom: Spacing.s2,
-  },
-  creditsCaption: {
-    ...Typography.caption,
-    color: Colors.gray600,
-    textAlign: "center",
+    flexWrap: "wrap",
+    gap: 6,
     marginTop: Spacing.s1,
   },
-  // Stats
-  statsCard: {
-    flexDirection: "row",
-    backgroundColor: Colors.white,
-    marginHorizontal: Spacing.s4,
-    marginTop: Spacing.s3,
-    borderRadius: Radius.md,
-    padding: Spacing.s4,
+  heroPill: {
     borderWidth: 1,
-    borderColor: Colors.gray200,
+    borderColor: "rgba(255,255,255,0.45)",
+    borderRadius: Radius.full,
+    paddingHorizontal: Spacing.s2,
+    paddingVertical: 3,
+  },
+  heroPillText: {
+    fontSize: 10,
+    fontWeight: "600" as const,
+    color: Colors.white,
+    letterSpacing: 0.4,
+  },
+  heroEditBtn: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: "rgba(255,255,255,0.18)",
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+  },
+  heroStatsDivider: {
+    height: 1,
+    backgroundColor: "rgba(255,255,255,0.2)",
+    marginVertical: Spacing.s3,
+  },
+  heroStats: {
+    flexDirection: "row",
     alignItems: "center",
   },
-  statItem: {
+  heroStatItem: {
     flex: 1,
     alignItems: "center",
     gap: 2,
   },
-  statValue: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: Colors.gray900,
-  },
-  statRating: {
-    color: Colors.primary600,
-  },
-  statDanger: {
-    color: Colors.danger600,
+  heroStatValue: {
     fontSize: 16,
+    fontWeight: "700" as const,
+    color: Colors.white,
   },
-  statLabel: {
+  heroStatLabel: {
     fontSize: 11,
-    fontWeight: "400",
-    color: Colors.gray600,
+    color: Colors.primary100,
     textAlign: "center",
   },
-  statLabelDanger: {
-    color: Colors.danger600,
-  },
-  statSep: {
+  heroStatSep: {
     width: 1,
-    height: 32,
-    backgroundColor: Colors.gray200,
+    height: 28,
+    backgroundColor: "rgba(255,255,255,0.2)",
   },
-  noShowRow: {
+
+  // Dark credits card
+  creditsCard: {
+    backgroundColor: Colors.dark,
+    marginHorizontal: Spacing.s4,
+    marginTop: Spacing.s3,
+    borderRadius: Radius.lg,
+    padding: Spacing.s4,
     flexDirection: "row",
     alignItems: "center",
+    gap: Spacing.s3,
+  },
+  creditsLeft: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.s2,
+  },
+  creditsIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "rgba(232,160,32,0.15)",
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+  },
+  creditsInfo: {
+    flex: 1,
     gap: 2,
   },
-  // Settings
-  section: {
+  creditsCount: {
+    fontSize: 17,
+    fontWeight: "700" as const,
+    color: Colors.amber,
+  },
+  creditsCaption: {
+    fontSize: 12,
+    color: Colors.gray400,
+    lineHeight: 16,
+  },
+  buyBtn: {
+    backgroundColor: Colors.amber,
+    borderRadius: Radius.full,
+    paddingHorizontal: Spacing.s4,
+    paddingVertical: Spacing.s2,
+    flexShrink: 0,
+  },
+  buyBtnText: {
+    fontSize: 13,
+    fontWeight: "700" as const,
+    color: Colors.dark,
+  },
+
+  // Menu card
+  menuCard: {
     backgroundColor: Colors.white,
     marginHorizontal: Spacing.s4,
     marginTop: Spacing.s3,
-    borderRadius: Radius.md,
+    borderRadius: Radius.lg,
     borderWidth: 1,
     borderColor: Colors.gray200,
     overflow: "hidden",
   },
-  settingRow: {
+  menuRow: {
     flexDirection: "row",
     alignItems: "center",
     height: 52,
     paddingHorizontal: Spacing.s4,
     gap: Spacing.s3,
   },
-  settingLabel: {
+  menuLabel: {
     flex: 1,
     ...Typography.bodyMd,
     color: Colors.gray900,
+  },
+  menuRightLabel: {
+    fontSize: 13,
+    fontWeight: "500" as const,
+    color: Colors.gray400,
   },
   rowDivider: {
     marginVertical: 0,
     marginHorizontal: Spacing.s4,
   },
+
+  // Log out
   logoutRow: {
-    height: 52,
     alignItems: "center",
     justifyContent: "center",
+    paddingVertical: Spacing.s4,
+    marginTop: Spacing.s3,
   },
   logoutText: {
     fontSize: 15,
-    fontWeight: "600",
-    color: Colors.danger600,
+    fontWeight: "600" as const,
+    color: Colors.primary600,
   },
-  bottomPad: {
-    height: Spacing.s6,
-  },
-  settingRightLabel: {
-    fontSize: 13,
-    fontWeight: "500" as const,
-    color: Colors.gray400,
-  },
-  // Bottom sheets
-  sheetTitle: {
-    ...Typography.heading2,
-    marginBottom: Spacing.s4,
-  },
-  sheetInput: {
-    marginBottom: Spacing.s4,
-  },
-  // Language picker
+
+  bottomPad: { height: Spacing.s6 },
+
+  // Sheets
+  sheetTitle: { ...Typography.heading2, marginBottom: Spacing.s4 },
+  sheetInput: { marginBottom: Spacing.s4 },
+  sheetLoading: { height: 120, alignItems: "center", justifyContent: "center" },
   langRow: {
     flexDirection: "row" as const,
     alignItems: "center" as const,
     justifyContent: "space-between" as const,
     height: 52,
   },
-  langLabel: {
-    ...Typography.bodyMd,
-    color: Colors.gray900,
-  },
-  langLabelActive: {
-    color: Colors.primary600,
-    fontWeight: "600" as const,
-  },
-  zonesLoading: {
-    height: 120,
-    alignItems: "center",
-    justifyContent: "center",
-  },
+  langLabel: { ...Typography.bodyMd, color: Colors.gray900 },
+  langLabelActive: { color: Colors.primary600, fontWeight: "600" as const },
   zoneRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     height: 48,
   },
-  zoneName: {
-    ...Typography.bodyMd,
-    color: Colors.gray900,
-  },
-  zoneNameSelected: {
-    color: Colors.primary600,
-    fontWeight: "600",
-  },
-  zoneDivider: {
-    marginVertical: 0,
-  },
-  categoriesList: {
-    flex: 1,
-  },
-  categoriesDoneBtn: {
-    marginTop: Spacing.s4,
-  },
-  // Notification settings sheet
-  notifRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    height: 52,
-    gap: Spacing.s3,
-  },
-  notifInfo: {
-    flex: 1,
-  },
-  notifLabel: {
-    ...Typography.bodyMd,
-    color: Colors.gray900,
-  },
-  notifEnabled: {
-    fontSize: 13,
-    fontWeight: "600" as const,
-    color: Colors.success600,
-  },
+  zoneName: { ...Typography.bodyMd, color: Colors.gray900 },
+  zoneNameSelected: { color: Colors.primary600, fontWeight: "600" as const },
+  zoneDivider: { marginVertical: 0 },
+  categoriesList: { flex: 1 },
+  categoriesDoneBtn: { marginTop: Spacing.s4 },
+  notifRow: { flexDirection: "row", alignItems: "center", height: 52, gap: Spacing.s3 },
+  notifInfo: { flex: 1 },
+  notifLabel: { ...Typography.bodyMd, color: Colors.gray900 },
+  notifEnabled: { fontSize: 13, fontWeight: "600" as const, color: Colors.success600 },
   notifSettingsBtn: {
     borderWidth: 1.5,
     borderColor: Colors.primary600,
@@ -988,21 +814,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.s3,
     paddingVertical: 6,
   },
-  notifSettingsBtnText: {
-    fontSize: 13,
-    fontWeight: "600" as const,
-    color: Colors.primary600,
-  },
-  // Buy Credits sheet
-  buySheetIconWrap: {
-    alignItems: "center",
-    marginBottom: Spacing.s3,
-  },
-  buySheetTitle: {
-    ...Typography.heading2,
-    textAlign: "center",
-    marginBottom: Spacing.s2,
-  },
+  notifSettingsBtnText: { fontSize: 13, fontWeight: "600" as const, color: Colors.primary600 },
+  buySheetIconWrap: { alignItems: "center", marginBottom: Spacing.s3 },
+  buySheetTitle: { ...Typography.heading2, textAlign: "center", marginBottom: Spacing.s2 },
   buySheetBody: {
     ...Typography.body,
     color: Colors.gray600,
@@ -1010,21 +824,8 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     marginBottom: Spacing.s4,
   },
-  buySheetInfoRows: {
-    gap: Spacing.s3,
-    marginBottom: Spacing.s4,
-  },
-  buySheetRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing.s2,
-  },
-  buySheetRowText: {
-    ...Typography.bodyMd,
-    color: Colors.gray900,
-    flex: 1,
-  },
-  buySheetPhoneText: {
-    color: Colors.primary600,
-  },
+  buySheetInfoRows: { gap: Spacing.s3, marginBottom: Spacing.s4 },
+  buySheetRow: { flexDirection: "row", alignItems: "center", gap: Spacing.s2 },
+  buySheetRowText: { ...Typography.bodyMd, color: Colors.gray900, flex: 1 },
+  buySheetPhoneText: { color: Colors.primary600 },
 });

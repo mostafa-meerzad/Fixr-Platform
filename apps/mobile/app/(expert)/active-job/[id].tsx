@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Animated,
   Keyboard,
   Linking,
   Modal,
@@ -16,15 +17,13 @@ import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { Colors, IconSize, Radius, Spacing, Typography } from '@/constants/theme';
+import { Colors, IconSize, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
 import { Icons } from '@/constants/icons';
 import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
-import { Divider } from '@/components/ui/Divider';
+import { Avatar } from '@/components/ui/Avatar';
 import { Input } from '@/components/ui/Input';
 import { Pill, getStatusVariant } from '@/components/ui/Pill';
 import { useToast } from '@/components/ui/Toast';
-import { StatusTimeline } from '@/components/StatusTimeline';
 import { jobsService, type JobStatus, type JobUrgency } from '@/services/jobs.service';
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
@@ -40,11 +39,14 @@ interface ActiveJobDetail {
   homeowner?: {
     id: string;
     name: string;
+    firstName?: string;
     phone?: string;
   };
   acceptedBid?: {
     id: string;
     price: number;
+    estimatedArrivalMinutes?: number;
+    estimatedDurationHours?: number;
     warrantyDescription?: string;
   } | null;
   completedAt?: string;
@@ -65,6 +67,32 @@ const STATUS_LABEL_KEYS: Partial<Record<JobStatus, string>> = {
   DISPUTED:             'common.status.disputed',
 };
 
+type NodeState = 'done' | 'current' | 'future';
+
+function getNodeStates(status: JobStatus): [NodeState, NodeState, NodeState, NodeState] {
+  switch (status) {
+    case 'ASSIGNED':             return ['done', 'current', 'future', 'future'];
+    case 'EN_ROUTE':             return ['done', 'current', 'future', 'future'];
+    case 'ARRIVED':              return ['done', 'done', 'current', 'future'];
+    case 'IN_PROGRESS':          return ['done', 'done', 'current', 'future'];
+    case 'COMPLETION_REQUESTED': return ['done', 'done', 'done', 'current'];
+    case 'COMPLETED':            return ['done', 'done', 'done', 'done'];
+    default:                     return ['done', 'current', 'future', 'future'];
+  }
+}
+
+function formatArrival(mins?: number): string {
+  if (!mins) return '—';
+  if (mins < 60) return `~${mins} min`;
+  return `~${Math.round(mins / 60)}h`;
+}
+
+function formatDuration(hrs?: number): string {
+  if (!hrs) return '—';
+  if (hrs < 1) return `${Math.round(hrs * 60)} min`;
+  return `${hrs}h`;
+}
+
 // ─── Screen ────────────────────────────────────────────────────────────────────
 
 export default function ExpertActiveJobScreen() {
@@ -82,11 +110,30 @@ export default function ExpertActiveJobScreen() {
   const [completionLoading, setCompletionLoading] = useState(false);
   const [kbHeight, setKbHeight] = useState(0);
 
+  const pulseAnimRef = useRef(new Animated.Value(1));
+  const animLoopRef = useRef<Animated.CompositeAnimation | null>(null);
+
   useEffect(() => {
-    const show = Keyboard.addListener('keyboardDidShow', (e) => setKbHeight(e.endCoordinates.height));
-    const hide = Keyboard.addListener('keyboardDidHide', () => setKbHeight(0));
-    return () => { show.remove(); hide.remove(); };
+    const onShow = Keyboard.addListener('keyboardDidShow', (e) => setKbHeight(e.endCoordinates.height));
+    const onHide = Keyboard.addListener('keyboardDidHide', () => setKbHeight(0));
+    return () => { onShow.remove(); onHide.remove(); };
   }, []);
+
+  useEffect(() => {
+    animLoopRef.current?.stop();
+    if (!job) return;
+    const states = getNodeStates(job.status);
+    if (!states.some(s => s === 'current')) { pulseAnimRef.current.setValue(1); return; }
+    pulseAnimRef.current.setValue(1);
+    animLoopRef.current = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnimRef.current, { toValue: 1.2, duration: 800, useNativeDriver: true }),
+        Animated.timing(pulseAnimRef.current, { toValue: 1, duration: 800, useNativeDriver: true }),
+      ])
+    );
+    animLoopRef.current.start();
+    return () => { animLoopRef.current?.stop(); };
+  }, [job?.status]);
 
   const fetchJob = useCallback(async () => {
     const res = await jobsService.get(id);
@@ -107,13 +154,8 @@ export default function ExpertActiveJobScreen() {
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    try {
-      await fetchJob();
-    } catch {
-      // silent
-    } finally {
-      setRefreshing(false);
-    }
+    try { await fetchJob(); } catch { }
+    finally { setRefreshing(false); }
   }, [fetchJob]);
 
   useFocusEffect(useCallback(() => { load(); }, [load]));
@@ -186,6 +228,53 @@ export default function ExpertActiveJobScreen() {
 
   const statusLabel = t(STATUS_LABEL_KEYS[job.status] ?? 'common.unknown');
   const canDispute = DISPUTABLE_STATUSES.includes(job.status);
+  const homeownerName = job.homeowner?.name ?? t('common.unknown');
+  const homeownerFirstName =
+    job.homeowner?.firstName ?? homeownerName.split(' ')[0] ?? homeownerName;
+  const nodeStates = getNodeStates(job.status);
+  const nodeLabels = [
+    t('expert.activeJob.stepAccepted'),
+    t('expert.activeJob.stepEnRoute'),
+    t('expert.activeJob.stepWorking'),
+    t('expert.activeJob.stepDone'),
+  ];
+
+  // ── Stepper ────────────────────────────────────────────────────────────────
+
+  function renderNode(state: NodeState, index: number) {
+    if (state === 'done') {
+      return (
+        <View style={styles.stepperNodeCol}>
+          <View style={[styles.stepperNode, styles.stepperNodeDone]}>
+            <MaterialIcons name={Icons.check as any} size={14} color={Colors.white} />
+          </View>
+          <Text style={[styles.nodeLabel, styles.nodeLabelDone]}>{nodeLabels[index]}</Text>
+        </View>
+      );
+    }
+    if (state === 'current') {
+      return (
+        <View style={styles.stepperNodeCol}>
+          <Animated.View
+            style={[
+              styles.stepperNode,
+              styles.stepperNodeCurrent,
+              { transform: [{ scale: pulseAnimRef.current }] },
+            ]}
+          >
+            <View style={styles.stepperNodeInnerDot} />
+          </Animated.View>
+          <Text style={[styles.nodeLabel, styles.nodeLabelCurrent]}>{nodeLabels[index]}</Text>
+        </View>
+      );
+    }
+    return (
+      <View style={styles.stepperNodeCol}>
+        <View style={[styles.stepperNode, styles.stepperNodeFuture]} />
+        <Text style={[styles.nodeLabel, styles.nodeLabelFuture]}>{nodeLabels[index]}</Text>
+      </View>
+    );
+  }
 
   // ── CTA ────────────────────────────────────────────────────────────────────
 
@@ -195,7 +284,7 @@ export default function ExpertActiveJobScreen() {
         return (
           <Button
             label={t('expert.activeJob.onMyWay')}
-            leftIcon={Icons.location}
+            variant="success"
             onPress={() => handleTransition(() => jobsService.markEnRoute(id))}
             loading={transitionLoading}
           />
@@ -204,6 +293,7 @@ export default function ExpertActiveJobScreen() {
         return (
           <Button
             label={t('expert.activeJob.iArrived')}
+            variant="success"
             onPress={() => handleTransition(() => jobsService.markArrived(id))}
             loading={transitionLoading}
           />
@@ -212,6 +302,7 @@ export default function ExpertActiveJobScreen() {
         return (
           <Button
             label={t('expert.activeJob.startJob')}
+            variant="success"
             onPress={() => handleTransition(() => jobsService.markInProgress(id))}
             loading={transitionLoading}
           />
@@ -219,7 +310,8 @@ export default function ExpertActiveJobScreen() {
       case 'IN_PROGRESS':
         return (
           <Button
-            label={t('expert.activeJob.requestCompletion')}
+            label={t('expert.activeJob.markFinished')}
+            variant="success"
             onPress={() => setCompletionVisible(true)}
           />
         );
@@ -256,7 +348,7 @@ export default function ExpertActiveJobScreen() {
             <MaterialIcons name={Icons.back as any} size={24} color={Colors.gray900} />
           </TouchableOpacity>
           <Text style={styles.headerTitle} numberOfLines={1}>{job.title}</Text>
-          <View style={styles.headerSpacer} />
+          <Pill label={statusLabel} variant={getStatusVariant(job.status)} />
         </View>
 
         {/* Scrollable content */}
@@ -272,57 +364,88 @@ export default function ExpertActiveJobScreen() {
             />
           }
         >
-          {/* Job summary card */}
-          <Card style={styles.card}>
-            <View style={styles.titleRow}>
-              <Text style={styles.jobTitle} numberOfLines={2}>{job.title}</Text>
-              <Pill label={statusLabel} variant={getStatusVariant(job.status)} />
+          {/* Homeowner contact card */}
+          <View style={[styles.card, Shadows.sm]}>
+            <View style={styles.contactRow}>
+              <Avatar size={40} name={homeownerName} />
+              <View style={styles.contactInfo}>
+                <Text style={styles.contactName}>{homeownerName}</Text>
+                <Text style={styles.contactMeta} numberOfLines={1}>
+                  {[job.address, job.zone.nameEn].filter(Boolean).join(' · ')}
+                </Text>
+              </View>
+              {job.homeowner?.phone ? (
+                <TouchableOpacity
+                  style={styles.callBtn}
+                  onPress={() => Linking.openURL(`tel:${job.homeowner!.phone}`)}
+                  activeOpacity={0.8}
+                >
+                  <MaterialIcons name={Icons.phone as any} size={IconSize.inline} color={Colors.success600} />
+                </TouchableOpacity>
+              ) : null}
             </View>
+          </View>
 
-            {(job.category || job.urgency) ? (
-              <Text style={styles.metaText}>
-                {[job.category?.nameEn, job.urgency === 'EMERGENCY' ? t('homeowner.post.urgencyEmergency') : job.urgency === 'TODAY' ? t('homeowner.post.urgencyToday') : t('homeowner.post.urgencyScheduled')]
-                  .filter(Boolean).join(' · ')}
-              </Text>
-            ) : null}
+          {/* Status stepper card */}
+          <View style={[styles.card, Shadows.sm]}>
+            <Text style={styles.cardHeading}>{t('expert.activeJob.updateStatus')}</Text>
+            <View style={styles.stepperRow}>
+              {nodeStates.map((state, i) => (
+                <React.Fragment key={i}>
+                  {renderNode(state, i)}
+                  {i < 3 ? (
+                    <View
+                      style={[
+                        styles.stepperLine,
+                        { backgroundColor: state === 'done' ? Colors.primary600 : Colors.sand },
+                      ]}
+                    />
+                  ) : null}
+                </React.Fragment>
+              ))}
+            </View>
+          </View>
 
-            <Divider />
+          {/* Agreed terms card */}
+          <View style={[styles.card, Shadows.sm]}>
+            <Text style={styles.cardHeading}>{t('expert.activeJob.agreedTerms')}</Text>
+            <View style={styles.termsRow}>
+              <View style={styles.termChip}>
+                <Text style={styles.termValueAccent}>
+                  {job.acceptedBid ? `${job.acceptedBid.price} ₾` : '—'}
+                </Text>
+                <Text style={styles.termLabel}>{t('expert.activeJob.priceLabel')}</Text>
+              </View>
+              <View style={styles.termChip}>
+                <Text style={styles.termValue}>
+                  {formatArrival(job.acceptedBid?.estimatedArrivalMinutes)}
+                </Text>
+                <Text style={styles.termLabel}>{t('expert.activeJob.arrivalLabel')}</Text>
+              </View>
+              <View style={styles.termChip}>
+                <Text style={styles.termValue}>
+                  {formatDuration(job.acceptedBid?.estimatedDurationHours)}
+                </Text>
+                <Text style={styles.termLabel}>{t('expert.activeJob.durationLabel')}</Text>
+              </View>
+              <View style={styles.termChip}>
+                <Text style={styles.termValue} numberOfLines={1}>
+                  {job.acceptedBid?.warrantyDescription ?? '—'}
+                </Text>
+                <Text style={styles.termLabel}>{t('expert.activeJob.warrantyLabel')}</Text>
+              </View>
+            </View>
+          </View>
 
-            <Text style={styles.sectionLabel}>{t('expert.activeJob.homeownerLabel')}</Text>
-            <Text style={styles.bodyMd}>{job.homeowner?.name ?? t('common.unknown')}</Text>
-            {job.homeowner?.phone ? (
-              <Text style={styles.body}>{job.homeowner.phone}</Text>
-            ) : null}
+          {/* Hint row */}
+          <View style={styles.hintRow}>
+            <MaterialIcons name={Icons.info as any} size={14} color={Colors.gray400} style={styles.hintIcon} />
+            <Text style={styles.hintText}>
+              {t('expert.activeJob.finishedHint', { name: homeownerFirstName })}
+            </Text>
+          </View>
 
-            <Divider />
-
-            <Text style={styles.sectionLabel}>{t('expert.activeJob.locationLabel')}</Text>
-            <Text style={styles.body}>{job.zone.nameEn}</Text>
-            <Text style={styles.body}>{job.address}</Text>
-            <Button
-              label={t('expert.activeJob.openInMaps')}
-              variant="ghost"
-              onPress={() =>
-                Linking.openURL(`https://maps.google.com/?q=${encodeURIComponent(job.address)}`)
-              }
-              style={styles.mapsBtn}
-            />
-          </Card>
-
-          {/* Status timeline */}
-          <Card style={styles.card}>
-            <StatusTimeline status={job.status} />
-          </Card>
-
-          {/* Message homeowner */}
-          <Button
-            label={t('expert.activeJob.messageHomeowner')}
-            variant="secondary"
-            leftIcon={Icons.tabChat}
-            onPress={() => router.push(`/(shared)/chat/${id}` as any)}
-          />
-
-          {/* Raise dispute link */}
+          {/* Raise dispute */}
           {canDispute ? (
             <TouchableOpacity
               style={styles.disputeRow}
@@ -339,8 +462,7 @@ export default function ExpertActiveJobScreen() {
         </View>
       </SafeAreaView>
 
-      {/* Request Completion modal — plain RN Modal so we can use the same
-          Keyboard.addListener + marginBottom pattern as the Chat screen */}
+      {/* Request Completion modal */}
       <Modal
         visible={completionVisible}
         transparent
@@ -357,48 +479,46 @@ export default function ExpertActiveJobScreen() {
             setCompletionVisible(false);
           }}
         />
-       <View style={{ backgroundColor: "rgba(0,0,0,0.5)"}}>
-         <View style={[styles.modalSheet, { marginBottom: kbHeight }]}>
-          {/* Handle */}
-          <View style={styles.modalHandle} />
-
-          <Text style={styles.sheetTitle}>{t('expert.activeJob.completionSheetTitle')}</Text>
-          <Text style={styles.sheetSubtitle}>{t('expert.activeJob.completionSheetSubtitle')}</Text>
-
-          <View style={styles.notesLabelRow}>
-            <Text style={styles.notesLabel}>{t('expert.activeJob.notesLabel')}</Text>
-            <Text style={styles.notesOptional}>{t('expert.activeJob.notesOptional')}</Text>
+        <View style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <View style={[styles.modalSheet, { marginBottom: kbHeight }]}>
+            <View style={styles.modalHandle} />
+            <Text style={styles.sheetTitle}>{t('expert.activeJob.completionSheetTitle')}</Text>
+            <Text style={styles.sheetSubtitle}>{t('expert.activeJob.completionSheetSubtitle')}</Text>
+            <View style={styles.notesLabelRow}>
+              <Text style={styles.notesLabel}>{t('expert.activeJob.notesLabel')}</Text>
+              <Text style={styles.notesOptional}>{t('expert.activeJob.notesOptional')}</Text>
+            </View>
+            <Input
+              placeholder={t('expert.activeJob.notesPlaceholder')}
+              value={completionNotes}
+              onChangeText={setCompletionNotes}
+              multiline
+            />
+            <Button
+              label={t('expert.activeJob.sendCompletion')}
+              onPress={handleRequestCompletion}
+              loading={completionLoading}
+              style={styles.sheetBtn}
+            />
+            <Button
+              label={t('expert.activeJob.notYet')}
+              variant="ghost"
+              onPress={() => {
+                Keyboard.dismiss();
+                setCompletionVisible(false);
+              }}
+              style={styles.sheetBtnSecondary}
+            />
           </View>
-          <Input
-            placeholder={t('expert.activeJob.notesPlaceholder')}
-            value={completionNotes}
-            onChangeText={setCompletionNotes}
-            multiline
-          />
-
-          <Button
-            label={t('expert.activeJob.sendCompletion')}
-            onPress={handleRequestCompletion}
-            loading={completionLoading}
-            style={styles.sheetBtn}
-          />
-          <Button
-            label={t('expert.activeJob.notYet')}
-            variant="ghost"
-            onPress={() => {
-              Keyboard.dismiss();
-              setCompletionVisible(false);
-            }}
-            style={styles.sheetBtnSecondary}
-          />
         </View>
-       </View>
       </Modal>
     </>
   );
 }
 
 // ─── Styles ────────────────────────────────────────────────────────────────────
+
+const NODE_SIZE = 28;
 
 const styles = StyleSheet.create({
   safe: {
@@ -442,9 +562,6 @@ const styles = StyleSheet.create({
     flex: 1,
     ...Typography.heading1,
   },
-  headerSpacer: {
-    width: 32,
-  },
 
   // ── Scroll ──────────────────────────────────────────────────────────────────
   scroll: {
@@ -456,38 +573,148 @@ const styles = StyleSheet.create({
     gap: Spacing.s3,
   },
 
-  // ── Cards ───────────────────────────────────────────────────────────────────
+  // ── Card base ───────────────────────────────────────────────────────────────
   card: {
-    gap: Spacing.s3,
+    backgroundColor: Colors.white,
+    borderRadius: Radius.lg,
+    padding: Spacing.s4,
+    borderWidth: 1,
+    borderColor: Colors.gray200,
   },
-  titleRow: {
+  cardHeading: {
+    ...Typography.heading3,
+    marginBottom: Spacing.s3,
+  },
+
+  // ── Homeowner contact ───────────────────────────────────────────────────────
+  contactRow: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
+    alignItems: 'center',
     gap: Spacing.s3,
   },
-  jobTitle: {
+  contactInfo: {
     flex: 1,
-    ...Typography.heading2,
   },
-  metaText: {
-    ...Typography.caption,
-  },
-  sectionLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: Colors.primary600,
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
-  },
-  bodyMd: {
+  contactName: {
     ...Typography.bodyMd,
   },
-  body: {
-    ...Typography.body,
+  contactMeta: {
+    ...Typography.caption,
+    marginTop: 2,
   },
-  mapsBtn: {
-    marginTop: Spacing.s1,
+  callBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.success100,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  // ── Stepper ─────────────────────────────────────────────────────────────────
+  stepperRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  stepperNodeCol: {
+    alignItems: 'center',
+    gap: Spacing.s1,
+    minWidth: 52,
+  },
+  stepperNode: {
+    width: NODE_SIZE,
+    height: NODE_SIZE,
+    borderRadius: NODE_SIZE / 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stepperNodeDone: {
+    backgroundColor: Colors.primary600,
+  },
+  stepperNodeCurrent: {
+    backgroundColor: Colors.white,
+    borderWidth: 2,
+    borderColor: Colors.primary600,
+  },
+  stepperNodeInnerDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: Colors.primary600,
+  },
+  stepperNodeFuture: {
+    backgroundColor: Colors.sand,
+  },
+  stepperLine: {
+    flex: 1,
+    height: 2,
+    marginTop: (NODE_SIZE - 2) / 2,
+  },
+  nodeLabel: {
+    fontSize: 11,
+    fontWeight: '500',
+    textAlign: 'center',
+    maxWidth: 52,
+  },
+  nodeLabelDone: {
+    color: Colors.gray600,
+  },
+  nodeLabelCurrent: {
+    color: Colors.primary600,
+    fontWeight: '600',
+  },
+  nodeLabelFuture: {
+    color: Colors.gray400,
+  },
+
+  // ── Agreed terms ────────────────────────────────────────────────────────────
+  termsRow: {
+    flexDirection: 'row',
+    gap: Spacing.s2,
+  },
+  termChip: {
+    flex: 1,
+    backgroundColor: Colors.bgApp,
+    borderRadius: Radius.sm,
+    paddingVertical: Spacing.s2,
+    paddingHorizontal: Spacing.s1,
+    alignItems: 'center',
+    gap: 2,
+  },
+  termValueAccent: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: Colors.primary600,
+  },
+  termValue: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.gray900,
+  },
+  termLabel: {
+    fontSize: 11,
+    fontWeight: '400',
+    color: Colors.gray400,
+  },
+
+  // ── Hint row ─────────────────────────────────────────────────────────────────
+  hintRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: Spacing.s2,
+    backgroundColor: Colors.bgApp,
+    borderRadius: Radius.sm,
+    padding: Spacing.s3,
+    borderWidth: 1,
+    borderColor: Colors.sand,
+  },
+  hintIcon: {
+    marginTop: 1,
+  },
+  hintText: {
+    flex: 1,
+    ...Typography.caption,
+    lineHeight: 18,
   },
 
   // ── Dispute link ────────────────────────────────────────────────────────────
