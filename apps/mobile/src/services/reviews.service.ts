@@ -25,4 +25,9 @@ export interface Review {
     name: string;
     avatarUrl: string | null;
   };
+  job?: {
+    id: string;
+    title: string;
+    completedAt: string | null;
+  } | null;
 }

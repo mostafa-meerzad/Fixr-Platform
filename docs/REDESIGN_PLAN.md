@@ -27,8 +27,8 @@ never hardcode colors, sizes, or spacing. Use t() for every user-visible string.
 
 ## Status
 
-**Last completed:** Phase 7a — Expert public profile screen
-**Current phase:** Phase 0 — Design System Token Swap
+**Last completed:** Phase 8f — Help & About screens
+**Current phase:** Phase 8 — Shared Screens
 
 ---
 
@@ -440,7 +440,7 @@ Design refs: `02c-expert-public-profile.png`, `02e-expert-onboarding-overview.pn
 Design refs: `04n-chat.png`, `02d-chat-with-bid-card.png`, `04o-review-form.png`, `04p-dispute-form.png`, `04q-reported-issues-and-notifications.png`, `04r-expert-reviews-page.png`, `04s-help-and-about.png`
 
 ### 8a — Chat screen
-- [ ] `apps/mobile/app/(shared)/chat/[jobId].tsx`
+- [x] `apps/mobile/app/(shared)/chat/[jobId].tsx`
   - Header: back arrow + expert avatar + name + online dot + job status pill right
   - Date separator pills centered (Yesterday / Today)
   - Received messages: white bubble, left-aligned, timestamp below
@@ -448,7 +448,7 @@ Design refs: `04n-chat.png`, `02d-chat-with-bid-card.png`, `04o-review-form.png`
   - Message input bar: white card, "Message…" placeholder, camera icon left, send button (terra cotta circle) right
 
 ### 8b — Review form
-- [ ] `apps/mobile/app/(shared)/review/[jobId].tsx`
+- [x] `apps/mobile/app/(shared)/review/[jobId].tsx`
   - "Skip" ghost link top-right
   - Expert avatar large centered + "How was [Expert Name]?" heading + job title + "completed today" below
   - 5 star row (tap to rate, stars fill terra cotta)
@@ -460,7 +460,7 @@ Design refs: `04n-chat.png`, `02d-chat-with-bid-card.png`, `04o-review-form.png`
   - "Submit Review" terra cotta CTA
 
 ### 8c — Dispute form
-- [ ] `apps/mobile/app/(shared)/dispute/[jobId].tsx`
+- [x] `apps/mobile/app/(shared)/dispute/[jobId].tsx`
   - Context line: "About: **[Job title]** with [Expert name]. Our team reviews every report within 24 hours."
   - Radio card options: No Show / Price Dispute / Work Quality / Communication Issue / Other
   - Selected card: terra cotta border + radio filled
@@ -468,23 +468,23 @@ Design refs: `04n-chat.png`, `02d-chat-with-bid-card.png`, `04o-review-form.png`
   - "Submit Dispute" destructive CTA (danger600 bg)
 
 ### 8d — Notifications screen
-- [ ] `apps/mobile/app/(shared)/notifications.tsx`
+- [x] `apps/mobile/app/(shared)/notifications.tsx`
   - "Notifications" heading + "Mark All Read" terra cotta link top-right
   - Notification rows: icon (contextual — bid=gavel, completion=check, system=bell), bold title, excerpt, time-ago
   - Unread: slightly darker bg row + unread dot right
   - Empty state: bell icon + "No notifications yet"
 
 ### 8e — Reviews page
-- [ ] `apps/mobile/app/(shared)/reviews/[userId].tsx`
+- [x] `apps/mobile/app/(shared)/reviews/[userId].tsx`
   - "Reviews · [Name]" header
   - Rating summary card: large score left + star bar chart (5→1) right
   - Review cards: reviewer avatar + job title + time-ago + stars right, tag chips row, quote text
 
 ### 8f — Help & About screens
-- [ ] `apps/mobile/app/(shared)/help.tsx`
+- [x] `apps/mobile/app/(shared)/help.tsx`
   - FAQ accordion rows (tap to expand/collapse)
   - "Call us — 079 000 0000 / Sat–Thu, 8am–6pm · WhatsApp anytime" call CTA card (terra cotta phone icon)
-- [ ] `apps/mobile/app/(shared)/about.tsx`
+- [x] `apps/mobile/app/(shared)/about.tsx`
   - Fixr logo + version number
   - Short "Fixr connects…" paragraph
   - Privacy Policy / Terms of Service / Contact links with chevrons

@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -10,46 +11,93 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
+import { Colors, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
 import { Icons } from '@/constants/icons';
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
 import { useToast } from '@/components/ui/Toast';
+import { jobsService } from '@/services/jobs.service';
 import { disputesService } from '@/services/disputes.service';
+import { useAuthStore } from '@/stores/auth.store';
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+interface DisputeJobDetail {
+  id: string;
+  title: string;
+  homeownerId: string;
+  homeowner: { id: string; name: string };
+  acceptedBid?: {
+    expert: { user: { id: string; name: string } };
+  } | null;
+}
 
 // ─── Reason options ────────────────────────────────────────────────────────────
 
 const DISPUTE_REASONS = [
-  { value: 'NO_SHOW',              labelKey: 'shared.dispute.reasonNoShow'      },
-  { value: 'PRICE_DISPUTE',        labelKey: 'shared.dispute.reasonPriceDispute'},
-  { value: 'WORK_QUALITY',         labelKey: 'shared.dispute.reasonWorkQuality' },
-  { value: 'COMMUNICATION_ISSUE',  labelKey: 'shared.dispute.reasonCommunication'},
-  { value: 'OTHER',                labelKey: 'shared.dispute.reasonOther'       },
+  {
+    value: 'NO_SHOW',
+    labelKey: 'shared.dispute.reasonNoShow',
+    subtitleKey: 'shared.dispute.reasonNoShowSub',
+  },
+  {
+    value: 'PRICE_DISPUTE',
+    labelKey: 'shared.dispute.reasonPriceDispute',
+    subtitleKey: 'shared.dispute.reasonPriceDisputeSub',
+  },
+  {
+    value: 'WORK_QUALITY',
+    labelKey: 'shared.dispute.reasonWorkQuality',
+    subtitleKey: 'shared.dispute.reasonWorkQualitySub',
+  },
+  {
+    value: 'COMMUNICATION_ISSUE',
+    labelKey: 'shared.dispute.reasonCommunication',
+    subtitleKey: 'shared.dispute.reasonCommunicationSub',
+  },
+  {
+    value: 'OTHER',
+    labelKey: 'shared.dispute.reasonOther',
+    subtitleKey: undefined,
+  },
 ] as const;
 
 type DisputeReason = (typeof DISPUTE_REASONS)[number]['value'];
+
+const DESC_MIN = 20;
 
 // ─── Screen ────────────────────────────────────────────────────────────────────
 
 export default function DisputeScreen() {
   const { t } = useTranslation();
   const { jobId } = useLocalSearchParams<{ jobId: string }>();
+  const user = useAuthStore((s) => s.user);
   const { show } = useToast();
 
+  const [job, setJob] = useState<DisputeJobDetail | null>(null);
+  const [loadingJob, setLoadingJob] = useState(true);
   const [selectedReason, setSelectedReason] = useState<DisputeReason | null>(null);
   const [description, setDescription] = useState('');
-  const [descriptionError, setDescriptionError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  const isValid = selectedReason !== null && description.trim().length >= 20;
+  useEffect(() => {
+    jobsService
+      .get(jobId)
+      .then((res) => setJob(res.data as DisputeJobDetail))
+      .catch(() => {})
+      .finally(() => setLoadingJob(false));
+  }, [jobId]);
 
-  function handleDescriptionBlur() {
-    if (description.trim().length > 0 && description.trim().length < 20) {
-      setDescriptionError(t('shared.dispute.descriptionError'));
-    } else {
-      setDescriptionError('');
-    }
-  }
+  // ── Derived values ─────────────────────────────────────────────────────────
+
+  const isHomeowner = job ? user?.id === job.homeownerId : user?.role === 'HOMEOWNER';
+  const otherPartyName = isHomeowner
+    ? (job?.acceptedBid?.expert?.user?.name ?? null)
+    : (job?.homeowner?.name ?? null);
+
+  const descCount = description.length;
+  const isValid = selectedReason !== null && description.trim().length >= DESC_MIN;
+
+  // ── Submit ─────────────────────────────────────────────────────────────────
 
   async function handleSubmit() {
     if (!isValid || !selectedReason) return;
@@ -92,12 +140,22 @@ export default function DisputeScreen() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {/* Page heading */}
-        <Text style={styles.heading}>{t('shared.dispute.heading')}</Text>
-        <Text style={styles.subtitle}>{t('shared.dispute.subtitle')}</Text>
+        {/* Context line — shows once job loads */}
+        {!loadingJob && job && (
+          <Text style={styles.contextLine}>
+            {t('shared.dispute.contextAbout')}{' '}
+            <Text style={styles.contextBold}>{job.title}</Text>
+            {otherPartyName ? (
+              <>
+                {' '}{t('shared.dispute.contextWith')}{' '}
+                <Text style={styles.contextBold}>{otherPartyName}</Text>
+              </>
+            ) : null}
+            {'. '}{t('shared.dispute.contextPromise')}
+          </Text>
+        )}
 
         {/* Reason selector */}
-        <Text style={styles.sectionLabel}>{t('shared.dispute.whatWentWrong')}</Text>
         <View style={styles.reasonList}>
           {DISPUTE_REASONS.map((reason) => {
             const isSelected = selectedReason === reason.value;
@@ -111,30 +169,38 @@ export default function DisputeScreen() {
                 <View style={[styles.radioCircle, isSelected && styles.radioCircleSelected]}>
                   {isSelected ? <View style={styles.radioDot} /> : null}
                 </View>
-                <Text style={[styles.reasonLabel, isSelected && styles.reasonLabelSelected]}>
-                  {t(reason.labelKey)}
-                </Text>
+                <View style={styles.reasonText}>
+                  <Text style={[styles.reasonLabel, isSelected && styles.reasonLabelSelected]}>
+                    {t(reason.labelKey)}
+                  </Text>
+                  {reason.subtitleKey !== undefined && (
+                    <Text style={[styles.reasonSub, isSelected && styles.reasonSubSelected]}>
+                      {t(reason.subtitleKey)}
+                    </Text>
+                  )}
+                </View>
               </TouchableOpacity>
             );
           })}
         </View>
 
         {/* Description */}
-        <Text style={styles.sectionLabel}>{t('shared.dispute.describeWhat')}</Text>
-        <Input
-          label=""
-          placeholder={t('shared.dispute.descriptionPlaceholder')}
-          value={description}
-          onChangeText={(text) => {
-            setDescription(text);
-            if (descriptionError) setDescriptionError('');
-          }}
-          onBlur={handleDescriptionBlur}
-          error={descriptionError}
-          multiline
-        />
+        <View style={styles.textareaCard}>
+          <TextInput
+            style={styles.textareaInput}
+            placeholder={t('shared.dispute.descriptionPlaceholder')}
+            placeholderTextColor={Colors.gray400}
+            value={description}
+            onChangeText={setDescription}
+            multiline
+            textAlignVertical="top"
+          />
+          <Text style={styles.charCount}>
+            {descCount} / {DESC_MIN} {t('shared.dispute.charMin')}
+          </Text>
+        </View>
 
-        {/* Submit button */}
+        {/* Submit */}
         <Button
           label={t('shared.dispute.submit')}
           onPress={handleSubmit}
@@ -192,23 +258,16 @@ const styles = StyleSheet.create({
     gap: Spacing.s4,
   },
 
-  // ── Heading ─────────────────────────────────────────────────────────────────
-  heading: {
-    ...Typography.heading1,
-    marginBottom: -Spacing.s2,
+  // ── Context line ─────────────────────────────────────────────────────────────
+  contextLine: {
+    fontSize: 14,
+    fontWeight: '400',
+    color: Colors.gray600,
+    lineHeight: 20,
   },
-  subtitle: {
-    ...Typography.body,
-  },
-
-  // ── Section labels ──────────────────────────────────────────────────────────
-  sectionLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: Colors.primary600,
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
-    marginBottom: -Spacing.s2,
+  contextBold: {
+    fontWeight: '700',
+    color: Colors.gray900,
   },
 
   // ── Reason list ─────────────────────────────────────────────────────────────
@@ -222,14 +281,14 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white,
     borderWidth: 1.5,
     borderColor: Colors.gray200,
-    borderRadius: Radius.sm,
+    borderRadius: Radius.md,
     paddingVertical: Spacing.s3,
     paddingHorizontal: Spacing.s4,
   },
   reasonRowSelected: {
     borderWidth: 2,
-    borderColor: Colors.danger600,
-    backgroundColor: Colors.danger100,
+    borderColor: Colors.primary600,
+    backgroundColor: Colors.primary50,
   },
   radioCircle: {
     width: 20,
@@ -239,10 +298,11 @@ const styles = StyleSheet.create({
     borderColor: Colors.gray400,
     alignItems: 'center',
     justifyContent: 'center',
+    flexShrink: 0,
   },
   radioCircleSelected: {
-    borderColor: Colors.danger600,
-    backgroundColor: Colors.danger600,
+    borderColor: Colors.primary600,
+    backgroundColor: Colors.primary600,
   },
   radioDot: {
     width: 8,
@@ -250,17 +310,49 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     backgroundColor: Colors.white,
   },
-  reasonLabel: {
+  reasonText: {
     flex: 1,
+    gap: 2,
+  },
+  reasonLabel: {
     fontSize: 15,
-    fontWeight: '500',
+    fontWeight: '600',
     color: Colors.gray900,
   },
   reasonLabelSelected: {
-    color: Colors.danger600,
+    color: Colors.primary600,
+  },
+  reasonSub: {
+    fontSize: 13,
+    fontWeight: '400',
+    color: Colors.gray400,
+  },
+  reasonSubSelected: {
+    color: Colors.primary600,
   },
 
-  // ── Submit button ────────────────────────────────────────────────────────────
+  // ── Textarea card ─────────────────────────────────────────────────────────────
+  textareaCard: {
+    backgroundColor: Colors.white,
+    borderRadius: Radius.md,
+    ...Shadows.sm,
+    padding: Spacing.s4,
+    gap: Spacing.s2,
+  },
+  textareaInput: {
+    fontSize: 15,
+    color: Colors.gray900,
+    minHeight: 100,
+    textAlignVertical: 'top',
+  },
+  charCount: {
+    fontSize: 12,
+    fontWeight: '400',
+    color: Colors.gray400,
+    textAlign: 'right',
+  },
+
+  // ── Submit button ─────────────────────────────────────────────────────────────
   submitBtnActive: {
     backgroundColor: Colors.danger600,
   },

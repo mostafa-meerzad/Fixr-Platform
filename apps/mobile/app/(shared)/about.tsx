@@ -1,44 +1,52 @@
-import React from "react";
+import React from 'react';
 import {
   Alert,
+  Linking,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
-} from "react-native";
-import { router } from "expo-router";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { useTranslation } from "react-i18next";
-import { MaterialIcons } from "@expo/vector-icons";
-import Constants from "expo-constants";
-import { Colors, Radius, Spacing, Typography } from "@/constants/theme";
-import { Icons } from "@/constants/icons";
-import { Divider } from "@/components/ui/Divider";
+} from 'react-native';
+import { router } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
+import { MaterialIcons } from '@expo/vector-icons';
+import Constants from 'expo-constants';
+import { Colors, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
+import { Icons } from '@/constants/icons';
 
 export default function AboutScreen() {
   const { t } = useTranslation();
-  const version = Constants.expoConfig?.version ?? "1.0.0";
+  const version = Constants.expoConfig?.version ?? '1.0.0';
 
-  const handlePolicy = () => {
-    Alert.alert(t("shared.about.privacyPolicy"), t("shared.about.comingSoon"));
-  };
+  const handlePolicy = () =>
+    Alert.alert(t('shared.about.privacyPolicy'), t('shared.about.comingSoon'));
 
-  const handleTerms = () => {
-    Alert.alert(t("shared.about.terms"), t("shared.about.comingSoon"));
-  };
+  const handleTerms = () =>
+    Alert.alert(t('shared.about.terms'), t('shared.about.comingSoon'));
+
+  const handleContact = () =>
+    Linking.openURL(`mailto:${t('shared.about.contactEmail')}`);
+
+  const links: Array<{ label: string; value?: string; onPress: () => void }> = [
+    { label: t('shared.about.privacyPolicy'), onPress: handlePolicy },
+    { label: t('shared.about.terms'), onPress: handleTerms },
+    {
+      label: t('shared.about.contact'),
+      value: t('shared.about.contactEmail'),
+      onPress: handleContact,
+    },
+  ];
 
   return (
-    <SafeAreaView style={styles.safe} edges={["top"]}>
+    <SafeAreaView style={styles.safe} edges={['top']}>
+      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <MaterialIcons
-            name={Icons.back as any}
-            size={24}
-            color={Colors.gray900}
-          />
+          <MaterialIcons name={Icons.back as any} size={24} color={Colors.gray900} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>{t("shared.about.title")}</Text>
+        <Text style={styles.headerTitle}>{t('shared.about.title')}</Text>
       </View>
 
       <ScrollView
@@ -48,51 +56,43 @@ export default function AboutScreen() {
         {/* Brand block */}
         <View style={styles.brandCard}>
           <View style={styles.iconWrap}>
-            <MaterialIcons
-              name={"home-repair-service" as any}
-              size={64}
-              color={Colors.primary600}
-            />
+            <MaterialIcons name={'build' as any} size={40} color={Colors.white} />
           </View>
-          <Text style={styles.appName}>Fixr</Text>
+          <Text style={styles.wordmark}>{t('shared.about.wordmark')}</Text>
           <Text style={styles.versionText}>
-            {t("shared.about.versionLabel")} {version}
+            {t('shared.about.versionLabel')} {version}
           </Text>
-          <Text style={styles.description}>{t("shared.about.description")}</Text>
+          <Text style={styles.description}>{t('shared.about.description')}</Text>
         </View>
 
-        <Divider style={styles.divider} />
-
-        {/* Legal */}
-        <View style={styles.legalCard}>
-          <TouchableOpacity
-            style={styles.legalRow}
-            onPress={handlePolicy}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.legalLabel}>{t("shared.about.privacyPolicy")}</Text>
-            <MaterialIcons
-              name={Icons.chevronRight as any}
-              size={20}
-              color={Colors.gray400}
-            />
-          </TouchableOpacity>
-          <Divider style={styles.legalDivider} />
-          <TouchableOpacity
-            style={styles.legalRow}
-            onPress={handleTerms}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.legalLabel}>{t("shared.about.terms")}</Text>
-            <MaterialIcons
-              name={Icons.chevronRight as any}
-              size={20}
-              color={Colors.gray400}
-            />
-          </TouchableOpacity>
+        {/* Links card */}
+        <View style={styles.linksCard}>
+          {links.map((link, idx) => (
+            <View key={link.label}>
+              <TouchableOpacity
+                style={styles.linkRow}
+                onPress={link.onPress}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.linkLabel}>{link.label}</Text>
+                {link.value ? (
+                  <Text style={styles.linkValue} numberOfLines={1}>
+                    {link.value}
+                  </Text>
+                ) : null}
+                <MaterialIcons
+                  name={Icons.chevronRight as any}
+                  size={20}
+                  color={Colors.gray400}
+                />
+              </TouchableOpacity>
+              {idx < links.length - 1 && <View style={styles.linkDivider} />}
+            </View>
+          ))}
         </View>
 
-        <View style={styles.bottomPad} />
+        {/* Footer */}
+        <Text style={styles.footer}>{t('shared.about.footer')} 🇦🇫</Text>
       </ScrollView>
     </SafeAreaView>
   );
@@ -103,9 +103,10 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.bgApp,
   },
+
   header: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     height: 56,
     backgroundColor: Colors.white,
     borderBottomWidth: 1,
@@ -118,77 +119,91 @@ const styles = StyleSheet.create({
     height: 32,
     borderRadius: 16,
     backgroundColor: Colors.gray100,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   headerTitle: {
     ...Typography.heading1,
     color: Colors.primary600,
   },
+
   content: {
-    paddingHorizontal: Spacing.s4,
-    paddingTop: Spacing.s6,
-    paddingBottom: Spacing.s6,
+    padding: Spacing.s4,
+    gap: Spacing.s3,
+    paddingBottom: Spacing.s8,
   },
+
+  // Brand
   brandCard: {
     backgroundColor: Colors.white,
     borderRadius: Radius.lg,
-    borderWidth: 1,
-    borderColor: Colors.gray200,
+    ...Shadows.sm,
     padding: Spacing.s6,
-    alignItems: "center",
+    alignItems: 'center',
+    gap: Spacing.s2,
   },
   iconWrap: {
-    width: 96,
-    height: 96,
+    width: 80,
+    height: 80,
     borderRadius: Radius.xl,
-    backgroundColor: Colors.primary50,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: Spacing.s4,
+    backgroundColor: Colors.primary600,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: Spacing.s2,
   },
-  appName: {
-    ...Typography.display,
+  wordmark: {
+    fontSize: 32,
+    fontWeight: '700',
     color: Colors.primary600,
-    marginBottom: Spacing.s1,
+    letterSpacing: -0.5,
   },
   versionText: {
     ...Typography.caption,
     color: Colors.gray400,
-    marginBottom: Spacing.s4,
   },
   description: {
     ...Typography.body,
     color: Colors.gray600,
-    textAlign: "center",
+    textAlign: 'center',
     lineHeight: 22,
+    marginTop: Spacing.s2,
   },
-  divider: {
-    marginVertical: Spacing.s4,
-  },
-  legalCard: {
+
+  // Links
+  linksCard: {
     backgroundColor: Colors.white,
     borderRadius: Radius.lg,
-    borderWidth: 1,
-    borderColor: Colors.gray200,
-    overflow: "hidden",
+    ...Shadows.sm,
+    overflow: 'hidden',
   },
-  legalRow: {
-    flexDirection: "row",
-    alignItems: "center",
+  linkRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     height: 52,
     paddingHorizontal: Spacing.s4,
+    gap: Spacing.s2,
   },
-  legalLabel: {
-    flex: 1,
+  linkLabel: {
     ...Typography.bodyMd,
     color: Colors.gray900,
+    flex: 1,
   },
-  legalDivider: {
-    marginVertical: 0,
+  linkValue: {
+    ...Typography.body,
+    color: Colors.gray400,
+    flexShrink: 1,
+  },
+  linkDivider: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: Colors.gray200,
     marginHorizontal: Spacing.s4,
   },
-  bottomPad: {
-    height: Spacing.s6,
+
+  // Footer
+  footer: {
+    ...Typography.caption,
+    color: Colors.gray400,
+    textAlign: 'center',
+    marginTop: Spacing.s4,
   },
 });

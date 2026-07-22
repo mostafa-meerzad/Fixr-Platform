@@ -13,7 +13,6 @@ import { useTranslation } from 'react-i18next';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Colors, IconSize, Radius, Spacing, Typography } from '@/constants/theme';
 import { Icons } from '@/constants/icons';
-import { Divider } from '@/components/ui/Divider';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { useAuthStore } from '@/stores/auth.store';
 import { useNotifStore } from '@/stores/notif.store';
@@ -186,7 +185,6 @@ export default function NotificationsScreen() {
         <FlatList
           data={items}
           keyExtractor={(item) => item.id}
-          ItemSeparatorComponent={() => <Divider />}
           showsVerticalScrollIndicator={false}
           onEndReached={loadMore}
           onEndReachedThreshold={0.3}
@@ -203,21 +201,21 @@ export default function NotificationsScreen() {
               onPress={() => handleTap(item)}
               activeOpacity={0.7}
             >
-              {/* Left: icon circle with optional unread dot */}
-              <View style={styles.iconWrap}>
-                <View style={styles.iconCircle}>
-                  <MaterialIcons
-                    name={notifIcon(item.type) as any}
-                    size={IconSize.inline}
-                    color={Colors.primary600}
-                  />
-                </View>
-                {!item.isRead && <View style={styles.unreadDot} />}
+              {/* Left: rounded-square icon — terra cotta when unread, gray when read */}
+              <View style={[
+                styles.iconSquare,
+                item.isRead ? styles.iconSquareRead : styles.iconSquareUnread,
+              ]}>
+                <MaterialIcons
+                  name={notifIcon(item.type) as any}
+                  size={IconSize.inline}
+                  color={item.isRead ? Colors.gray400 : Colors.primary600}
+                />
               </View>
 
               {/* Middle: title + body + time */}
               <View style={styles.textCol}>
-                <Text style={styles.notifTitle} numberOfLines={1}>
+                <Text style={[styles.notifTitle, !item.isRead && styles.notifTitleUnread]} numberOfLines={1}>
                   {item.titleEn}
                 </Text>
                 <Text style={styles.notifBody} numberOfLines={2}>
@@ -228,13 +226,9 @@ export default function NotificationsScreen() {
                 </Text>
               </View>
 
-              {/* Right: chevron when tappable */}
-              {item.data?.jobId ? (
-                <MaterialIcons
-                  name={Icons.chevronRight as any}
-                  size={IconSize.status}
-                  color={Colors.gray400}
-                />
+              {/* Right: unread dot */}
+              {!item.isRead ? (
+                <View style={styles.unreadDot} />
               ) : null}
             </TouchableOpacity>
           )}
@@ -299,33 +293,36 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.s3,
     backgroundColor: Colors.white,
     gap: Spacing.s3,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: Colors.gray200,
   },
   rowUnread: {
     backgroundColor: Colors.primary50,
   },
 
-  // Icon
-  iconWrap: {
-    position: 'relative',
-  },
-  iconCircle: {
+  // Icon — rounded square, read/unread variants
+  iconSquare: {
     width: 40,
     height: 40,
-    borderRadius: Radius.full,
-    backgroundColor: Colors.primary100,
+    borderRadius: Radius.md,
     alignItems: 'center',
     justifyContent: 'center',
+    flexShrink: 0,
   },
+  iconSquareUnread: {
+    backgroundColor: Colors.primary100,
+  },
+  iconSquareRead: {
+    backgroundColor: Colors.gray100,
+  },
+
+  // Unread dot — far right of row
   unreadDot: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: Colors.info600,
-    borderWidth: 1.5,
-    borderColor: Colors.white,
+    backgroundColor: Colors.danger600,
+    flexShrink: 0,
   },
 
   // Text column
@@ -335,6 +332,10 @@ const styles = StyleSheet.create({
   },
   notifTitle: {
     ...Typography.bodyMd,
+    color: Colors.gray600,
+  },
+  notifTitleUnread: {
+    color: Colors.gray900,
   },
   notifBody: {
     ...Typography.body,
