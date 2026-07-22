@@ -6,8 +6,9 @@ import React, {
   useState,
 } from 'react';
 import { Animated, StyleSheet, Text, View } from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Colors, Radius, Spacing } from '@/constants/theme';
+import { Colors, Radius, Shadows, Spacing } from '@/constants/theme';
 
 type ToastVariant = 'default' | 'success' | 'error';
 
@@ -26,10 +27,23 @@ export function useToast() {
   return useContext(ToastContext);
 }
 
+function variantIcon(variant: ToastVariant): string {
+  if (variant === 'success') return 'check-circle';
+  if (variant === 'error') return 'error';
+  return 'info';
+}
+
+function variantAccent(variant: ToastVariant): string {
+  if (variant === 'success') return Colors.success600;
+  if (variant === 'error') return Colors.danger600;
+  return Colors.gray400;
+}
+
 export function ToastProvider({ children }: { children: React.ReactNode }) {
-  const [config, setConfig] = useState<ToastConfig>({ message: '' });
+  const [config, setConfig] = useState<ToastConfig>({ message: '', variant: 'default' });
   const [visible, setVisible] = useState(false);
   const opacity = useRef(new Animated.Value(0)).current;
+  const translateY = useRef(new Animated.Value(12)).current;
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const insets = useSafeAreaInsets();
 
@@ -39,28 +53,23 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
       setConfig(newConfig);
       setVisible(true);
       opacity.setValue(0);
-      Animated.timing(opacity, {
-        toValue: 1,
-        duration: 200,
-        useNativeDriver: true,
-      }).start();
+      translateY.setValue(-12);
+      Animated.parallel([
+        Animated.timing(opacity, { toValue: 1, duration: 220, useNativeDriver: true }),
+        Animated.timing(translateY, { toValue: 0, duration: 220, useNativeDriver: true }),
+      ]).start();
       timer.current = setTimeout(() => {
-        Animated.timing(opacity, {
-          toValue: 0,
-          duration: 200,
-          useNativeDriver: true,
-        }).start(() => setVisible(false));
+        Animated.parallel([
+          Animated.timing(opacity, { toValue: 0, duration: 200, useNativeDriver: true }),
+          Animated.timing(translateY, { toValue: -8, duration: 200, useNativeDriver: true }),
+        ]).start(() => setVisible(false));
       }, 3000);
     },
-    [opacity],
+    [opacity, translateY],
   );
 
-  const borderColor =
-    config.variant === 'success'
-      ? Colors.success600
-      : config.variant === 'error'
-        ? Colors.danger600
-        : undefined;
+  const variant = config.variant ?? 'default';
+  const accent = variantAccent(variant);
 
   return (
     <ToastContext.Provider value={{ show }}>
@@ -70,12 +79,13 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
           pointerEvents="none"
           style={[
             styles.toast,
-            { bottom: insets.bottom + 80 },
-            { opacity },
-            borderColor ? { borderLeftWidth: 4, borderLeftColor: borderColor } : null,
+            { top: insets.top + Spacing.s2 },
+            { opacity, transform: [{ translateY }] },
           ]}
         >
-          <Text style={styles.text}>{config.message}</Text>
+          <View style={[styles.accent, { backgroundColor: accent }]} />
+          <MaterialIcons name={variantIcon(variant) as any} size={18} color={accent} style={styles.icon} />
+          <Text style={styles.text} numberOfLines={2}>{config.message}</Text>
         </Animated.View>
       )}
     </ToastContext.Provider>
@@ -87,14 +97,30 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: Spacing.s4,
     right: Spacing.s4,
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: Colors.gray900,
     borderRadius: Radius.md,
-    paddingVertical: 12,
+    paddingVertical: Spacing.s3,
     paddingHorizontal: Spacing.s4,
+    overflow: 'hidden',
     zIndex: 9999,
+    ...Shadows.lg,
+  },
+  accent: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: 4,
+  },
+  icon: {
+    marginRight: Spacing.s2,
+    flexShrink: 0,
   },
   text: {
-    fontSize: 15,
+    flex: 1,
+    fontSize: 14,
     fontWeight: '500',
     color: Colors.white,
   },
