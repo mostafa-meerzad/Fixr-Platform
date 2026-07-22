@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   Image,
   ScrollView,
   StyleSheet,
@@ -17,6 +16,7 @@ import * as ImagePicker from "expo-image-picker";
 
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { Button } from "@/components/ui/Button";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { useToast } from "@/components/ui/Toast";
 import { mediaService } from "@/services/media.service";
 import { jobsService } from "@/services/jobs.service";
@@ -51,6 +51,7 @@ export default function MediaScreen() {
 
   const [photos, setPhotos] = useState<PhotoItem[]>([]);
   const [video, setVideo] = useState<VideoItem | null>(null);
+  const [goBackVisible, setGoBackVisible] = useState(false);
 
   useEffect(() => {
     jobsService.get(jobId).then(({ data }) => {
@@ -67,17 +68,7 @@ export default function MediaScreen() {
   }, [jobId]);
 
   function handleBack() {
-    Alert.alert(
-      t("homeowner.post.goBackTitle"),
-      t("homeowner.post.goBackMessage"),
-      [
-        { text: t("common.cancel"), style: "cancel" },
-        {
-          text: t("homeowner.post.goBackConfirm"),
-          onPress: () => router.back(),
-        },
-      ],
-    );
+    setGoBackVisible(true);
   }
 
   async function handleAddPhoto() {
@@ -366,6 +357,16 @@ export default function MediaScreen() {
           /> */}
         </View>
       </ScrollView>
+
+      <ConfirmDialog
+        visible={goBackVisible}
+        title={t("homeowner.post.goBackTitle")}
+        message={t("homeowner.post.goBackMessage")}
+        confirmLabel={t("homeowner.post.goBackConfirm")}
+        cancelLabel={t("common.cancel")}
+        onConfirm={() => { setGoBackVisible(false); router.back(); }}
+        onCancel={() => setGoBackVisible(false)}
+      />
     </SafeAreaView>
   );
 }

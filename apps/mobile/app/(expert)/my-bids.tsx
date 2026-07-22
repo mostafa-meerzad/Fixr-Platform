@@ -1,7 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   FlatList,
   RefreshControl,
   StyleSheet,
@@ -15,6 +14,7 @@ import { useTranslation } from 'react-i18next';
 import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { Divider } from '@/components/ui/Divider';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Pill } from '@/components/ui/Pill';
@@ -65,6 +65,7 @@ export default function MyBidsScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [withdrawTarget, setWithdrawTarget] = useState<Bid | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -87,30 +88,20 @@ export default function MyBidsScreen() {
     setRefreshing(false);
   }, [load]);
 
-  const handleWithdraw = useCallback(
-    (bid: Bid) => {
-      Alert.alert(
-        t('expert.myBids.withdrawConfirmTitle'),
-        t('expert.myBids.withdrawConfirmMsg'),
-        [
-          { text: t('common.cancel'), style: 'cancel' },
-          {
-            text: t('expert.myBids.withdraw'),
-            style: 'destructive',
-            onPress: async () => {
-              try {
-                await bidsService.withdraw(bid.id);
-                await load();
-              } catch {
-                // silent — bid may already be withdrawn
-              }
-            },
-          },
-        ],
-      );
-    },
-    [load, t],
-  );
+  const handleWithdraw = useCallback((bid: Bid) => {
+    setWithdrawTarget(bid);
+  }, []);
+
+  const confirmWithdraw = useCallback(async () => {
+    if (!withdrawTarget) return;
+    setWithdrawTarget(null);
+    try {
+      await bidsService.withdraw(withdrawTarget.id);
+      await load();
+    } catch {
+      // silent — bid may already be withdrawn
+    }
+  }, [withdrawTarget, load]);
 
   // Classify bids into 3 tabs
   const activeBids = bids.filter(
@@ -228,6 +219,17 @@ export default function MyBidsScreen() {
           }
         />
       )}
+
+      <ConfirmDialog
+        visible={withdrawTarget !== null}
+        title={t('expert.myBids.withdrawConfirmTitle')}
+        message={t('expert.myBids.withdrawConfirmMsg')}
+        confirmLabel={t('expert.myBids.withdraw')}
+        cancelLabel={t('common.cancel')}
+        confirmVariant="destructive"
+        onConfirm={confirmWithdraw}
+        onCancel={() => setWithdrawTarget(null)}
+      />
     </SafeAreaView>
   );
 }

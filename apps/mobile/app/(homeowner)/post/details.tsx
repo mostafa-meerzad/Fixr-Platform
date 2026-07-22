@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   FlatList,
   Image,
   KeyboardAvoidingView,
@@ -23,6 +22,7 @@ import * as ImagePicker from 'expo-image-picker';
 
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { Button } from '@/components/ui/Button';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { Input } from '@/components/ui/Input';
 import { useToast } from '@/components/ui/Toast';
 import { lookupService, type Zone } from '@/services/lookup.service';
@@ -79,6 +79,7 @@ export default function DetailsScreen() {
 
   // Submit
   const [submitting, setSubmitting] = useState(false);
+  const [discardVisible, setDiscardVisible] = useState(false);
 
   useEffect(() => {
     Promise.all([lookupService.zones(), usersService.getMe()])
@@ -97,14 +98,7 @@ export default function DetailsScreen() {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleBack() {
-    Alert.alert(
-      t('homeowner.post.discardTitle'),
-      t('homeowner.post.discardMessage'),
-      [
-        { text: t('common.cancel'), style: 'cancel' },
-        { text: t('homeowner.post.discardConfirm'), style: 'destructive', onPress: () => router.back() },
-      ],
-    );
+    setDiscardVisible(true);
   }
 
   async function handleAddPhoto() {
@@ -413,6 +407,17 @@ export default function DetailsScreen() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      <ConfirmDialog
+        visible={discardVisible}
+        title={t('homeowner.post.discardTitle')}
+        message={t('homeowner.post.discardMessage')}
+        confirmLabel={t('homeowner.post.discardConfirm')}
+        cancelLabel={t('common.cancel')}
+        confirmVariant="destructive"
+        onConfirm={() => { setDiscardVisible(false); router.back(); }}
+        onCancel={() => setDiscardVisible(false)}
+      />
 
       {/* Zone picker modal */}
       <Modal

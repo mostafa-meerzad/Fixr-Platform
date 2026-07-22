@@ -1,7 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   ScrollView,
   StyleSheet,
   Text,
@@ -16,6 +15,7 @@ import { Colors, Radius, Shadows, Spacing, Typography } from '@/constants/theme'
 import { Icons } from '@/constants/icons';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Pill, getStatusVariant } from '@/components/ui/Pill';
 import { useToast } from '@/components/ui/Toast';
@@ -72,6 +72,7 @@ export default function HomeScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Job | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -103,29 +104,22 @@ export default function HomeScreen() {
   }
 
   function handleDeleteDraft(job: Job) {
-    Alert.alert(
-      t('homeowner.myJobs.deleteConfirmTitle'),
-      t('homeowner.myJobs.deleteConfirmMessage'),
-      [
-        { text: t('common.cancel'), style: 'cancel' },
-        {
-          text: t('homeowner.myJobs.deleteConfirmBtn'),
-          style: 'destructive',
-          onPress: async () => {
-            setDeletingId(job.id);
-            try {
-              await jobsService.deleteDraft(job.id);
-              setDraftJobs((prev) => prev.filter((j) => j.id !== job.id));
-              toast.show({ message: t('homeowner.myJobs.deletedToast'), variant: 'success' });
-            } catch {
-              toast.show({ message: t('common.error'), variant: 'error' });
-            } finally {
-              setDeletingId(null);
-            }
-          },
-        },
-      ],
-    );
+    setDeleteTarget(job);
+  }
+
+  async function confirmDeleteDraft() {
+    if (!deleteTarget) return;
+    setDeletingId(deleteTarget.id);
+    setDeleteTarget(null);
+    try {
+      await jobsService.deleteDraft(deleteTarget.id);
+      setDraftJobs((prev) => prev.filter((j) => j.id !== deleteTarget.id));
+      toast.show({ message: t('homeowner.myJobs.deletedToast'), variant: 'success' });
+    } catch {
+      toast.show({ message: t('common.error'), variant: 'error' });
+    } finally {
+      setDeletingId(null);
+    }
   }
 
   const hasContent = recentJobs.length > 0 || draftJobs.length > 0;
@@ -313,6 +307,17 @@ export default function HomeScreen() {
           )}
         </ScrollView>
       )}
+
+      <ConfirmDialog
+        visible={deleteTarget !== null}
+        title={t('homeowner.myJobs.deleteConfirmTitle')}
+        message={t('homeowner.myJobs.deleteConfirmMessage')}
+        confirmLabel={t('homeowner.myJobs.deleteConfirmBtn')}
+        cancelLabel={t('common.cancel')}
+        confirmVariant="destructive"
+        onConfirm={confirmDeleteDraft}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </SafeAreaView>
   );
 }

@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   FlatList,
   Keyboard,
   Modal,
@@ -28,6 +27,7 @@ import { Icons } from '@/constants/icons';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Button } from '@/components/ui/Button';
 import { Pill, getStatusVariant } from '@/components/ui/Pill';
+import { useToast } from '@/components/ui/Toast';
 import { chatService } from '@/services/chat.service';
 import { jobsService, type JobStatus } from '@/services/jobs.service';
 import { bidsService } from '@/services/bids.service';
@@ -362,6 +362,7 @@ interface SendBidSheetProps {
 
 function SendBidSheet({ visible, onClose, onSend }: SendBidSheetProps) {
   const { t } = useTranslation();
+  const toast = useToast();
   const insets = useSafeAreaInsets();
   const [price, setPrice] = useState('');
   const [note, setNote] = useState('');
@@ -371,7 +372,7 @@ function SendBidSheet({ visible, onClose, onSend }: SendBidSheetProps) {
   async function handleSend() {
     const parsed = parseInt(price.replace(/\D/g, ''), 10);
     if (!parsed || parsed <= 0) {
-      Alert.alert('', t('shared.chat.priceRequired'));
+      toast.show({ message: t('shared.chat.priceRequired'), variant: 'error' });
       return;
     }
     setSending(true);
@@ -382,7 +383,7 @@ function SendBidSheet({ visible, onClose, onSend }: SendBidSheetProps) {
       setArrival('');
       onClose();
     } catch {
-      Alert.alert('', t('common.error'));
+      toast.show({ message: t('common.error'), variant: 'error' });
     } finally {
       setSending(false);
     }
@@ -570,6 +571,7 @@ function Header({ onBack, title, jobInfo, isOtherOnline }: HeaderProps) {
 
 export default function ChatScreen() {
   const { t } = useTranslation();
+  const toast = useToast();
   const { jobId } = useLocalSearchParams<{ jobId: string }>();
   const user = useAuthStore((s) => s.user);
   const insets = useSafeAreaInsets();
@@ -599,9 +601,9 @@ export default function ChatScreen() {
       setAcceptingBid(true);
       try {
         await bidsService.accept(jobId, bidId);
-        Alert.alert(t('shared.chat.bidAccepted'), '');
+        toast.show({ message: t('shared.chat.bidAccepted'), variant: 'success' });
       } catch {
-        Alert.alert('', t('common.error'));
+        toast.show({ message: t('common.error'), variant: 'error' });
       } finally {
         setAcceptingBid(false);
       }
