@@ -27,7 +27,7 @@ never hardcode colors, sizes, or spacing. Use t() for every user-visible string.
 
 ## Status
 
-**Last completed:** Phase 5d — Job posted success screen (new)
+**Last completed:** Phase 6c — Expert job detail + bid form
 **Current phase:** Phase 0 — Design System Token Swap
 
 ---
@@ -382,7 +382,7 @@ Design refs: `04h-job-post-step1-category.png`, `04i-job-post-step3-urgency.png`
 Design refs: `04l-homeowner-job-detail-open.png`, `04m-homeowner-active-job-completion-requested.png`, `05i-expert-job-detail-place-bid.png`, `05k-expert-active-job-in-progress.png`
 
 ### 6a — Homeowner job detail
-- [ ] `apps/mobile/app/(homeowner)/job/[id].tsx`
+- [x] `apps/mobile/app/(homeowner)/job/[id].tsx`
   - Hero photo carousel at top (swipeable, dot indicators, no photos → category icon placeholder)
   - Job meta: category · zone · time-ago + urgency badge, status pill right
   - Description paragraph
@@ -391,7 +391,7 @@ Design refs: `04l-homeowner-job-detail-open.png`, `04m-homeowner-active-job-comp
   - "Cancel Job" danger text link at bottom
 
 ### 6b — Homeowner active job
-- [ ] `apps/mobile/app/(homeowner)/active-job/[id].tsx`
+- [x] `apps/mobile/app/(homeowner)/active-job/[id].tsx`
   - Amber top banner when COMPLETION_REQUESTED: warning triangle icon + "[Expert] says the work is finished — please check and confirm."
   - Expert card: avatar + name + verified badge + "agreed 900₾", "Message" secondary button right
   - "Job progress" stepper (same 4 nodes as expert view, but homeowner view only — no CTAs to change state)
@@ -400,7 +400,7 @@ Design refs: `04l-homeowner-job-detail-open.png`, `04m-homeowner-active-job-comp
   - CTA "Confirm Completion" → `variant="success"` (dark green), only shown when COMPLETION_REQUESTED
 
 ### 6c — Expert job detail + bid form
-- [ ] `apps/mobile/app/(expert)/job/[id].tsx`
+- [x] `apps/mobile/app/(expert)/job/[id].tsx`
   - Photos in a horizontal scroll at top (or category icon if none)
   - Job title + urgency badge (TODAY / EMERGENCY / SCHEDULED) top-right
   - Description paragraph

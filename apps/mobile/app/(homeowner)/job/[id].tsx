@@ -22,7 +22,7 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Divider } from '@/components/ui/Divider';
 import { Input } from '@/components/ui/Input';
-import { Pill } from '@/components/ui/Pill';
+import { Pill, getStatusVariant } from '@/components/ui/Pill';
 import { useToast } from '@/components/ui/Toast';
 import { bidsService } from '@/services/bids.service';
 import { jobsService, type JobStatus, type JobUrgency } from '@/services/jobs.service';
@@ -30,6 +30,20 @@ import { usersService, type PublicExpertProfile } from '@/services/users.service
 import { formatRelativeTime } from '@/utils/format';
 
 const SCREEN_W = Dimensions.get('window').width;
+
+// ─── Status label map ─────────────────────────────────────────────────────────
+
+const STATUS_T_KEYS: Record<string, string> = {
+  OPEN: 'homeowner.jobDetail.statusOpen',
+  ASSIGNED: 'common.status.assigned',
+  EN_ROUTE: 'common.status.enRoute',
+  ARRIVED: 'common.status.arrived',
+  IN_PROGRESS: 'common.status.inProgress',
+  COMPLETION_REQUESTED: 'common.status.completionRequested',
+  COMPLETED: 'common.status.completed',
+  CANCELLED: 'common.status.cancelled',
+  DISPUTED: 'common.status.disputed',
+};
 
 // ─── Local types ───────────────────────────────────────────────────────────────
 
@@ -97,7 +111,7 @@ interface JobDetail {
   acceptedBid?: AcceptedBid | null;
 }
 
-// ─── Helper ────────────────────────────────────────────────────────────────────
+// ─── Helpers ───────────────────────────────────────────────────────────────────
 
 function getUrgencyLabel(urgency: JobUrgency): string {
   if (urgency === 'EMERGENCY') return 'Emergency';
@@ -126,10 +140,11 @@ interface BidCardProps {
 
 function BidCard({ bid, onAccept, onViewExpert, t }: BidCardProps) {
   const isVerified = bid.expert.verificationStatus === 'VERIFIED';
+
   return (
     <Card style={styles.bidCard}>
-      {/* Expert row — tappable to view full profile */}
-      <TouchableOpacity style={styles.bidExpertRow} onPress={onViewExpert} activeOpacity={0.7}>
+      {/* Expert + price row */}
+      <TouchableOpacity style={styles.bidTopRow} onPress={onViewExpert} activeOpacity={0.7}>
         <Avatar
           size={40}
           name={bid.expert.user.name}
@@ -138,41 +153,34 @@ function BidCard({ bid, onAccept, onViewExpert, t }: BidCardProps) {
         />
         <View style={styles.bidExpertInfo}>
           <View style={styles.bidNameRow}>
-            <Text style={styles.bidExpertName}>{bid.expert.user.name}</Text>
+            <Text style={styles.bidExpertName} numberOfLines={1}>{bid.expert.user.name}</Text>
             {isVerified && (
-              <View style={styles.verifiedRow}>
-                <MaterialIcons name={Icons.verified as any} size={IconSize.status} color={Colors.success600} />
-                <Text style={styles.verifiedText}>{t('homeowner.jobDetail.verified')}</Text>
-              </View>
+              <MaterialIcons name={Icons.verified as any} size={14} color={Colors.success600} />
             )}
           </View>
           <Text style={styles.bidExpertMeta}>
             ★ {bid.expert.rating?.toFixed(1) ?? '—'} · {bid.expert.completedJobs} {t('homeowner.jobDetail.jobsCompleted')}
           </Text>
         </View>
-        <MaterialIcons name={Icons.chevronRight as any} size={IconSize.inline} color={Colors.gray400} />
+        <View style={styles.bidPriceBlock}>
+          <Text style={styles.bidPrice}>{bid.price.toLocaleString()} AFN</Text>
+          <Text style={styles.bidArrivalText}>
+            ~{bid.estimatedArrivalMinutes}min · {bid.estimatedDurationHours}h
+          </Text>
+        </View>
       </TouchableOpacity>
 
-      {/* Price + arrival */}
-      <View style={styles.bidPriceRow}>
-        <Text style={styles.bidPrice}>{bid.price.toLocaleString()} AFN</Text>
-        <Text style={styles.bidArrival}>
-          ~{bid.estimatedArrivalMinutes}min {t('homeowner.jobDetail.arrival')}
-        </Text>
-      </View>
-
-      {/* Chips */}
-      <View style={styles.bidChipRow}>
-        <View style={styles.chip}>
-          <Text style={styles.chipText}>{bid.estimatedDurationHours}hrs est.</Text>
+      {/* Warranty chip */}
+      {bid.warrantyDescription ? (
+        <View style={styles.warrantyRow}>
+          <MaterialIcons name={Icons.checkCircle as any} size={12} color={Colors.success600} />
+          <Text style={styles.warrantyText} numberOfLines={1}>
+            {t('homeowner.jobDetail.warranty')} · {bid.warrantyDescription}
+          </Text>
         </View>
-        {bid.warrantyDescription ? (
-          <View style={styles.chip}>
-            <Text style={styles.chipText} numberOfLines={1}>{bid.warrantyDescription}</Text>
-          </View>
-        ) : null}
-      </View>
+      ) : null}
 
+      {/* Expert message */}
       {bid.expertMessage ? (
         <Text style={styles.bidMessage} numberOfLines={2}>{bid.expertMessage}</Text>
       ) : null}
@@ -180,7 +188,7 @@ function BidCard({ bid, onAccept, onViewExpert, t }: BidCardProps) {
       <Button
         label={t('homeowner.jobDetail.acceptBid')}
         onPress={onAccept}
-        style={{ marginTop: Spacing.s3 }}
+        style={styles.bidAcceptBtn}
       />
     </Card>
   );
@@ -338,6 +346,7 @@ export default function HomeownerJobDetailScreen() {
   const isAssignedPlus = ASSIGNED_PLUS.includes(job.status);
   const isCompleted = job.status === 'COMPLETED';
   const images = job.media.filter((m) => m.type === 'image');
+  const statusLabel = t(STATUS_T_KEYS[job.status] ?? job.status);
 
   // ── Render ──────────────────────────────────────────────────────────────────
 
@@ -354,7 +363,7 @@ export default function HomeownerJobDetailScreen() {
         </View>
 
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
-          {/* ── Image / placeholder ── */}
+          {/* ── Hero carousel or placeholder ── */}
           {images.length > 0 ? (
             <View style={styles.imageContainer}>
               <ScrollView
@@ -400,38 +409,31 @@ export default function HomeownerJobDetailScreen() {
 
           {/* ── White content card ── */}
           <View style={styles.contentCard}>
-            {/* Title */}
-            <Text style={styles.jobTitle}>{job.title}</Text>
-
-            {/* Category chip + urgency pill */}
-            <View style={styles.rowBetween}>
-              {job.category ? (
-                <View style={styles.categoryChip}>
-                  <Text style={styles.categoryText}>{job.category.nameEn}</Text>
-                </View>
-              ) : (
-                <View />
-              )}
-              <Pill label={getUrgencyLabel(job.urgency)} variant={getUrgencyVariant(job.urgency)} />
+            {/* Title + status pill */}
+            <View style={styles.titleRow}>
+              <Text style={styles.jobTitle} numberOfLines={2}>{job.title}</Text>
+              <Pill label={statusLabel} variant={getStatusVariant(job.status)} />
             </View>
 
-            {/* Zone + time */}
-            <Text style={styles.metaText}>
-              {job.zone.nameEn} · {formatRelativeTime(job.createdAt, 'en')}
-            </Text>
-
-            <Divider />
+            {/* Urgency badge + category · zone · time-ago */}
+            <View style={styles.metaRow}>
+              <Pill label={getUrgencyLabel(job.urgency)} variant={getUrgencyVariant(job.urgency)} />
+              <Text style={styles.metaText} numberOfLines={1}>
+                {job.category ? `${job.category.nameEn} · ` : ''}
+                {job.zone.nameEn} · {formatRelativeTime(job.createdAt, 'en')}
+              </Text>
+            </View>
 
             {/* Description */}
-            <Text style={styles.sectionLabel}>{t('homeowner.jobDetail.description')}</Text>
-            <Text style={styles.bodyText}>{job.description || '—'}</Text>
+            {job.description ? (
+              <Text style={styles.bodyText}>{job.description}</Text>
+            ) : null}
 
-            <Divider />
-
-            {/* Location */}
-            <Text style={styles.sectionLabel}>{t('homeowner.jobDetail.location')}</Text>
-            <Text style={styles.bodyText}>{job.address}</Text>
-            <Text style={styles.captionText}>{job.zone.nameEn}</Text>
+            {/* Address row */}
+            <View style={styles.addressRow}>
+              <MaterialIcons name={Icons.location as any} size={IconSize.status} color={Colors.gray400} />
+              <Text style={styles.addressText}>{job.address}</Text>
+            </View>
 
             {/* ── Assigned expert block (non-OPEN) ── */}
             {job.acceptedBid && (
@@ -497,34 +499,32 @@ export default function HomeownerJobDetailScreen() {
               <>
                 <Divider />
 
-                {/* Bids header */}
+                {/* Bids header + sort row */}
                 <View style={styles.bidsHeader}>
-                  <Text style={styles.sectionLabel}>{t('homeowner.jobDetail.bidsReceived')}</Text>
-                  <View style={styles.countChip}>
-                    <Text style={styles.countText}>
-                      {bids.length} {t('homeowner.jobDetail.bids')}
-                    </Text>
+                  <View style={styles.bidsHeaderLeft}>
+                    <Text style={styles.sectionLabel}>{t('homeowner.jobDetail.bidsReceived')}</Text>
+                    <View style={styles.countChip}>
+                      <Text style={styles.countText}>{bids.length}</Text>
+                    </View>
                   </View>
-                </View>
-
-                {/* Sort row */}
-                <View style={styles.sortRow}>
-                  <TouchableOpacity
-                    style={[styles.sortBtn, sortBy === 'price' ? styles.sortBtnActive : styles.sortBtnInactive]}
-                    onPress={() => setSortBy('price')}
-                  >
-                    <Text style={[styles.sortText, sortBy === 'price' ? styles.sortTextActive : styles.sortTextInactive]}>
-                      {t('homeowner.jobDetail.sortPrice')}
-                    </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[styles.sortBtn, sortBy === 'arrival' ? styles.sortBtnActive : styles.sortBtnInactive]}
-                    onPress={() => setSortBy('arrival')}
-                  >
-                    <Text style={[styles.sortText, sortBy === 'arrival' ? styles.sortTextActive : styles.sortTextInactive]}>
-                      {t('homeowner.jobDetail.sortArrival')}
-                    </Text>
-                  </TouchableOpacity>
+                  <View style={styles.sortRow}>
+                    <TouchableOpacity
+                      style={[styles.sortBtn, sortBy === 'price' ? styles.sortBtnActive : styles.sortBtnInactive]}
+                      onPress={() => setSortBy('price')}
+                    >
+                      <Text style={[styles.sortText, sortBy === 'price' ? styles.sortTextActive : styles.sortTextInactive]}>
+                        {t('homeowner.jobDetail.sortPrice')}
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[styles.sortBtn, sortBy === 'arrival' ? styles.sortBtnActive : styles.sortBtnInactive]}
+                      onPress={() => setSortBy('arrival')}
+                    >
+                      <Text style={[styles.sortText, sortBy === 'arrival' ? styles.sortTextActive : styles.sortTextInactive]}>
+                        {t('homeowner.jobDetail.sortArrival')}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
 
                 {bidsLoading ? (
@@ -533,7 +533,7 @@ export default function HomeownerJobDetailScreen() {
                   </View>
                 ) : sortedBids.length === 0 ? (
                   <View style={styles.bidsLoading}>
-                    <Text style={styles.captionText}>{t('homeowner.jobDetail.noBids')}</Text>
+                    <Text style={styles.emptyText}>{t('homeowner.jobDetail.noBids')}</Text>
                   </View>
                 ) : (
                   <View style={styles.bidsList}>
@@ -549,13 +549,14 @@ export default function HomeownerJobDetailScreen() {
                   </View>
                 )}
 
-                {/* Cancel job button */}
-                <Button
-                  label={t('homeowner.jobDetail.cancelJob')}
-                  variant="destructive"
+                {/* Cancel job text link */}
+                <TouchableOpacity
+                  style={styles.cancelLink}
                   onPress={() => cancelSheetRef.current?.present()}
-                  style={styles.cancelBtn}
-                />
+                  activeOpacity={0.6}
+                >
+                  <Text style={styles.cancelLinkText}>{t('homeowner.jobDetail.cancelJob')}</Text>
+                </TouchableOpacity>
               </>
             )}
           </View>
@@ -719,7 +720,6 @@ export default function HomeownerJobDetailScreen() {
 
             <Divider />
 
-            {/* Shop name */}
             {expertProfile.shopName ? (
               <View style={styles.expertSheetSection}>
                 <Text style={styles.sectionLabel}>{t('homeowner.jobDetail.shopLabel')}</Text>
@@ -727,7 +727,6 @@ export default function HomeownerJobDetailScreen() {
               </View>
             ) : null}
 
-            {/* About */}
             {expertProfile.description ? (
               <View style={styles.expertSheetSection}>
                 <Text style={styles.sectionLabel}>{t('homeowner.jobDetail.aboutLabel')}</Text>
@@ -735,7 +734,6 @@ export default function HomeownerJobDetailScreen() {
               </View>
             ) : null}
 
-            {/* Service categories */}
             {expertProfile.serviceCategories.length > 0 && (
               <View style={styles.expertSheetSection}>
                 <Text style={styles.sectionLabel}>{t('homeowner.jobDetail.servicesLabel')}</Text>
@@ -749,7 +747,6 @@ export default function HomeownerJobDetailScreen() {
               </View>
             )}
 
-            {/* Service zones */}
             {expertProfile.serviceZones.length > 0 && (
               <View style={styles.expertSheetSection}>
                 <Text style={styles.sectionLabel}>{t('homeowner.jobDetail.zonesLabel')}</Text>
@@ -763,7 +760,6 @@ export default function HomeownerJobDetailScreen() {
               </View>
             )}
 
-            {/* Accept bid shortcut if we have a bid in context and job is open */}
             {viewingExpertBid && isOpen && (
               <>
                 <Divider />
@@ -838,7 +834,7 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.s8,
   },
 
-  // ── Image ───────────────────────────────────────────────────────────────────
+  // ── Hero image ───────────────────────────────────────────────────────────────
   imageContainer: {
     height: 220,
     backgroundColor: Colors.gray100,
@@ -874,7 +870,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 
-  // ── Content card ────────────────────────────────────────────────────────────
+  // ── Content card ─────────────────────────────────────────────────────────────
   contentCard: {
     backgroundColor: Colors.white,
     borderTopLeftRadius: Radius.xl,
@@ -884,45 +880,58 @@ const styles = StyleSheet.create({
     gap: Spacing.s3,
     flex: 1,
   },
+
+  // Title + status pill
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: Spacing.s3,
+  },
   jobTitle: {
+    flex: 1,
     ...Typography.heading1,
   },
-  rowBetween: {
+
+  // Urgency + category · zone · time
+  metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  categoryChip: {
-    backgroundColor: Colors.gray100,
-    paddingVertical: 6,
-    paddingHorizontal: Spacing.s3,
-    borderRadius: Radius.full,
-  },
-  categoryText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: Colors.gray600,
+    gap: Spacing.s2,
+    flexWrap: 'wrap',
   },
   metaText: {
     ...Typography.caption,
+    flex: 1,
   },
+
+  // Description
+  bodyText: {
+    ...Typography.body,
+    lineHeight: 22,
+  },
+
+  // Address row
+  addressRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.s1,
+  },
+  addressText: {
+    ...Typography.caption,
+    flex: 1,
+  },
+
+  // Section label (teal uppercase)
   sectionLabel: {
     fontSize: 12,
     fontWeight: '600',
     color: Colors.primary600,
     textTransform: 'uppercase',
     letterSpacing: 0.8,
-    marginBottom: Spacing.s1,
-  },
-  bodyText: {
-    ...Typography.body,
-    lineHeight: 22,
-  },
-  captionText: {
-    ...Typography.caption,
   },
 
-  // ── Expert block ────────────────────────────────────────────────────────────
+  // ── Expert block (assigned) ──────────────────────────────────────────────────
   expertCard: {
     gap: Spacing.s2,
   },
@@ -965,29 +974,37 @@ const styles = StyleSheet.create({
     marginTop: Spacing.s2,
   },
 
-  // ── Bids section ────────────────────────────────────────────────────────────
+  // ── Bids section ─────────────────────────────────────────────────────────────
   bidsHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
+  bidsHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.s2,
+  },
   countChip: {
     backgroundColor: Colors.primary100,
-    paddingVertical: 4,
-    paddingHorizontal: Spacing.s3,
+    minWidth: 24,
+    height: 24,
     borderRadius: Radius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: Spacing.s2,
   },
   countText: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '700',
     color: Colors.primary600,
   },
   sortRow: {
     flexDirection: 'row',
-    gap: Spacing.s2,
+    gap: Spacing.s1,
   },
   sortBtn: {
-    paddingVertical: 6,
+    paddingVertical: 5,
     paddingHorizontal: Spacing.s3,
     borderRadius: Radius.full,
   },
@@ -1013,73 +1030,96 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.s6,
     alignItems: 'center',
   },
+  emptyText: {
+    ...Typography.caption,
+    textAlign: 'center',
+  },
   bidsList: {
     gap: Spacing.s3,
   },
 
-  // ── Bid card ────────────────────────────────────────────────────────────────
+  // ── Bid card ─────────────────────────────────────────────────────────────────
   bidCard: {
     gap: Spacing.s2,
   },
-  bidExpertRow: {
+  // Expert info + price in a horizontal row
+  bidTopRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: Spacing.s3,
   },
   bidExpertInfo: {
     flex: 1,
+    justifyContent: 'center',
+    gap: 3,
   },
   bidNameRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.s2,
-    flexWrap: 'wrap',
+    gap: 4,
   },
   bidExpertName: {
     ...Typography.bodyMd,
-  },
-  verifiedRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 2,
-  },
-  verifiedText: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: Colors.success600,
+    flex: 1,
   },
   bidExpertMeta: {
     ...Typography.caption,
-    marginTop: 2,
   },
-  bidPriceRow: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    justifyContent: 'space-between',
+  bidPriceBlock: {
+    alignItems: 'flex-end',
+    gap: 2,
   },
   bidPrice: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '700',
     color: Colors.gray900,
   },
-  bidArrival: {
+  bidArrivalText: {
     ...Typography.caption,
+    textAlign: 'right',
   },
-  bidChipRow: {
+
+  // Warranty row
+  warrantyRow: {
     flexDirection: 'row',
-    gap: Spacing.s2,
-    flexWrap: 'wrap',
+    alignItems: 'center',
+    gap: Spacing.s1,
+    backgroundColor: Colors.success100,
+    paddingVertical: 5,
+    paddingHorizontal: Spacing.s3,
+    borderRadius: Radius.sm,
   },
+  warrantyText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: Colors.success600,
+    flex: 1,
+  },
+
+  // Expert message
   bidMessage: {
     ...Typography.body,
+    fontSize: 13,
   },
 
-  // ── Cancel button ───────────────────────────────────────────────────────────
-  cancelBtn: {
-    marginTop: Spacing.s3,
+  // Accept bid button
+  bidAcceptBtn: {
+    marginTop: Spacing.s1,
   },
 
-  // ── Bottom sheet ────────────────────────────────────────────────────────────
+  // Cancel link
+  cancelLink: {
+    alignItems: 'center',
+    paddingVertical: Spacing.s3,
+    marginTop: Spacing.s2,
+  },
+  cancelLinkText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: Colors.primary600,
+  },
+
+  // ── Bottom sheets ─────────────────────────────────────────────────────────────
   sheetContent: {
     gap: Spacing.s2,
     alignItems: 'stretch',
@@ -1137,7 +1177,7 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.s2,
   },
 
-  // ── Expert profile sheet ──────────────────────────────────────────────────
+  // Expert profile sheet
   sheetCentered: {
     paddingVertical: Spacing.s10,
     alignItems: 'center',

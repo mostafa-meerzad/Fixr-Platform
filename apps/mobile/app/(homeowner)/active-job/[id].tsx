@@ -12,15 +12,13 @@ import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { Colors, IconSize, Spacing, Typography } from '@/constants/theme';
+import { Colors, IconSize, Radius, Spacing, Typography } from '@/constants/theme';
 import { Icons } from '@/constants/icons';
 import { Avatar } from '@/components/ui/Avatar';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import { Pill, getStatusVariant } from '@/components/ui/Pill';
 import { useToast } from '@/components/ui/Toast';
-import { StatusTimeline } from '@/components/StatusTimeline';
-import { jobsService, type JobStatus, type JobUrgency } from '@/services/jobs.service';
+import { jobsService, type JobStatus } from '@/services/jobs.service';
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -36,7 +34,6 @@ interface ActiveJobDetail {
   id: string;
   title: string;
   status: JobStatus;
-  urgency: JobUrgency;
   address: string;
   zone: { id: string; nameEn: string };
   category?: { id: string; nameEn: string };
@@ -47,25 +44,155 @@ interface ActiveJobDetail {
     expertMessage?: string;
     expert: ActiveJobExpert;
   } | null;
-  completedAt?: string;
 }
+
+// ─── 4-step homeowner stepper ─────────────────────────────────────────────────
+
+function getHomeownerStep(status: JobStatus): number {
+  switch (status) {
+    case 'ASSIGNED':             return 0;
+    case 'EN_ROUTE':
+    case 'ARRIVED':              return 1;
+    case 'IN_PROGRESS':          return 2;
+    case 'COMPLETION_REQUESTED': return 3;
+    case 'COMPLETED':            return 4; // all nodes done
+    default:                     return 0;
+  }
+}
+
+function HomeownerStepper({ status }: { status: JobStatus }) {
+  const { t } = useTranslation();
+  const currentIdx = getHomeownerStep(status);
+
+  const steps = [
+    t('homeowner.activeJob.stepAssigned'),
+    t('homeowner.activeJob.stepEnRoute'),
+    t('homeowner.activeJob.stepWorking'),
+    t('homeowner.activeJob.stepConfirm'),
+  ];
+
+  return (
+    <View style={stepStyles.container}>
+      {/* Circles + lines row */}
+      <View style={stepStyles.circlesRow}>
+        {steps.map((_, i) => {
+          const isDone = i < currentIdx;
+          const isCurrent = i === currentIdx;
+          const isConfirmNode = i === 3;
+
+          return (
+            <React.Fragment key={i}>
+              <View style={[
+                stepStyles.circle,
+                isDone
+                  ? stepStyles.circleDone
+                  : isCurrent && isConfirmNode
+                    ? stepStyles.circleCurrentAmber
+                    : isCurrent
+                      ? stepStyles.circleCurrent
+                      : stepStyles.circleFuture,
+              ]}>
+                {isDone && (
+                  <MaterialIcons name="check" size={13} color={Colors.white} />
+                )}
+              </View>
+              {i < steps.length - 1 && (
+                <View style={[stepStyles.line, i < currentIdx && stepStyles.lineDone]} />
+              )}
+            </React.Fragment>
+          );
+        })}
+      </View>
+
+      {/* Labels row */}
+      <View style={stepStyles.labelsRow}>
+        {steps.map((label, i) => {
+          const isDone = i < currentIdx;
+          const isCurrent = i === currentIdx;
+          const isConfirmNode = i === 3;
+          return (
+            <View key={i} style={stepStyles.labelCol}>
+              <Text style={[
+                stepStyles.stepLabel,
+                (isDone || isCurrent) && stepStyles.stepLabelActive,
+                isCurrent && isConfirmNode && stepStyles.stepLabelAmber,
+              ]}>
+                {label}
+              </Text>
+            </View>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
+const stepStyles = StyleSheet.create({
+  container: {
+    gap: Spacing.s2,
+  },
+  circlesRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  circle: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  circleDone: {
+    backgroundColor: Colors.primary600,
+  },
+  circleCurrent: {
+    backgroundColor: Colors.white,
+    borderWidth: 2,
+    borderColor: Colors.primary600,
+  },
+  circleCurrentAmber: {
+    backgroundColor: Colors.white,
+    borderWidth: 2,
+    borderColor: Colors.amber,
+  },
+  circleFuture: {
+    backgroundColor: Colors.sand,
+  },
+  line: {
+    flex: 1,
+    height: 2,
+    backgroundColor: Colors.gray200,
+  },
+  lineDone: {
+    backgroundColor: Colors.primary600,
+  },
+  labelsRow: {
+    flexDirection: 'row',
+  },
+  labelCol: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  stepLabel: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: Colors.gray400,
+    textAlign: 'center',
+  },
+  stepLabelActive: {
+    color: Colors.gray600,
+    fontWeight: '600',
+  },
+  stepLabelAmber: {
+    color: Colors.amber,
+  },
+});
+
+// ─── Screen ────────────────────────────────────────────────────────────────────
 
 const DISPUTABLE_STATUSES: JobStatus[] = [
   'ASSIGNED', 'EN_ROUTE', 'ARRIVED', 'IN_PROGRESS', 'COMPLETION_REQUESTED',
 ];
-
-const STATUS_LABEL_KEYS: Partial<Record<JobStatus, string>> = {
-  ASSIGNED:             'common.status.assigned',
-  EN_ROUTE:             'common.status.enRoute',
-  ARRIVED:              'common.status.arrived',
-  IN_PROGRESS:          'common.status.inProgress',
-  COMPLETION_REQUESTED: 'common.status.completionRequested',
-  COMPLETED:            'common.status.completed',
-  CANCELLED:            'common.status.cancelled',
-  DISPUTED:             'common.status.disputed',
-};
-
-// ─── Screen ────────────────────────────────────────────────────────────────────
 
 export default function HomeownerActiveJobScreen() {
   const { t } = useTranslation();
@@ -97,13 +224,7 @@ export default function HomeownerActiveJobScreen() {
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    try {
-      await fetchJob();
-    } catch {
-      // silent
-    } finally {
-      setRefreshing(false);
-    }
+    try { await fetchJob(); } catch { /* silent */ } finally { setRefreshing(false); }
   }, [fetchJob]);
 
   useFocusEffect(useCallback(() => { load(); }, [load]));
@@ -163,59 +284,39 @@ export default function HomeownerActiveJobScreen() {
 
   // ── Derived ────────────────────────────────────────────────────────────────
 
-  const statusLabel = t(STATUS_LABEL_KEYS[job.status] ?? 'common.unknown');
   const expert = job.acceptedBid?.expert;
   const isVerified = expert?.verificationStatus === 'VERIFIED';
   const isCompletionRequested = job.status === 'COMPLETION_REQUESTED';
   const isCompleted = job.status === 'COMPLETED';
   const canDispute = DISPUTABLE_STATUSES.includes(job.status);
+  const expertFirstName = expert?.user.name.split(' ')[0] ?? '';
 
   // ── CTA ────────────────────────────────────────────────────────────────────
 
   function renderCTA() {
-    switch (job!.status) {
-      case 'ASSIGNED':
-      case 'EN_ROUTE':
-        return (
-          <View style={styles.waitingRow}>
-            <Text style={styles.waitingText}>{t('homeowner.activeJob.waitingForExpert')}</Text>
-          </View>
-        );
-      case 'ARRIVED':
-      case 'IN_PROGRESS':
-        return (
-          <View style={styles.waitingRow}>
-            <Text style={styles.waitingText}>{t('homeowner.activeJob.jobInProgress')}</Text>
-          </View>
-        );
-      case 'COMPLETION_REQUESTED':
-        return (
-          <View style={styles.completionCTAs}>
-            <Button
-              label={t('homeowner.activeJob.confirmCompletion')}
-              onPress={handleConfirmCompletion}
-              loading={confirmLoading}
-            />
-            <TouchableOpacity
-              style={styles.disputeCtaRow}
-              onPress={() => router.push(`/(shared)/dispute/${id}` as any)}
-            >
-              <Text style={styles.disputeCtaText}>{t('homeowner.activeJob.raiseDisputeBtn')}</Text>
-            </TouchableOpacity>
-          </View>
-        );
-      case 'COMPLETED':
-        return (
-          <Button
-            label={t('homeowner.activeJob.leaveReview')}
-            variant="secondary"
-            onPress={() => router.push(`/(shared)/review/${id}` as any)}
-          />
-        );
-      default:
-        return null;
+    if (isCompletionRequested) {
+      return (
+        <Button
+          label={t('homeowner.activeJob.confirmCompletion')}
+          variant="success"
+          onPress={handleConfirmCompletion}
+          loading={confirmLoading}
+        />
+      );
     }
+    if (isCompleted) {
+      return (
+        <Button
+          label={t('homeowner.activeJob.leaveReview')}
+          variant="secondary"
+          onPress={() => router.push(`/(shared)/review/${id}` as any)}
+        />
+      );
+    }
+    return null;
   }
+
+  const cta = renderCTA();
 
   // ── Render ─────────────────────────────────────────────────────────────────
 
@@ -226,17 +327,27 @@ export default function HomeownerActiveJobScreen() {
         <TouchableOpacity style={styles.backCircle} onPress={() => router.back()}>
           <MaterialIcons name={Icons.back as any} size={24} color={Colors.gray900} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>{t('homeowner.activeJob.title')}</Text>
-        <View style={styles.headerSpacer} />
+        <Text style={styles.headerTitle} numberOfLines={1}>{job.title}</Text>
+        {isCompletionRequested ? (
+          <View style={styles.confirmDoneBadge}>
+            <Text style={styles.confirmDoneBadgeText}>
+              {t('homeowner.activeJob.confirmDoneBadge')}
+            </Text>
+          </View>
+        ) : (
+          <View style={styles.headerSpacer} />
+        )}
       </View>
 
-      {/* COMPLETION_REQUESTED amber banner — pinned below header */}
-      {isCompletionRequested ? (
+      {/* Amber banner — COMPLETION_REQUESTED */}
+      {isCompletionRequested && (
         <View style={styles.completionBanner}>
-          <MaterialIcons name={Icons.checkCircle as any} size={IconSize.inline} color={Colors.warning600} />
-          <Text style={styles.completionBannerText}>{t('homeowner.activeJob.completionRequestedBanner')}</Text>
+          <MaterialIcons name={Icons.warning as any} size={IconSize.inline} color={Colors.warning600} />
+          <Text style={styles.completionBannerText}>
+            {t('homeowner.activeJob.completionRequestedBanner', { name: expertFirstName })}
+          </Text>
         </View>
-      ) : null}
+      )}
 
       {/* Scrollable content */}
       <ScrollView
@@ -244,96 +355,91 @@ export default function HomeownerActiveJobScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={Colors.primary600}
-          />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.primary600} />
         }
       >
-        {/* Job summary + expert card */}
-        <Card style={styles.card}>
-          <View style={styles.titleRow}>
-            <Text style={styles.jobTitle} numberOfLines={2}>{job.title}</Text>
-            <Pill label={statusLabel} variant={getStatusVariant(job.status)} />
-          </View>
-
-          {expert ? (
-            <>
-              <Text style={styles.sectionLabel}>{t('homeowner.activeJob.yourExpert')}</Text>
-
-              <View style={styles.expertRow}>
-                <Avatar
-                  size={40}
-                  name={expert.user.name}
-                  uri={expert.user.avatarUrl}
-                  verified={isVerified}
-                />
-                <View style={styles.expertInfo}>
-                  <View style={styles.expertNameRow}>
-                    <Text style={styles.expertName}>{expert.user.name}</Text>
-                    {isVerified ? (
-                      <Text style={styles.verifiedBadge}>{t('homeowner.activeJob.verified')}</Text>
-                    ) : null}
-                  </View>
-                  <Text style={styles.expertMeta}>
-                    {'★ '}{expert.rating?.toFixed(1) ?? '—'}{' · '}{expert.completedJobs}{' '}{t('homeowner.activeJob.jobsCompleted')}
-                  </Text>
-                </View>
-                {job.acceptedBid?.price ? (
-                  <Text style={styles.expertPrice}>
-                    {job.acceptedBid.price.toLocaleString()} AFN
-                  </Text>
-                ) : null}
-              </View>
-
-              <Button
-                label={t('homeowner.activeJob.messageExpert')}
-                variant="secondary"
-                leftIcon={Icons.tabChat}
-                onPress={() => router.push(`/(shared)/chat/${id}` as any)}
-                style={styles.messageBtn}
+        {/* Expert card */}
+        {expert && (
+          <Card style={styles.expertCard}>
+            <View style={styles.expertRow}>
+              <Avatar
+                size={40}
+                name={expert.user.name}
+                uri={expert.user.avatarUrl}
+                verified={isVerified}
               />
-            </>
-          ) : null}
-        </Card>
-
-        {/* Status timeline */}
-        <Card style={styles.card}>
-          <StatusTimeline status={job.status} />
-        </Card>
-
-        {/* Expert's completion note (COMPLETION_REQUESTED only) */}
-        {isCompletionRequested && job.acceptedBid?.expertMessage ? (
-          <Card style={styles.card}>
-            <Text style={styles.sectionLabel}>{t('homeowner.activeJob.expertNote')}</Text>
-            <Text style={styles.body}>{job.acceptedBid.expertMessage}</Text>
+              <View style={styles.expertInfo}>
+                <View style={styles.expertNameRow}>
+                  <Text style={styles.expertName}>{expert.user.name}</Text>
+                  {isVerified && (
+                    <MaterialIcons name={Icons.verified as any} size={14} color={Colors.success600} />
+                  )}
+                </View>
+                <Text style={styles.expertMeta} numberOfLines={1}>
+                  {'★ '}{expert.rating?.toFixed(1) ?? '—'}
+                  {' · '}{expert.completedJobs}{' '}{t('homeowner.activeJob.jobsCompleted')}
+                  {job.acceptedBid?.price
+                    ? ' · ' + t('homeowner.activeJob.agreedPrice', {
+                        price: job.acceptedBid.price.toLocaleString(),
+                      })
+                    : ''}
+                </Text>
+              </View>
+              <TouchableOpacity
+                style={styles.messageChip}
+                onPress={() => router.push(`/(shared)/chat/${id}` as any)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.messageChipText}>{t('homeowner.activeJob.messageBtn')}</Text>
+              </TouchableOpacity>
+            </View>
           </Card>
-        ) : null}
+        )}
 
-        {/* Warrant info (COMPLETED) */}
-        {isCompleted && job.acceptedBid?.warrantyDescription ? (
-          <Card style={styles.card}>
+        {/* Job progress stepper */}
+        <Card style={styles.progressCard}>
+          <Text style={styles.progressHeading}>{t('homeowner.activeJob.jobProgress')}</Text>
+          <HomeownerStepper status={job.status} />
+        </Card>
+
+        {/* Completion notes (COMPLETION_REQUESTED only) */}
+        {isCompletionRequested && job.acceptedBid?.expertMessage && (
+          <Card style={styles.notesCard}>
+            <Text style={styles.notesHeading}>
+              {t('homeowner.activeJob.completionNotesFrom', { name: expertFirstName })}
+            </Text>
+            <Text style={styles.notesBody}>"{job.acceptedBid.expertMessage}"</Text>
+          </Card>
+        )}
+
+        {/* Warranty info (COMPLETED only) */}
+        {isCompleted && job.acceptedBid?.warrantyDescription && (
+          <Card style={styles.notesCard}>
             <Text style={styles.sectionLabel}>{t('homeowner.activeJob.warranty')}</Text>
-            <Text style={styles.body}>{job.acceptedBid.warrantyDescription}</Text>
+            <Text style={styles.notesBody}>{job.acceptedBid.warrantyDescription}</Text>
           </Card>
-        ) : null}
+        )}
 
-        {/* Raise dispute link in scroll */}
-        {canDispute ? (
+        {/* Raise dispute link */}
+        {canDispute && (
           <TouchableOpacity
             style={styles.disputeRow}
             onPress={() => router.push(`/(shared)/dispute/${id}` as any)}
+            activeOpacity={0.6}
           >
-            <Text style={styles.disputeLink}>{t('homeowner.activeJob.raiseDispute')}</Text>
+            <Text style={styles.disputeLink}>
+              {t('homeowner.activeJob.raiseDisputeFull')}
+            </Text>
           </TouchableOpacity>
-        ) : null}
+        )}
       </ScrollView>
 
-      {/* Sticky CTA bar */}
-      <View style={styles.ctaBar}>
-        {renderCTA()}
-      </View>
+      {/* Sticky CTA bar (only when there's an action) */}
+      {cta && (
+        <View style={styles.ctaBar}>
+          {cta}
+        </View>
+      )}
     </SafeAreaView>
   );
 }
@@ -386,7 +492,21 @@ const styles = StyleSheet.create({
     width: 32,
   },
 
-  // ── Completion banner ────────────────────────────────────────────────────────
+  // "CONFIRM DONE" amber chip in header
+  confirmDoneBadge: {
+    backgroundColor: Colors.warning100,
+    paddingVertical: 4,
+    paddingHorizontal: Spacing.s2,
+    borderRadius: Radius.full,
+  },
+  confirmDoneBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: Colors.warning600,
+    letterSpacing: 0.5,
+  },
+
+  // ── Amber banner ────────────────────────────────────────────────────────────
   completionBanner: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -400,7 +520,7 @@ const styles = StyleSheet.create({
   completionBannerText: {
     flex: 1,
     fontSize: 13,
-    fontWeight: '500',
+    fontWeight: '600',
     color: Colors.warning600,
     lineHeight: 20,
   },
@@ -411,23 +531,71 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: Spacing.s4,
-    paddingBottom: 104,
+    paddingBottom: Spacing.s12,
     gap: Spacing.s3,
   },
 
-  // ── Cards ───────────────────────────────────────────────────────────────────
-  card: {
+  // ── Expert card ─────────────────────────────────────────────────────────────
+  expertCard: {
     gap: Spacing.s3,
   },
-  titleRow: {
+  expertRow: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
+    alignItems: 'center',
     gap: Spacing.s3,
   },
-  jobTitle: {
+  expertInfo: {
     flex: 1,
-    ...Typography.heading2,
+    gap: 3,
+  },
+  expertNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  expertName: {
+    ...Typography.bodyMd,
+  },
+  expertMeta: {
+    ...Typography.caption,
+  },
+  // Compact "Message" outlined pill button
+  messageChip: {
+    borderWidth: 1.5,
+    borderColor: Colors.primary600,
+    paddingVertical: 6,
+    paddingHorizontal: Spacing.s3,
+    borderRadius: Radius.full,
+  },
+  messageChipText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: Colors.primary600,
+  },
+
+  // ── Job progress card ────────────────────────────────────────────────────────
+  progressCard: {
+    gap: Spacing.s4,
+  },
+  progressHeading: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.gray900,
+  },
+
+  // ── Notes / warranty card ────────────────────────────────────────────────────
+  notesCard: {
+    gap: Spacing.s2,
+  },
+  notesHeading: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: Colors.gray900,
+  },
+  notesBody: {
+    ...Typography.body,
+    lineHeight: 22,
+    fontStyle: 'italic',
   },
   sectionLabel: {
     fontSize: 12,
@@ -436,83 +604,24 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.8,
   },
-  body: {
-    ...Typography.body,
-    lineHeight: 22,
-  },
 
-  // ── Expert block ─────────────────────────────────────────────────────────────
-  expertRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.s3,
-  },
-  expertInfo: {
-    flex: 1,
-  },
-  expertNameRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.s2,
-    flexWrap: 'wrap',
-  },
-  expertName: {
-    ...Typography.bodyMd,
-  },
-  verifiedBadge: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: Colors.success600,
-  },
-  expertMeta: {
-    ...Typography.caption,
-    marginTop: 2,
-  },
-  expertPrice: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: Colors.primary600,
-  },
-  messageBtn: {
-    marginTop: Spacing.s1,
-  },
-
-  // ── Dispute link in scroll ───────────────────────────────────────────────────
+  // ── Dispute link ─────────────────────────────────────────────────────────────
   disputeRow: {
     alignItems: 'center',
     paddingVertical: Spacing.s3,
   },
   disputeLink: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: Colors.danger600,
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.primary600,
+    textDecorationLine: 'underline',
   },
 
-  // ── CTA bar ──────────────────────────────────────────────────────────────────
+  // ── Sticky CTA bar ───────────────────────────────────────────────────────────
   ctaBar: {
     backgroundColor: Colors.white,
     borderTopWidth: 1,
     borderTopColor: Colors.gray200,
     padding: Spacing.s4,
-  },
-  waitingRow: {
-    alignItems: 'center',
-    paddingVertical: Spacing.s2,
-  },
-  waitingText: {
-    ...Typography.caption,
-    textAlign: 'center',
-  },
-  completionCTAs: {
-    gap: Spacing.s2,
-  },
-  disputeCtaRow: {
-    alignItems: 'center',
-    paddingVertical: Spacing.s2,
-  },
-  disputeCtaText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: Colors.danger600,
   },
 });
