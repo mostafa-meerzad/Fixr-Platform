@@ -27,7 +27,7 @@ never hardcode colors, sizes, or spacing. Use t() for every user-visible string.
 
 ## Status
 
-**Last completed:** Phase 3e — Buy credits screen
+**Last completed:** Phase 4d — Homeowner Profile tab
 **Current phase:** Phase 0 — Design System Token Swap
 
 ---
@@ -265,7 +265,7 @@ Design refs: `05g-expert-browse-verified.png`, `05h-expert-browse-pending.png`, 
 Design refs: `04d-homeowner-home.png`, `04e-homeowner-my-jobs.png`, `04f-homeowner-messages.png`, `04g-homeowner-profile.png`
 
 ### 4a — Home tab
-- [ ] `apps/mobile/app/(homeowner)/home.tsx`
+- [x] `apps/mobile/app/(homeowner)/home.tsx`
   - "Good Morning / **[FirstName]**" greeting (12px gray label above 22px bold name)
   - Notification bell icon top-right with red dot badge
   - "Post a Job / Free — experts bid within minutes →" hero card (terra cotta bg, white text, arrow right)
@@ -274,7 +274,7 @@ Design refs: `04d-homeowner-home.png`, `04e-homeowner-my-jobs.png`, `04f-homeown
   - Activity job cards: title + status pill + zone + time-ago (tap → job detail)
 
 ### 4b — My Jobs tab
-- [ ] `apps/mobile/app/(homeowner)/my-jobs.tsx`
+- [x] `apps/mobile/app/(homeowner)/my-jobs.tsx`
   - "My Jobs" large heading
   - Active | Past pill toggle
   - Job cards in Active: urgency badge (EMERGENCY red, SCHEDULED gray), title, zone + time-ago, status pill right, bid count chip terra cotta right ("4 bids")
@@ -282,13 +282,13 @@ Design refs: `04d-homeowner-home.png`, `04e-homeowner-my-jobs.png`, `04f-homeown
   - "CONFIRM DONE" chip on completion-requested jobs (amber)
 
 ### 4c — Messages tab
-- [ ] `apps/mobile/app/(homeowner)/messages.tsx`
+- [x] `apps/mobile/app/(homeowner)/messages.tsx`
   - "Messages" large heading
   - Each row: expert avatar (terra cotta initials circle with green online dot), job title bold, last message excerpt + timestamp, status pill right
   - "Chat opens once you accept an expert's bid" hint row at bottom (lock icon)
 
 ### 4d — Profile tab
-- [ ] `apps/mobile/app/(homeowner)/profile.tsx`
+- [x] `apps/mobile/app/(homeowner)/profile.tsx`
   - "Profile" large heading
   - Identity card (white, shadow-sm): avatar circle (terra cotta initials) + camera icon badge, name bold, phone, "Edit" terra cotta outline button
   - Stats row below card: 3 tiles (jobs posted / completed / positive points)

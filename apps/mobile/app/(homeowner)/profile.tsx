@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Image,
   Linking,
   ScrollView,
   StyleSheet,
@@ -16,9 +17,8 @@ import * as SecureStore from "expo-secure-store";
 import { useTranslation } from "react-i18next";
 import type { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { MaterialIcons } from "@expo/vector-icons";
-import { Colors, Spacing, Typography } from "@/constants/theme";
+import { Colors, Radius, Shadows, Spacing, Typography } from "@/constants/theme";
 import { Icons } from "@/constants/icons";
-import { Avatar } from "@/components/ui/Avatar";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { Button } from "@/components/ui/Button";
 import { Divider } from "@/components/ui/Divider";
@@ -30,6 +30,13 @@ import { authService } from "@/services/auth.service";
 import { jobsService, type JobListResponse } from "@/services/jobs.service";
 import { mediaService } from "@/services/media.service";
 import { usersService, type UserProfile } from "@/services/users.service";
+
+function getInitials(name?: string | null): string {
+  if (!name) return "?";
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) return (parts[0][0] ?? "?").toUpperCase();
+  return ((parts[0][0] ?? "") + (parts[parts.length - 1][0] ?? "")).toUpperCase();
+}
 
 interface SettingRow {
   key: string;
@@ -54,6 +61,7 @@ export default function ProfileScreen() {
   const notifSheetRef = useRef<BottomSheetModal>(null);
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [completedJobs, setCompletedJobs] = useState(0);
   const [totalJobs, setTotalJobs] = useState(0);
   const [loading, setLoading] = useState(true);
 
@@ -81,7 +89,7 @@ export default function ProfileScreen() {
     setAvatarUploading(true);
     try {
       const { url } = await mediaService.uploadAvatar(asset.uri, asset.mimeType ?? undefined);
-      setProfile((prev) => prev ? { ...prev, avatarUrl: url } : prev);
+      setProfile((prev) => (prev ? { ...prev, avatarUrl: url } : prev));
       await updateUser({ avatarUrl: url });
     } catch {
       toast.show({ message: t("common.error"), variant: "error" });
@@ -94,11 +102,13 @@ export default function ProfileScreen() {
     try {
       const [profileRes, jobsRes] = await Promise.all([
         usersService.getMe(),
-        jobsService.list({ limit: 1, page: 1 }),
+        jobsService.list({ limit: 50, page: 1 }),
       ]);
       const p = profileRes.data;
       setProfile(p);
-      setTotalJobs((jobsRes.data as JobListResponse).total);
+      const jobsBody = jobsRes.data as JobListResponse;
+      setTotalJobs(jobsBody.total);
+      setCompletedJobs(jobsBody.data.filter((j) => j.status === "COMPLETED").length);
       if (p.avatarUrl) await updateUser({ avatarUrl: p.avatarUrl });
     } catch {
       // show what we have from auth store
@@ -127,10 +137,7 @@ export default function ProfileScreen() {
       editSheetRef.current?.dismiss();
       toast.show({ message: t("homeowner.profile.savedToast"), variant: "success" });
     } catch {
-      toast.show({
-        message: t("homeowner.profile.errorNetwork"),
-        variant: "error",
-      });
+      toast.show({ message: t("homeowner.profile.errorNetwork"), variant: "error" });
     } finally {
       setSaving(false);
     }
@@ -145,53 +152,51 @@ export default function ProfileScreen() {
     router.replace("/(auth)/phone");
   };
 
-  const settingsSections: SettingRow[][] = [
-    [
-      {
-        key: "reviews",
-        label: t("homeowner.profile.myReviews"),
-        icon: Icons.star,
-        onPress: () => user && router.push(`/(shared)/reviews/${user.id}` as any),
-      },
-      {
-        key: "issues",
-        label: t("homeowner.profile.reportedIssues"),
-        icon: Icons.warning,
-        onPress: () => router.push("/(homeowner)/disputes" as any),
-      },
-    ],
-    [
-      {
-        key: "notifications",
-        label: t("homeowner.profile.notificationSettings"),
-        icon: Icons.notifs,
-        onPress: () => notifSheetRef.current?.present(),
-      },
-      {
-        key: "language",
-        label: t("homeowner.profile.language"),
-        icon: Icons.language,
-        rightLabel: t(`common.language.${lang}`),
-        onPress: () => langSheetRef.current?.present(),
-      },
-    ],
-    [
-      {
-        key: "help",
-        label: t("homeowner.profile.helpSupport"),
-        icon: Icons.help,
-        onPress: () => router.push("/(shared)/help" as any),
-      },
-      {
-        key: "about",
-        label: t("homeowner.profile.aboutFixr"),
-        icon: Icons.about,
-        onPress: () => router.push("/(shared)/about" as any),
-      },
-    ],
-  ];
-
   const positivePoints = profile?.homeownerProfile?.positivePoints ?? 0;
+  const zoneName = profile?.homeownerProfile?.zone?.nameEn;
+  const phoneSubtitle = [user?.phone, zoneName].filter(Boolean).join(" · ");
+
+  const avatarUri = profile?.avatarUrl ?? user?.avatarUrl;
+
+  const settingRows: SettingRow[] = [
+    {
+      key: "reviews",
+      label: t("homeowner.profile.myReviews"),
+      icon: Icons.star,
+      onPress: () => user && router.push(`/(shared)/reviews/${user.id}` as any),
+    },
+    {
+      key: "issues",
+      label: t("homeowner.profile.reportedIssues"),
+      icon: Icons.warning,
+      onPress: () => router.push("/(homeowner)/disputes" as any),
+    },
+    {
+      key: "notifications",
+      label: t("homeowner.profile.notificationSettings"),
+      icon: Icons.notifs,
+      onPress: () => notifSheetRef.current?.present(),
+    },
+    {
+      key: "language",
+      label: t("homeowner.profile.language"),
+      icon: Icons.language,
+      rightLabel: t(`common.language.${lang}`),
+      onPress: () => langSheetRef.current?.present(),
+    },
+    {
+      key: "help",
+      label: t("homeowner.profile.helpSupport"),
+      icon: Icons.help,
+      onPress: () => router.push("/(shared)/help" as any),
+    },
+    {
+      key: "about",
+      label: t("homeowner.profile.aboutFixr"),
+      icon: Icons.about,
+      onPress: () => router.push("/(shared)/about" as any),
+    },
+  ];
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
@@ -204,118 +209,101 @@ export default function ProfileScreen() {
           <ActivityIndicator color={Colors.primary600} size="large" />
         </View>
       ) : (
-        <ScrollView showsVerticalScrollIndicator={false}>
-          {/* Profile card */}
-          <View style={styles.profileCard}>
-            <View style={styles.profileRow}>
-              <TouchableOpacity onPress={handleAvatarChange} disabled={avatarUploading} style={styles.avatarWrap}>
-                <Avatar size={56} name={user?.name} uri={profile?.avatarUrl ?? user?.avatarUrl} />
-                {avatarUploading ? (
-                  <View style={styles.avatarOverlay}>
-                    <ActivityIndicator size="small" color={Colors.white} />
-                  </View>
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+
+          {/* ── Identity card ── */}
+          <View style={styles.identityCard}>
+            <View style={styles.identityRow}>
+              <TouchableOpacity
+                onPress={handleAvatarChange}
+                disabled={avatarUploading}
+                style={styles.avatarWrap}
+                activeOpacity={0.8}
+              >
+                {avatarUri ? (
+                  <Image
+                    source={{ uri: avatarUri }}
+                    style={styles.avatarImg}
+                    resizeMode="cover"
+                  />
                 ) : (
-                  <View style={styles.avatarOverlay}>
-                    <MaterialIcons name="photo-camera" size={16} color={Colors.white} />
+                  <View style={styles.avatarFallback}>
+                    <Text style={styles.avatarInitials}>{getInitials(user?.name)}</Text>
                   </View>
                 )}
-              </TouchableOpacity>
-              <View style={styles.profileInfo}>
-                <Text style={styles.profileName}>{user?.name}</Text>
-                <Text style={styles.profilePhone}>{'\u200E'}{user?.phone}</Text>
-              </View>
-              <TouchableOpacity onPress={openEditSheet} style={styles.editBtn}>
-                <Text style={styles.editBtnText}>
-                  {t("homeowner.profile.editProfile")}
-                </Text>
-              </TouchableOpacity>
-            </View>
-
-            <Divider style={styles.statsDivider} />
-
-            <View style={styles.statsRow}>
-              <View style={styles.statItem}>
-                <Text style={styles.statValue}>{totalJobs}</Text>
-                <Text style={styles.statLabel}>
-                  {t("homeowner.profile.jobsPosted")}
-                </Text>
-              </View>
-              <View style={styles.statSep} />
-              <View style={styles.statItem}>
-                <Text style={styles.statValue}>0</Text>
-                <Text style={styles.statLabel}>
-                  {t("homeowner.profile.completed")}
-                </Text>
-              </View>
-              <View style={styles.statSep} />
-              <View style={styles.statItem}>
-                <Text style={[styles.statValue, styles.statPositive]}>
-                  {positivePoints > 0 ? `+${positivePoints}` : positivePoints}
-                </Text>
-                <Text style={styles.statLabel}>
-                  {t("homeowner.profile.positive")}
-                </Text>
-              </View>
-            </View>
-          </View>
-
-          {/* Settings sections */}
-          {settingsSections.map((section, sIdx) => (
-            <View key={sIdx} style={styles.section}>
-              {section.map((row, rIdx) => (
-                <View key={row.key}>
-                  <TouchableOpacity
-                    style={styles.settingRow}
-                    onPress={row.onPress}
-                    activeOpacity={0.7}
-                  >
-                    <MaterialIcons
-                      name={row.icon as any}
-                      size={22}
-                      color={Colors.gray600}
-                    />
-                    <Text style={styles.settingLabel}>{row.label}</Text>
-                    {row.rightLabel ? (
-                      <Text style={styles.settingRightLabel}>
-                        {row.rightLabel}
-                      </Text>
-                    ) : (
-                      <MaterialIcons
-                        name={Icons.chevronRight as any}
-                        size={20}
-                        color={Colors.gray400}
-                      />
-                    )}
-                  </TouchableOpacity>
-                  {rIdx < section.length - 1 ? (
-                    <Divider style={styles.rowDivider} />
-                  ) : null}
+                <View style={styles.cameraBadge}>
+                  {avatarUploading ? (
+                    <ActivityIndicator size="small" color={Colors.white} />
+                  ) : (
+                    <MaterialIcons name="photo-camera" size={14} color={Colors.white} />
+                  )}
                 </View>
-              ))}
-            </View>
-          ))}
+              </TouchableOpacity>
 
-          {/* Log out */}
-          <View style={styles.section}>
-            <TouchableOpacity
-              style={styles.logoutRow}
-              onPress={handleLogout}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.logoutText}>
-                {t("homeowner.profile.logout")}
-              </Text>
-            </TouchableOpacity>
+              <View style={styles.identityInfo}>
+                <Text style={styles.identityName}>{user?.name}</Text>
+                <Text style={styles.identityPhone}>{"‎"}{phoneSubtitle}</Text>
+              </View>
+
+              <TouchableOpacity onPress={openEditSheet} style={styles.editBtn} activeOpacity={0.7}>
+                <Text style={styles.editBtnText}>{t("homeowner.profile.editProfile")}</Text>
+              </TouchableOpacity>
+            </View>
           </View>
+
+          {/* ── Stats tiles ── */}
+          <View style={styles.statsRow}>
+            <View style={styles.statTile}>
+              <Text style={styles.statValue}>{totalJobs}</Text>
+              <Text style={styles.statLabel}>{t("homeowner.profile.jobsPosted")}</Text>
+            </View>
+            <View style={styles.statTile}>
+              <Text style={styles.statValue}>{completedJobs}</Text>
+              <Text style={styles.statLabel}>{t("homeowner.profile.completed")}</Text>
+            </View>
+            <View style={styles.statTile}>
+              <Text style={[styles.statValue, positivePoints > 0 && styles.statPositive]}>
+                {positivePoints > 0 ? `+${positivePoints}` : positivePoints}
+              </Text>
+              <Text style={styles.statLabel}>{t("homeowner.profile.positive")}</Text>
+            </View>
+          </View>
+
+          {/* ── Settings (single card) ── */}
+          <View style={styles.menuCard}>
+            {settingRows.map((row, idx) => (
+              <View key={row.key}>
+                <TouchableOpacity
+                  style={styles.menuRow}
+                  onPress={row.onPress}
+                  activeOpacity={0.7}
+                >
+                  <MaterialIcons name={row.icon as any} size={22} color={Colors.gray600} />
+                  <Text style={styles.menuLabel}>{row.label}</Text>
+                  {row.rightLabel ? (
+                    <Text style={styles.menuRightLabel}>{row.rightLabel}</Text>
+                  ) : null}
+                  <MaterialIcons name={Icons.chevronRight as any} size={20} color={Colors.gray400} />
+                </TouchableOpacity>
+                {idx < settingRows.length - 1 && (
+                  <Divider style={styles.rowDivider} />
+                )}
+              </View>
+            ))}
+          </View>
+
+          {/* ── Log out ── */}
+          <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout} activeOpacity={0.7}>
+            <Text style={styles.logoutText}>{t("homeowner.profile.logout")}</Text>
+          </TouchableOpacity>
 
           <View style={styles.bottomPad} />
         </ScrollView>
       )}
 
+      {/* ── Edit name sheet ── */}
       <BottomSheet ref={editSheetRef} snapPoints={["40%"]}>
-        <Text style={styles.sheetTitle}>
-          {t("homeowner.profile.editNameTitle")}
-        </Text>
+        <Text style={styles.sheetTitle}>{t("homeowner.profile.editNameTitle")}</Text>
         <Input
           label={t("homeowner.profile.nameLabel")}
           placeholder={t("homeowner.profile.namePlaceholder")}
@@ -323,8 +311,7 @@ export default function ProfileScreen() {
           onChangeText={setEditName}
           error={editNameError}
           onBlur={() => {
-            if (!editName.trim())
-              setEditNameError(t("homeowner.profile.errorName"));
+            if (!editName.trim()) setEditNameError(t("homeowner.profile.errorName"));
             else setEditNameError("");
           }}
           autoCapitalize="words"
@@ -334,10 +321,10 @@ export default function ProfileScreen() {
           label={t("homeowner.profile.saveChanges")}
           onPress={handleSaveName}
           loading={saving}
-          style={styles.sheetBtn}
         />
       </BottomSheet>
 
+      {/* ── Language sheet ── */}
       <BottomSheet ref={langSheetRef} snapPoints={["28%"]}>
         <Text style={styles.sheetTitle}>{t("common.language.title")}</Text>
         {(["en", "fa"] as Lang[]).map((option, idx, arr) => (
@@ -350,20 +337,11 @@ export default function ProfileScreen() {
               }}
               activeOpacity={0.7}
             >
-              <Text
-                style={[
-                  styles.langLabel,
-                  lang === option && styles.langLabelActive,
-                ]}
-              >
+              <Text style={[styles.langLabel, lang === option && styles.langLabelActive]}>
                 {t(`common.language.${option}`)}
               </Text>
               {lang === option && (
-                <MaterialIcons
-                  name="check"
-                  size={20}
-                  color={Colors.primary600}
-                />
+                <MaterialIcons name="check" size={20} color={Colors.primary600} />
               )}
             </TouchableOpacity>
             {idx < arr.length - 1 && <Divider style={styles.rowDivider} />}
@@ -371,29 +349,20 @@ export default function ProfileScreen() {
         ))}
       </BottomSheet>
 
+      {/* ── Notification settings sheet ── */}
       <BottomSheet ref={notifSheetRef} snapPoints={["30%"]}>
-        <Text style={styles.sheetTitle}>
-          {t("shared.notifSettings.title")}
-        </Text>
+        <Text style={styles.sheetTitle}>{t("shared.notifSettings.title")}</Text>
         <View style={styles.notifRow}>
-          <View style={styles.notifInfo}>
-            <Text style={styles.notifLabel}>
-              {t("shared.notifSettings.pushNotifications")}
-            </Text>
-          </View>
+          <Text style={styles.notifLabel}>{t("shared.notifSettings.pushNotifications")}</Text>
           {notifGranted === true ? (
-            <Text style={styles.notifEnabled}>
-              {t("shared.notifSettings.enabled")}
-            </Text>
+            <Text style={styles.notifEnabled}>{t("shared.notifSettings.enabled")}</Text>
           ) : (
             <TouchableOpacity
               onPress={() => Linking.openSettings()}
               style={styles.notifSettingsBtn}
               activeOpacity={0.7}
             >
-              <Text style={styles.notifSettingsBtnText}>
-                {t("shared.notifSettings.openSettings")}
-              </Text>
+              <Text style={styles.notifSettingsBtnText}>{t("shared.notifSettings.openSettings")}</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -423,17 +392,19 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  // Profile card
-  profileCard: {
-    backgroundColor: Colors.white,
-    marginHorizontal: Spacing.s4,
-    marginTop: Spacing.s4,
-    borderRadius: 12,
+  scrollContent: {
     padding: Spacing.s4,
-    borderWidth: 1,
-    borderColor: Colors.gray200,
+    gap: Spacing.s3,
   },
-  profileRow: {
+
+  // ── Identity card ──
+  identityCard: {
+    backgroundColor: Colors.white,
+    borderRadius: Radius.lg,
+    padding: Spacing.s4,
+    ...Shadows.sm,
+  },
+  identityRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: Spacing.s3,
@@ -443,7 +414,25 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
   },
-  avatarOverlay: {
+  avatarFallback: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: Colors.primary600,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  avatarImg: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+  },
+  avatarInitials: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: Colors.white,
+  },
+  cameraBadge: {
     position: "absolute",
     bottom: 0,
     right: 0,
@@ -453,23 +442,25 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary600,
     alignItems: "center",
     justifyContent: "center",
+    borderWidth: 2,
+    borderColor: Colors.white,
   },
-  profileInfo: {
+  identityInfo: {
     flex: 1,
-    gap: 2,
+    gap: 3,
   },
-  profileName: {
+  identityName: {
     ...Typography.heading2,
   },
-  profilePhone: {
+  identityPhone: {
     ...Typography.caption,
     writingDirection: "ltr",
   },
   editBtn: {
     borderWidth: 1.5,
     borderColor: Colors.primary600,
-    borderRadius: 9999,
-    paddingHorizontal: 12,
+    borderRadius: Radius.full,
+    paddingHorizontal: Spacing.s3,
     paddingVertical: 6,
   },
   editBtnText: {
@@ -477,17 +468,20 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     color: Colors.primary600,
   },
-  statsDivider: {
-    marginVertical: Spacing.s3,
-  },
+
+  // ── Stats tiles ──
   statsRow: {
     flexDirection: "row",
-    alignItems: "center",
+    gap: Spacing.s3,
   },
-  statItem: {
+  statTile: {
     flex: 1,
+    backgroundColor: Colors.white,
+    borderRadius: Radius.md,
+    paddingVertical: Spacing.s3,
     alignItems: "center",
-    gap: 2,
+    gap: 3,
+    ...Shadows.sm,
   },
   statValue: {
     fontSize: 20,
@@ -498,39 +492,32 @@ const styles = StyleSheet.create({
     color: Colors.success600,
   },
   statLabel: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: "400",
     color: Colors.gray600,
     textAlign: "center",
   },
-  statSep: {
-    width: 1,
-    height: 32,
-    backgroundColor: Colors.gray200,
-  },
-  // Settings
-  section: {
+
+  // ── Settings menu card ──
+  menuCard: {
     backgroundColor: Colors.white,
-    marginHorizontal: Spacing.s4,
-    marginTop: Spacing.s3,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: Colors.gray200,
+    borderRadius: Radius.lg,
     overflow: "hidden",
+    ...Shadows.sm,
   },
-  settingRow: {
+  menuRow: {
     flexDirection: "row",
     alignItems: "center",
     height: 52,
     paddingHorizontal: Spacing.s4,
     gap: Spacing.s3,
   },
-  settingLabel: {
+  menuLabel: {
     flex: 1,
     ...Typography.bodyMd,
     color: Colors.gray900,
   },
-  settingRightLabel: {
+  menuRightLabel: {
     ...Typography.label,
     color: Colors.gray400,
   },
@@ -538,20 +525,23 @@ const styles = StyleSheet.create({
     marginVertical: 0,
     marginHorizontal: Spacing.s4,
   },
-  logoutRow: {
-    height: 52,
+
+  // ── Log out ──
+  logoutBtn: {
     alignItems: "center",
-    justifyContent: "center",
+    paddingVertical: Spacing.s3,
   },
   logoutText: {
     fontSize: 15,
     fontWeight: "600",
-    color: Colors.danger600,
+    color: Colors.primary600,
   },
+
   bottomPad: {
-    height: Spacing.s6,
+    height: Spacing.s4,
   },
-  // Bottom sheet
+
+  // ── Bottom sheets ──
   sheetTitle: {
     ...Typography.heading2,
     marginBottom: Spacing.s4,
@@ -559,8 +549,6 @@ const styles = StyleSheet.create({
   sheetInput: {
     marginBottom: Spacing.s4,
   },
-  sheetBtn: {},
-  // Language picker
   langRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -575,17 +563,14 @@ const styles = StyleSheet.create({
     color: Colors.primary600,
     fontWeight: "600",
   },
-  // Notification settings sheet
   notifRow: {
     flexDirection: "row",
     alignItems: "center",
     height: 52,
     gap: Spacing.s3,
   },
-  notifInfo: {
-    flex: 1,
-  },
   notifLabel: {
+    flex: 1,
     ...Typography.bodyMd,
     color: Colors.gray900,
   },
@@ -597,7 +582,7 @@ const styles = StyleSheet.create({
   notifSettingsBtn: {
     borderWidth: 1.5,
     borderColor: Colors.primary600,
-    borderRadius: 8,
+    borderRadius: Radius.sm,
     paddingHorizontal: Spacing.s3,
     paddingVertical: 6,
   },

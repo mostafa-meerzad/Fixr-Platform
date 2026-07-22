@@ -12,7 +12,7 @@ import { router, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { MaterialIcons } from '@expo/vector-icons';
-import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
+import { Colors, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
 import { Icons } from '@/constants/icons';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -132,11 +132,20 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
+      {/* ── Header ── */}
       <View style={styles.header}>
-        <Text style={styles.greeting}>
-          {getGreeting(t)}, {firstName}
-        </Text>
-        <Text style={styles.title}>{t('homeowner.home.title')}</Text>
+        <View style={styles.headerContent}>
+          <Text style={styles.greeting}>{getGreeting(t)}</Text>
+          <Text style={styles.firstName}>{firstName}</Text>
+        </View>
+        <TouchableOpacity
+          style={styles.bellBtn}
+          onPress={() => router.push('/(shared)/notifications' as any)}
+          activeOpacity={0.7}
+        >
+          <MaterialIcons name={Icons.notifs as any} size={24} color={Colors.gray600} />
+          <View style={styles.bellBadge} />
+        </TouchableOpacity>
       </View>
 
       {loading ? (
@@ -154,85 +163,36 @@ export default function HomeScreen() {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          <Button
-            label={t('homeowner.home.postJob')}
-            leftIcon={Icons.add}
+          {/* ── Hero CTA card ── */}
+          <TouchableOpacity
+            style={styles.heroCard}
             onPress={() => router.push('/(homeowner)/post/create' as any)}
-          />
+            activeOpacity={0.85}
+          >
+            <View style={styles.heroLeft}>
+              <View style={styles.heroPlusCircle}>
+                <MaterialIcons name={Icons.add as any} size={20} color={Colors.primary600} />
+              </View>
+              <View style={styles.heroTextBlock}>
+                <Text style={styles.heroTitle}>{t('homeowner.home.postJob')}</Text>
+                <Text style={styles.heroSubtitle}>{t('homeowner.home.postJobHint')}</Text>
+              </View>
+            </View>
+            <MaterialIcons name={Icons.chevronRight as any} size={24} color={Colors.white} />
+          </TouchableOpacity>
 
           {!hasContent ? (
             <EmptyState
               icon={Icons.homeRepair}
               title={t('homeowner.home.emptyTitle')}
               subtitle={t('homeowner.home.emptySubtitle')}
-              action={{
-                label: t('homeowner.home.postJob'),
-                onPress: () => router.push('/(homeowner)/post/create' as any),
-              }}
             />
           ) : (
             <>
-              {/* ── Recent Activity ── */}
-              {recentJobs.length > 0 && (
-                <>
-                  <View style={styles.sectionRow}>
-                    <Text style={styles.sectionLabel}>{t('homeowner.home.recentActivity')}</Text>
-                    <TouchableOpacity onPress={() => router.push('/(homeowner)/my-jobs' as any)}>
-                      <Text style={styles.seeAll}>{t('homeowner.home.seeAll')}</Text>
-                    </TouchableOpacity>
-                  </View>
-
-                  {recentJobs.map((job) => (
-                    <Card
-                      key={job.id}
-                      variant={job.urgency === 'EMERGENCY' ? 'emergency' : 'default'}
-                      onPress={() => navigateToJob(job.id, job.status)}
-                      style={styles.jobCard}
-                    >
-                      <View style={styles.cardRow}>
-                        <Text style={styles.jobTitle} numberOfLines={2}>
-                          {job.title}
-                        </Text>
-                        <Pill
-                          label={getUrgencyLabel(job.urgency)}
-                          variant={
-                            job.urgency === 'EMERGENCY'
-                              ? 'danger'
-                              : job.urgency === 'TODAY'
-                                ? 'warning'
-                                : 'gray'
-                          }
-                        />
-                      </View>
-
-                      <Text style={styles.jobMeta}>
-                        {job.zone?.nameEn} · {formatRelativeTime(job.createdAt, 'en')}
-                      </Text>
-
-                      <View style={styles.cardRow}>
-                        {job.status === 'OPEN' ? (
-                          <Text style={styles.bidCount}>
-                            {job._count?.bids ?? 0} {t('homeowner.home.bids')}
-                          </Text>
-                        ) : (
-                          <View />
-                        )}
-                        <Pill
-                          label={getStatusLabel(job.status)}
-                          variant={getStatusVariant(job.status)}
-                        />
-                      </View>
-                    </Card>
-                  ))}
-                </>
-              )}
-
               {/* ── Drafts ── */}
               {draftJobs.length > 0 && (
                 <>
-                  <Text style={[styles.sectionLabel, styles.draftsLabel]}>
-                    {t('homeowner.myJobs.drafts')}
-                  </Text>
+                  <Text style={styles.sectionLabel}>{t('homeowner.home.drafts')}</Text>
 
                   {draftJobs.map((job) => {
                     const isDeleting = deletingId === job.id;
@@ -250,7 +210,9 @@ export default function HomeScreen() {
                               · {formatRelativeTime(job.createdAt, 'en')}
                             </Text>
                           </View>
-                          <MaterialIcons name={Icons.edit as any} size={14} color={Colors.gray400} />
+                          <View style={styles.draftPill}>
+                            <Text style={styles.draftPillText}>{t('homeowner.home.draft')}</Text>
+                          </View>
                         </View>
 
                         <View style={styles.draftActions}>
@@ -259,12 +221,10 @@ export default function HomeScreen() {
                             onPress={() => handleContinueDraft(job)}
                             disabled={isDeleting}
                           >
-                            <MaterialIcons name={Icons.chevronRight as any} size={16} color={Colors.primary600} />
                             <Text style={styles.continueDraftText}>
                               {t('homeowner.myJobs.continueDraft')}
                             </Text>
                           </TouchableOpacity>
-
                           <TouchableOpacity
                             style={styles.deleteDraftBtn}
                             onPress={() => handleDeleteDraft(job)}
@@ -273,16 +233,80 @@ export default function HomeScreen() {
                             {isDeleting ? (
                               <ActivityIndicator size="small" color={Colors.danger600} />
                             ) : (
-                              <MaterialIcons name={Icons.delete as any} size={16} color={Colors.danger600} />
+                              <Text style={styles.deleteDraftText}>
+                                {t('homeowner.myJobs.deleteDraft')}
+                              </Text>
                             )}
-                            <Text style={styles.deleteDraftText}>
-                              {t('homeowner.myJobs.deleteDraft')}
-                            </Text>
                           </TouchableOpacity>
                         </View>
                       </Card>
                     );
                   })}
+                </>
+              )}
+
+              {/* ── Recent Activity ── */}
+              {recentJobs.length > 0 && (
+                <>
+                  <View style={styles.sectionRow}>
+                    <Text style={styles.sectionLabel}>{t('homeowner.home.recentActivity')}</Text>
+                    <TouchableOpacity onPress={() => router.push('/(homeowner)/my-jobs' as any)}>
+                      <Text style={styles.seeAll}>{t('homeowner.home.seeAll')}</Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  {recentJobs.map((job) => (
+                    <Card
+                      key={job.id}
+                      variant={job.urgency === 'EMERGENCY' ? 'emergency' : 'default'}
+                      onPress={() => navigateToJob(job.id, job.status)}
+                      style={styles.jobCard}
+                    >
+                      {/* Title row */}
+                      <View style={styles.cardRow}>
+                        <Text style={styles.jobTitle} numberOfLines={2}>
+                          {job.title}
+                        </Text>
+                        <Pill
+                          label={getStatusLabel(job.status)}
+                          variant={getStatusVariant(job.status)}
+                        />
+                      </View>
+
+                      {/* Urgency + meta row */}
+                      <View style={styles.cardRow}>
+                        <View style={styles.metaLeft}>
+                          <Pill
+                            label={getUrgencyLabel(job.urgency)}
+                            variant={
+                              job.urgency === 'EMERGENCY'
+                                ? 'danger'
+                                : job.urgency === 'TODAY'
+                                  ? 'warning'
+                                  : 'gray'
+                            }
+                          />
+                          <Text style={styles.jobMeta}>
+                            {job.zone?.nameEn} · {formatRelativeTime(job.createdAt, 'en')}
+                          </Text>
+                        </View>
+                        {job.status === 'OPEN' && (job._count?.bids ?? 0) > 0 && (
+                          <View style={styles.bidCountPill}>
+                            <Text style={styles.bidCountText}>
+                              {job._count?.bids} {t('homeowner.home.bids')}
+                            </Text>
+                          </View>
+                        )}
+                        {job.status === 'COMPLETION_REQUESTED' && (
+                          <View style={styles.confirmDonePill}>
+                            <Text style={styles.confirmDoneText}>
+                              {t('homeowner.home.confirmDone')}
+                            </Text>
+                          </View>
+                        )}
+                      </View>
+                    </Card>
+                  ))}
                 </>
               )}
             </>
@@ -298,22 +322,49 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.bgApp,
   },
+
+  // ── Header ──
   header: {
     backgroundColor: Colors.white,
     borderBottomWidth: 1,
     borderBottomColor: Colors.gray200,
     paddingHorizontal: Spacing.s4,
-    paddingTop: Spacing.s4,
+    paddingTop: Spacing.s3,
     paddingBottom: Spacing.s3,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  headerContent: {
+    flex: 1,
   },
   greeting: {
     fontSize: 12,
+    fontWeight: '400',
     color: Colors.gray400,
     marginBottom: 2,
   },
-  title: {
+  firstName: {
     ...Typography.display,
   },
+  bellBtn: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  bellBadge: {
+    position: 'absolute',
+    top: 7,
+    right: 7,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: Colors.danger600,
+    borderWidth: 1.5,
+    borderColor: Colors.white,
+  },
+
+  // ── Shared ──
   centered: {
     flex: 1,
     alignItems: 'center',
@@ -335,6 +386,48 @@ const styles = StyleSheet.create({
     gap: Spacing.s3,
     flexGrow: 1,
   },
+
+  // ── Hero card ──
+  heroCard: {
+    backgroundColor: Colors.primary600,
+    borderRadius: Radius.lg,
+    paddingVertical: Spacing.s4,
+    paddingHorizontal: Spacing.s4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    ...Shadows.sm,
+  },
+  heroLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.s3,
+    flex: 1,
+  },
+  heroPlusCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: Colors.white,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  heroTextBlock: {
+    flex: 1,
+  },
+  heroTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: Colors.white,
+    marginBottom: 2,
+  },
+  heroSubtitle: {
+    fontSize: 12,
+    fontWeight: '400',
+    color: 'rgba(255,255,255,0.8)',
+  },
+
+  // ── Section labels ──
   sectionRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -347,14 +440,14 @@ const styles = StyleSheet.create({
     color: Colors.primary600,
     letterSpacing: 0.72,
     textTransform: 'uppercase',
-  },
-  draftsLabel: {
     marginTop: Spacing.s1,
   },
   seeAll: {
     fontSize: 13,
     color: Colors.primary600,
   },
+
+  // ── Job activity cards ──
   jobCard: {
     gap: Spacing.s2,
   },
@@ -362,23 +455,47 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    gap: Spacing.s2,
   },
   jobTitle: {
     ...Typography.heading3,
-    color: Colors.primary600,
     flex: 1,
     marginRight: Spacing.s2,
+  },
+  metaLeft: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.s2,
+    flexWrap: 'wrap',
   },
   jobMeta: {
     ...Typography.caption,
   },
-  bidCount: {
-    fontSize: 12,
-    fontWeight: '400',
-    color: Colors.gray600,
+  bidCountPill: {
+    backgroundColor: Colors.primary100,
+    paddingVertical: 4,
+    paddingHorizontal: Spacing.s2,
+    borderRadius: Radius.full,
+  },
+  bidCountText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: Colors.primary600,
+  },
+  confirmDonePill: {
+    backgroundColor: Colors.warning100,
+    paddingVertical: 4,
+    paddingHorizontal: Spacing.s2,
+    borderRadius: Radius.full,
+  },
+  confirmDoneText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: Colors.warning600,
   },
 
-  // ── Draft card ──
+  // ── Draft cards ──
   draftCard: {
     gap: Spacing.s3,
   },
@@ -393,13 +510,26 @@ const styles = StyleSheet.create({
   },
   draftTitle: {
     ...Typography.heading3,
-    color: Colors.gray900,
   },
   draftMeta: {
     ...Typography.caption,
   },
+  draftPill: {
+    backgroundColor: Colors.gray100,
+    paddingVertical: 4,
+    paddingHorizontal: Spacing.s2,
+    borderRadius: Radius.full,
+  },
+  draftPillText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: Colors.gray600,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
   draftActions: {
     flexDirection: 'row',
+    alignItems: 'center',
     gap: Spacing.s3,
     borderTopWidth: 1,
     borderTopColor: Colors.gray200,
@@ -407,36 +537,26 @@ const styles = StyleSheet.create({
   },
   continueDraftBtn: {
     flex: 1,
-    flexDirection: 'row',
+    height: 36,
+    backgroundColor: Colors.dark,
+    borderRadius: Radius.sm,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 4,
-    height: 36,
-    backgroundColor: Colors.primary50,
-    borderRadius: Radius.sm,
-    borderWidth: 1,
-    borderColor: Colors.primary100,
   },
   continueDraftText: {
     fontSize: 13,
     fontWeight: '600',
-    color: Colors.primary600,
+    color: Colors.white,
   },
   deleteDraftBtn: {
-    flex: 1,
-    flexDirection: 'row',
+    paddingHorizontal: Spacing.s3,
+    height: 36,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 4,
-    height: 36,
-    backgroundColor: Colors.danger100,
-    borderRadius: Radius.sm,
-    borderWidth: 1,
-    borderColor: Colors.danger100,
   },
   deleteDraftText: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '500',
     color: Colors.danger600,
   },
 });

@@ -271,9 +271,13 @@
       "greetingAfternoon": "Good afternoon",
       "greetingEvening": "Good evening",
       "postJob": "Post a Job",
-      "recentActivity": "RECENT ACTIVITY",
+      "postJobHint": "Free — experts bid within minutes →",
+      "drafts": "Drafts",
+      "draft": "Draft",
+      "recentActivity": "Recent Activity",
       "seeAll": "See all →",
       "bids": "bids",
+      "confirmDone": "CONFIRM DONE",
       "emptyTitle": "Your home is in good hands",
       "emptySubtitle": "Post your first job and get bids from verified local experts."
     },
@@ -293,13 +297,15 @@
       "deleteConfirmTitle": "Delete draft?",
       "deleteConfirmMessage": "This job will be permanently deleted.",
       "deleteConfirmBtn": "Delete",
-      "deletedToast": "Draft deleted"
+      "deletedToast": "Draft deleted",
+      "confirmDone": "CONFIRM DONE"
     },
     "messages": {
       "title": "Messages",
       "subtitle": "Post-acceptance chats",
       "emptyTitle": "No conversations yet",
-      "emptySubtitle": "Accept a bid to start chatting with an expert."
+      "emptySubtitle": "Accept a bid to start chatting with an expert.",
+      "lockHint": "Chat opens once you accept an expert's bid"
     },
     "activeJob": {
       "title": "Active Job",

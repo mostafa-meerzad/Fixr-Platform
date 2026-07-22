@@ -99,40 +99,59 @@ export default function MyJobsScreen() {
 
   const displayJobs = tab === 'active' ? activeJobs : pastJobs;
 
-  const renderJob = ({ item: job }: { item: Job }) => (
-    <Card
-      variant={job.urgency === 'EMERGENCY' ? 'emergency' : 'default'}
-      onPress={() => navigateToJob(job.id, job.status)}
-      style={styles.jobCard}
-    >
-      <View style={styles.cardRow}>
-        <Text style={styles.jobTitle} numberOfLines={2}>
-          {job.title}
-        </Text>
-        <Pill
-          label={getUrgencyLabel(job.urgency, t)}
-          variant={
-            job.urgency === 'EMERGENCY' ? 'danger' : job.urgency === 'TODAY' ? 'warning' : 'gray'
-          }
-        />
-      </View>
+  const renderJob = ({ item: job }: { item: Job }) => {
+    const isCompletionRequested = job.status === 'COMPLETION_REQUESTED';
+    const isOpen = job.status === 'OPEN';
+    const bidCount = job._count?.bids ?? 0;
+    const metaParts = [job.category?.nameEn, job.zone?.nameEn].filter(Boolean).join(' · ');
+    const meta = metaParts
+      ? `${metaParts} · ${formatRelativeTime(job.createdAt, 'en')}`
+      : formatRelativeTime(job.createdAt, 'en');
 
-      <Text style={styles.jobMeta}>
-        {job.zone?.nameEn} · {formatRelativeTime(job.createdAt, 'en')}
-      </Text>
-
-      <View style={styles.cardRow}>
-        {job.status === 'OPEN' ? (
-          <Text style={styles.bidCount}>
-            {job._count?.bids ?? 0} {t('homeowner.myJobs.bids')}
+    return (
+      <Card
+        variant={job.urgency === 'EMERGENCY' ? 'emergency' : 'default'}
+        onPress={() => navigateToJob(job.id, job.status)}
+        style={styles.jobCard}
+      >
+        {/* Row 1: title + status / confirm-done chip */}
+        <View style={styles.cardRow}>
+          <Text style={styles.jobTitle} numberOfLines={2}>
+            {job.title}
           </Text>
-        ) : (
-          <View />
-        )}
-        <Pill label={getStatusLabel(job.status, t)} variant={getStatusVariant(job.status)} />
-      </View>
-    </Card>
-  );
+          {isCompletionRequested ? (
+            <View style={styles.confirmDonePill}>
+              <Text style={styles.confirmDoneText}>{t('homeowner.myJobs.confirmDone')}</Text>
+            </View>
+          ) : (
+            <Pill label={getStatusLabel(job.status, t)} variant={getStatusVariant(job.status)} />
+          )}
+        </View>
+
+        {/* Row 2: urgency badge + meta + bid count */}
+        <View style={styles.cardRow}>
+          <View style={styles.metaLeft}>
+            <Pill
+              label={getUrgencyLabel(job.urgency, t)}
+              variant={
+                job.urgency === 'EMERGENCY' ? 'danger'
+                : job.urgency === 'TODAY' ? 'warning'
+                : 'gray'
+              }
+            />
+            <Text style={styles.jobMeta}>{meta}</Text>
+          </View>
+          {isOpen && bidCount > 0 && (
+            <View style={styles.bidCountPill}>
+              <Text style={styles.bidCountText}>
+                {bidCount} {t('homeowner.myJobs.bids')}
+              </Text>
+            </View>
+          )}
+        </View>
+      </Card>
+    );
+  };
 
   const renderEmpty = () => {
     if (tab === 'active') {
@@ -247,6 +266,8 @@ const styles = StyleSheet.create({
     gap: Spacing.s3,
     flexGrow: 1,
   },
+
+  // ── Toggle pills ──
   toggleRow: {
     flexDirection: 'row',
     gap: Spacing.s2,
@@ -260,7 +281,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   toggleActive: {
-    backgroundColor: Colors.primary600,
+    backgroundColor: Colors.dark,
   },
   toggleInactive: {
     backgroundColor: Colors.white,
@@ -277,6 +298,8 @@ const styles = StyleSheet.create({
   toggleTextInactive: {
     color: Colors.gray600,
   },
+
+  // ── Job cards ──
   jobCard: {
     gap: Spacing.s2,
   },
@@ -284,19 +307,43 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    gap: Spacing.s2,
   },
   jobTitle: {
     ...Typography.heading3,
-    color: Colors.primary600,
     flex: 1,
-    marginRight: Spacing.s2,
+  },
+  metaLeft: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.s2,
+    flexWrap: 'wrap',
   },
   jobMeta: {
     ...Typography.caption,
+    flexShrink: 1,
   },
-  bidCount: {
-    fontSize: 12,
-    fontWeight: '400',
-    color: Colors.gray600,
+  bidCountPill: {
+    backgroundColor: Colors.primary100,
+    paddingVertical: 4,
+    paddingHorizontal: Spacing.s2,
+    borderRadius: Radius.full,
+  },
+  bidCountText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: Colors.primary600,
+  },
+  confirmDonePill: {
+    backgroundColor: Colors.warning100,
+    paddingVertical: 4,
+    paddingHorizontal: Spacing.s2,
+    borderRadius: Radius.full,
+  },
+  confirmDoneText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: Colors.warning600,
   },
 });
