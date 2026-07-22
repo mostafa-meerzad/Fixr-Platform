@@ -27,7 +27,7 @@ never hardcode colors, sizes, or spacing. Use t() for every user-visible string.
 
 ## Status
 
-**Last completed:** Phase 4d — Homeowner Profile tab
+**Last completed:** Phase 5d — Job posted success screen (new)
 **Current phase:** Phase 0 — Design System Token Swap
 
 ---
@@ -310,7 +310,7 @@ Design refs: `04h-job-post-step1-category.png`, `04i-job-post-step3-urgency.png`
 `media.tsx` is removed — photo upload is moved inline into details.tsx.
 
 ### 5a — Category screen (create.tsx restyle)
-- [ ] `apps/mobile/app/(homeowner)/post/create.tsx`
+- [x] `apps/mobile/app/(homeowner)/post/create.tsx`
   - Keep 2-column grid layout
   - "New job / Step 1 of 3" header (was "Step 1 of 6")
   - Category tiles: cream bg unselected, terra cotta border + `primary50` bg selected
@@ -319,7 +319,7 @@ Design refs: `04h-job-post-step1-category.png`, `04i-job-post-step3-urgency.png`
   - On tap: auto-advance to details.tsx, pass categoryId + categoryName
 
 ### 5b — Details screen (NEW)
-- [ ] Create `apps/mobile/app/(homeowner)/post/details.tsx`
+- [x] Create `apps/mobile/app/(homeowner)/post/details.tsx`
   - "New job / Step 2 of 3" header with back arrow
   - Progress bar at top (2/3 filled)
 
@@ -356,7 +356,7 @@ Design refs: `04h-job-post-step1-category.png`, `04i-job-post-step3-urgency.png`
   - Disabled while photos uploading: "Waiting for upload…" label, spinner
 
 ### 5c — Review & publish screen (review.tsx restyle)
-- [ ] `apps/mobile/app/(homeowner)/post/review.tsx`
+- [x] `apps/mobile/app/(homeowner)/post/review.tsx`
   - "Review & publish / Step 3 of 3" header
   - Summary rows (each with "Edit" terra cotta link right): Category / Title / Urgency / Zone / Address / Phone (shown as "shared later") / Photos thumbnails
   - Privacy hint: lock icon + "Your address and phone are shared only with the expert you hire"
@@ -364,7 +364,7 @@ Design refs: `04h-job-post-step1-category.png`, `04i-job-post-step3-urgency.png`
   - On publish: `POST /jobs/:id/publish` → navigate to success.tsx
 
 ### 5d — Job posted success screen (NEW)
-- [ ] Create `apps/mobile/app/(homeowner)/post/success.tsx`
+- [x] Create `apps/mobile/app/(homeowner)/post/success.tsx`
   - Full cream bg, no tab bar
   - Green check circle icon
   - "Your job is live!" heading
@@ -515,7 +515,7 @@ Design ref: `03a-splash-screen.png`
 - [ ] Phase 2 — Expert onboarding (overview, selfie, tazkira, categories, business, submitted)
 - [ ] Phase 3 — Expert tabs (browse, my-bids, active-job, profile, credits)
 - [ ] Phase 4 — Homeowner tabs (home, my-jobs, messages, profile)
-- [ ] Phase 5 — Job posting 3-screen collapse (create, details NEW, review, success NEW)
+- [x] Phase 5 — Job posting 3-screen collapse (create, details NEW, review, success NEW)
 - [ ] Phase 6 — Job detail & active job (homeowner + expert)
 - [ ] Phase 7 — Expert public profile (new screen)
 - [ ] Phase 8 — Shared screens (chat, review, dispute, notifications, reviews, help, about)

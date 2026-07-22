@@ -41,10 +41,10 @@ interface JobDraft {
   media: JobMedia[];
 }
 
-function urgencyLabel(urgency: string): string {
-  if (urgency === 'EMERGENCY') return 'Emergency';
-  if (urgency === 'TODAY') return 'Today';
-  return 'Scheduled';
+function urgencyLabel(urgency: string, t: (k: string) => string): string {
+  if (urgency === 'EMERGENCY') return t('homeowner.post.urgencyEmergency');
+  if (urgency === 'TODAY') return t('homeowner.post.urgencyToday');
+  return t('homeowner.post.urgencyScheduled');
 }
 
 function urgencyVariant(urgency: string): 'danger' | 'warning' | 'gray' {
@@ -59,9 +59,10 @@ interface ReviewRowProps {
   label: string;
   children: React.ReactNode;
   onEdit?: () => void;
+  editLabel?: string;
 }
 
-function ReviewRow({ label, children, onEdit }: ReviewRowProps) {
+function ReviewRow({ label, children, onEdit, editLabel }: ReviewRowProps) {
   const { t } = useTranslation();
   return (
     <View style={rowStyles.row}>
@@ -69,7 +70,7 @@ function ReviewRow({ label, children, onEdit }: ReviewRowProps) {
       <View style={rowStyles.valueWrap}>{children}</View>
       {onEdit && (
         <TouchableOpacity onPress={onEdit} hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}>
-          <Text style={rowStyles.editBtn}>{t('homeowner.post.edit')}</Text>
+          <Text style={rowStyles.editBtn}>{editLabel ?? t('homeowner.post.edit')}</Text>
         </TouchableOpacity>
       )}
     </View>
@@ -95,7 +96,7 @@ const rowStyles = StyleSheet.create({
   },
   editBtn: {
     fontSize: 13,
-    fontWeight: '500',
+    fontWeight: '600' as any,
     color: Colors.primary600,
   },
 });
@@ -133,38 +134,29 @@ export default function ReviewScreen() {
     setPublishing(true);
     try {
       await jobsService.publish(jobId);
-      const zoneName = job?.zone?.nameEn ?? '';
-      router.replace('/(homeowner)/home' as any);
-      // Toast is shown after navigation; use a short delay so it appears on the home screen
-      setTimeout(() => {
-        toast.show({
-          message: t('homeowner.post.successToast', { zone: zoneName }),
-          variant: 'success',
-        });
-      }, 300);
+      router.replace({ pathname: '/(homeowner)/post/success' as any, params: { jobId } });
     } catch (err: any) {
-      const message =
-        err?.response?.data?.message ?? t('homeowner.post.publishError');
+      const message = err?.response?.data?.message ?? t('homeowner.post.publishError');
       toast.show({ message, variant: 'error' });
       setPublishing(false);
     }
   }
 
   const photoMedia = (job?.media ?? []).filter((m) => m.type !== 'video');
-  const photoCount = photoMedia.length;
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
       <Stack.Screen options={{ headerShown: false }} />
-      <ProgressBar currentStep={6} totalSteps={6} />
+      <ProgressBar currentStep={3} totalSteps={3} />
 
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
           <MaterialIcons name={Icons.back as any} size={24} color={Colors.gray600} />
         </TouchableOpacity>
+        <Text style={styles.headerTitle}>{t('homeowner.post.reviewHeader')}</Text>
         <Text style={styles.stepLabel}>
-          {t('homeowner.post.stepLabel', { current: 6, total: 6 })}
+          {t('homeowner.post.stepLabel', { current: 3, total: 3 })}
         </Text>
       </View>
 
@@ -187,41 +179,43 @@ export default function ReviewScreen() {
           contentContainerStyle={styles.content}
           showsVerticalScrollIndicator={false}
         >
-          <Text style={styles.pageTitle}>{t('homeowner.post.step6Title')}</Text>
-
           {/* Summary card */}
           <View style={styles.summaryCard}>
             {/* Category */}
             <ReviewRow
               label={t('homeowner.post.categoryRowLabel')}
-              onEdit={() => router.push({ pathname: '/(homeowner)/post/create', params: { jobId, editStep: '1' } } as any)}
+              onEdit={() => router.back()}
             >
               <Text style={styles.valueText}>{job?.category?.nameEn}</Text>
             </ReviewRow>
             <View style={styles.divider} />
 
-            {/* Title */}
+            {/* Description */}
             <ReviewRow
-              label={t('homeowner.post.titleRowLabel')}
-              onEdit={() => router.push({ pathname: '/(homeowner)/post/create', params: { jobId, editStep: '2' } } as any)}
+              label={t('homeowner.post.reviewDescLabel')}
+              onEdit={() => router.back()}
             >
-              <Text style={styles.valueText} numberOfLines={2}>{job?.title}</Text>
+              <Text style={styles.valueText} numberOfLines={3}>
+                {job?.description ?? '—'}
+              </Text>
             </ReviewRow>
             <View style={styles.divider} />
 
             {/* Urgency */}
             <ReviewRow
               label={t('homeowner.post.urgencyRowLabel')}
-              onEdit={() => router.push({ pathname: '/(homeowner)/post/create', params: { jobId, editStep: '3' } } as any)}
+              onEdit={() => router.back()}
             >
               {job && (
                 <View style={styles.pillWrap}>
                   <Pill
-                    label={urgencyLabel(job.urgency)}
+                    label={urgencyLabel(job.urgency, t)}
                     variant={urgencyVariant(job.urgency)}
                   />
                   {job.urgency === 'SCHEDULED' && job.scheduledAt && (
-                    <Text style={styles.scheduledDate}>{job.scheduledAt}</Text>
+                    <Text style={styles.scheduledDate}>
+                      {job.scheduledAt.split('T')[0]}
+                    </Text>
                   )}
                 </View>
               )}
@@ -231,7 +225,7 @@ export default function ReviewScreen() {
             {/* Zone */}
             <ReviewRow
               label={t('homeowner.post.zoneRowLabel')}
-              onEdit={() => router.push({ pathname: '/(homeowner)/post/create', params: { jobId, editStep: '4' } } as any)}
+              onEdit={() => router.back()}
             >
               <Text style={styles.valueText}>{job?.zone?.nameEn}</Text>
             </ReviewRow>
@@ -240,24 +234,29 @@ export default function ReviewScreen() {
             {/* Address */}
             <ReviewRow
               label={t('homeowner.post.addressRowLabel')}
-              onEdit={() => router.push({ pathname: '/(homeowner)/post/create', params: { jobId, editStep: '4' } } as any)}
+              onEdit={() => router.back()}
             >
               <Text style={styles.valueText}>{job?.address}</Text>
             </ReviewRow>
             <View style={styles.divider} />
 
-            {/* Phone */}
+            {/* Phone — shared later, no Edit */}
             <ReviewRow label={t('homeowner.post.phoneRowLabel')}>
-              <Text style={styles.valueText}>{user?.phone ?? '—'}</Text>
+              <View style={styles.phoneWrap}>
+                <Text style={styles.valueText}>{user?.phone ?? '—'}</Text>
+                <Text style={styles.sharedLaterText}>
+                  {t('homeowner.post.reviewSharedLater')}
+                </Text>
+              </View>
             </ReviewRow>
             <View style={styles.divider} />
 
             {/* Photos */}
             <ReviewRow
               label={t('homeowner.post.photosRowLabel')}
-              onEdit={() => router.back()}
+              onEdit={photoMedia.length > 0 ? () => router.back() : undefined}
             >
-              {photoCount > 0 ? (
+              {photoMedia.length > 0 ? (
                 <View style={styles.thumbRow}>
                   {photoMedia.slice(0, 3).map((m) => (
                     <Image
@@ -267,11 +266,6 @@ export default function ReviewScreen() {
                       resizeMode="cover"
                     />
                   ))}
-                  <Text style={styles.photoCountText}>
-                    {photoCount === 1
-                      ? t('homeowner.post.photoCount_one', { count: photoCount })
-                      : t('homeowner.post.photoCount_other', { count: photoCount })}
-                  </Text>
                 </View>
               ) : (
                 <Text style={styles.noPhotosText}>{t('homeowner.post.noPhotos')}</Text>
@@ -279,13 +273,17 @@ export default function ReviewScreen() {
             </ReviewRow>
           </View>
 
-          {/* Phone disclosure */}
-          <Text style={styles.phoneDisclosure}>{t('homeowner.post.phoneCaption')}</Text>
+          {/* Privacy hint */}
+          <View style={styles.privacyHint}>
+            <MaterialIcons name="lock" size={16} color={Colors.primary600} />
+            <Text style={styles.privacyText}>{t('homeowner.post.reviewPrivacyHint')}</Text>
+          </View>
 
           <View style={styles.footer}>
             <Button
               label={t('homeowner.post.publishJob')}
               onPress={handlePublish}
+              variant="primary"
               loading={publishing}
               disabled={publishing}
             />
@@ -318,12 +316,13 @@ const styles = StyleSheet.create({
     maxWidth: 160,
   },
 
+  // ── Header ──
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.s3,
     paddingHorizontal: Spacing.s4,
-    paddingTop: Spacing.s2,
+    paddingTop: Spacing.s3,
     paddingBottom: Spacing.s2,
   },
   backBtn: {
@@ -334,25 +333,27 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  headerTitle: {
+    flex: 1,
+    fontSize: Typography.heading2.fontSize,
+    fontWeight: Typography.heading2.fontWeight as any,
+    color: Colors.gray900,
+  },
   stepLabel: {
     fontSize: Typography.label.fontSize,
     fontWeight: Typography.label.fontWeight as any,
     color: Colors.gray400,
   },
 
+  // ── Scroll content ──
   content: {
     flexGrow: 1,
     paddingHorizontal: Spacing.s4,
-    paddingBottom: Spacing.s6,
-  },
-  pageTitle: {
-    fontSize: Typography.heading1.fontSize,
-    fontWeight: Typography.heading1.fontWeight as any,
-    color: Colors.primary600,
-    marginBottom: Spacing.s4,
+    paddingTop: Spacing.s4,
+    paddingBottom: Spacing.s8,
   },
 
-  // Summary card
+  // ── Summary card ──
   summaryCard: {
     backgroundColor: Colors.white,
     borderWidth: 1,
@@ -380,35 +381,51 @@ const styles = StyleSheet.create({
     fontSize: Typography.label.fontSize,
     color: Colors.gray600,
   },
-  thumbRow: {
+  phoneWrap: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.s2,
     flexWrap: 'wrap',
   },
+  sharedLaterText: {
+    fontSize: 12,
+    color: Colors.gray400,
+  },
+  thumbRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.s2,
+  },
   thumb: {
     width: 48,
     height: 48,
     borderRadius: Radius.sm,
-    backgroundColor: Colors.gray100,
-  },
-  photoCountText: {
-    fontSize: 13,
-    color: Colors.gray600,
+    backgroundColor: Colors.sand,
   },
   noPhotosText: {
     fontSize: 13,
     color: Colors.gray400,
   },
 
-  phoneDisclosure: {
-    fontSize: 12,
-    color: Colors.gray400,
-    textAlign: 'center',
-    marginTop: Spacing.s3,
+  // ── Privacy hint ──
+  privacyHint: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: Spacing.s2,
+    backgroundColor: Colors.primary50,
+    borderRadius: Radius.sm,
+    padding: Spacing.s3,
+    marginTop: Spacing.s4,
+  },
+  privacyText: {
+    flex: 1,
+    fontSize: 13,
+    color: Colors.primary600,
     lineHeight: 18,
+    fontWeight: '500' as any,
   },
 
+  // ── Footer ──
   footer: {
     marginTop: Spacing.s6,
   },
