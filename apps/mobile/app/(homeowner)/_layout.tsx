@@ -80,11 +80,11 @@ export default function HomeownerLayout() {
         <Tabs.Screen name="expert/[id]" options={{ href: null }} />
         <Tabs.Screen name="job/[id]" options={{ href: null }} />
         <Tabs.Screen name="active-job/[id]" options={{ href: null }} />
-        <Tabs.Screen name="post/create" options={{ href: null }} />
-        <Tabs.Screen name="post/details" options={{ href: null }} />
-        <Tabs.Screen name="post/media" options={{ href: null }} />
-        <Tabs.Screen name="post/review" options={{ href: null }} />
-        <Tabs.Screen name="post/success" options={{ href: null }} />
+        <Tabs.Screen name="post/create" options={{ href: null, tabBarStyle: { display: 'none' } }} />
+        <Tabs.Screen name="post/details" options={{ href: null, tabBarStyle: { display: 'none' } }} />
+        <Tabs.Screen name="post/media" options={{ href: null, tabBarStyle: { display: 'none' } }} />
+        <Tabs.Screen name="post/review" options={{ href: null, tabBarStyle: { display: 'none' } }} />
+        <Tabs.Screen name="post/success" options={{ href: null, tabBarStyle: { display: 'none' } }} />
       </Tabs>
       <TouchableOpacity
         style={[styles.bell, { top: insets.top + 8 }]}

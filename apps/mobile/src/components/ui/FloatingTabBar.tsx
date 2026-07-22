@@ -36,19 +36,16 @@ export function FloatingTabBar({
   const activeIndex = state.index;
   const translateX = useSharedValue(0);
 
-  // High-performance custom spring preset for a sleek UI feel
   const springConfig = {
     damping: 15,
     stiffness: 110,
     mass: 0.6,
   };
 
-  // Dynamically calculate the sliding pill's exact horizontal target location
   useEffect(() => {
     let positionX = HORIZONTAL_PADDING;
     for (let i = 0; i < activeIndex; i++) {
       if (i === activeIndex - 1 || i < activeIndex) {
-        // Build position step by checking if preceding elements were active or inactive
         positionX += state.index === i ? activeTabWidth : inactiveTabWidth;
       }
     }
@@ -58,6 +55,10 @@ export function FloatingTabBar({
   const animatedIndicatorStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: translateX.value }],
   }));
+
+  const activeOptions = descriptors[state.routes[activeIndex].key].options;
+  const activeTabBarStyle = activeOptions.tabBarStyle as any;
+  if (activeTabBarStyle?.display === 'none') return null;
 
   return (
     <View
