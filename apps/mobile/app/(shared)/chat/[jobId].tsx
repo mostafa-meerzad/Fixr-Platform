@@ -1,9 +1,13 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
+  FlatList,
   Keyboard,
+  Modal,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -26,6 +30,7 @@ import { Button } from '@/components/ui/Button';
 import { Pill, getStatusVariant } from '@/components/ui/Pill';
 import { chatService } from '@/services/chat.service';
 import { jobsService, type JobStatus } from '@/services/jobs.service';
+import { bidsService } from '@/services/bids.service';
 import { useAuthStore } from '@/stores/auth.store';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -36,6 +41,8 @@ interface ChatJobData {
   status: JobStatus;
   homeowner: { id: string; name: string; avatarUrl: string | null };
   acceptedBid?: {
+    id: string;
+    price: number;
     expert: {
       user: { id: string; name: string; avatarUrl: string | null };
     };
@@ -45,6 +52,11 @@ interface ChatJobData {
 interface ChatJobInfo {
   status: JobStatus;
   otherPartyName: string;
+}
+
+interface BidActions {
+  onAccept: () => void;
+  onCounter: () => void;
 }
 
 // ─── Stream theme (terra cotta warm cream) ───────────────────────────────────
@@ -101,7 +113,7 @@ function DateBadge({ label }: { label: string }) {
 }
 
 function CustomDateHeader({ dateString }: { dateString?: string | number }) {
-  const label = useMemo(() => {
+  const label = React.useMemo(() => {
     if (!dateString) return '';
     const d = new Date(dateString);
     return isNaN(d.getTime()) ? String(dateString) : formatDateLabel(d);
@@ -110,7 +122,7 @@ function CustomDateHeader({ dateString }: { dateString?: string | number }) {
 }
 
 function CustomInlineDateSeparator({ date }: { date?: Date }) {
-  const label = useMemo(() => (date ? formatDateLabel(date) : ''), [date]);
+  const label = React.useMemo(() => (date ? formatDateLabel(date) : ''), [date]);
   return <DateBadge label={label} />;
 }
 
@@ -149,9 +161,9 @@ const avatarStyles = StyleSheet.create({
   },
 });
 
-// ─── Camera button (left side of input) ─────────────────────────────────────
+// ─── Input buttons base (camera) ─────────────────────────────────────────────
 
-function CameraInputButton() {
+function CameraButton() {
   return (
     <TouchableOpacity style={cameraStyles.btn} onPress={() => {}}>
       <MaterialIcons name={Icons.camera as any} size={IconSize.inline} color={Colors.gray400} />
@@ -165,6 +177,326 @@ const cameraStyles = StyleSheet.create({
     height: 36,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+});
+
+// ─── Bid card (rendered in-thread for bid_card messages) ─────────────────────
+
+interface BidCardMessageProps {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  message: any;
+  isExpert: boolean;
+  actionsRef: React.RefObject<BidActions>;
+}
+
+function BidCardMessage({ message, isExpert, actionsRef }: BidCardMessageProps) {
+  const { t } = useTranslation();
+  const price: number = message?.bid_price ?? 0;
+  const note: string = message?.bid_note ?? '';
+  const arrival: string = message?.bid_arrival ?? '';
+
+  return (
+    <View style={bidCardStyles.wrapper}>
+      <View style={bidCardStyles.card}>
+        {/* Header */}
+        <View style={bidCardStyles.headerRow}>
+          <View style={bidCardStyles.headerIconWrap}>
+            <MaterialIcons name="local-offer" size={12} color={Colors.amber} />
+          </View>
+          <Text style={bidCardStyles.headerLabel}>
+            {t('shared.chat.updatedBid')}
+          </Text>
+        </View>
+
+        {/* Price + arrival row */}
+        <View style={bidCardStyles.priceRow}>
+          <View style={bidCardStyles.priceLeft}>
+            <Text style={bidCardStyles.price}>
+              {price.toLocaleString()}
+              <Text style={bidCardStyles.priceCurrency}>₾</Text>
+            </Text>
+            {note ? <Text style={bidCardStyles.note}>{note}</Text> : null}
+          </View>
+          {arrival ? (
+            <Text style={bidCardStyles.arrival}>{arrival}</Text>
+          ) : null}
+        </View>
+
+        {/* Action buttons — homeowner only */}
+        {!isExpert && (
+          <>
+            <View style={bidCardStyles.divider} />
+            <View style={bidCardStyles.actions}>
+              <TouchableOpacity
+                style={[bidCardStyles.btn, bidCardStyles.acceptBtn]}
+                onPress={() => actionsRef.current?.onAccept()}
+                activeOpacity={0.8}
+              >
+                <Text style={bidCardStyles.acceptBtnText}>
+                  {t('shared.chat.acceptBid')}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[bidCardStyles.btn, bidCardStyles.counterBtn]}
+                onPress={() => actionsRef.current?.onCounter()}
+                activeOpacity={0.8}
+              >
+                <Text style={bidCardStyles.counterBtnText}>
+                  {t('shared.chat.counter')}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </>
+        )}
+      </View>
+    </View>
+  );
+}
+
+const bidCardStyles = StyleSheet.create({
+  wrapper: {
+    paddingHorizontal: Spacing.s4,
+    paddingVertical: Spacing.s2,
+  },
+  card: {
+    backgroundColor: Colors.white,
+    borderWidth: 1.5,
+    borderColor: Colors.primary600,
+    borderRadius: Radius.md,
+    padding: Spacing.s4,
+    gap: Spacing.s3,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.s2,
+  },
+  headerIconWrap: {
+    width: 20,
+    height: 20,
+    borderRadius: 4,
+    backgroundColor: Colors.warning100,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerLabel: {
+    fontSize: 11,
+    fontWeight: '700' as const,
+    color: Colors.primary600,
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+  },
+  priceRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+  },
+  priceLeft: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: Spacing.s2,
+    flexShrink: 1,
+  },
+  price: {
+    fontSize: 26,
+    fontWeight: '700' as const,
+    color: Colors.gray900,
+  },
+  priceCurrency: {
+    fontSize: 16,
+    fontWeight: '600' as const,
+    color: Colors.gray600,
+  },
+  note: {
+    ...Typography.label,
+    color: Colors.gray400,
+  },
+  arrival: {
+    ...Typography.label,
+    color: Colors.gray600,
+    flexShrink: 0,
+  },
+  divider: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: Colors.gray200,
+    marginHorizontal: -Spacing.s4,
+  },
+  actions: {
+    flexDirection: 'row',
+    gap: Spacing.s2,
+  },
+  btn: {
+    flex: 1,
+    height: 40,
+    borderRadius: Radius.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  acceptBtn: {
+    backgroundColor: Colors.primary600,
+  },
+  acceptBtnText: {
+    fontSize: 14,
+    fontWeight: '600' as const,
+    color: Colors.white,
+  },
+  counterBtn: {
+    backgroundColor: Colors.white,
+    borderWidth: 1.5,
+    borderColor: Colors.primary600,
+  },
+  counterBtnText: {
+    fontSize: 14,
+    fontWeight: '600' as const,
+    color: Colors.primary600,
+  },
+});
+
+// ─── Send-bid sheet (expert enters price before sending to thread) ─────────
+
+interface SendBidSheetProps {
+  visible: boolean;
+  onClose: () => void;
+  onSend: (price: number, note: string, arrival: string) => Promise<void>;
+}
+
+function SendBidSheet({ visible, onClose, onSend }: SendBidSheetProps) {
+  const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
+  const [price, setPrice] = useState('');
+  const [note, setNote] = useState('');
+  const [arrival, setArrival] = useState('');
+  const [sending, setSending] = useState(false);
+
+  async function handleSend() {
+    const parsed = parseInt(price.replace(/\D/g, ''), 10);
+    if (!parsed || parsed <= 0) {
+      Alert.alert('', t('shared.chat.priceRequired'));
+      return;
+    }
+    setSending(true);
+    try {
+      await onSend(parsed, note.trim(), arrival.trim());
+      setPrice('');
+      setNote('');
+      setArrival('');
+      onClose();
+    } catch {
+      Alert.alert('', t('common.error'));
+    } finally {
+      setSending(false);
+    }
+  }
+
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="slide"
+      onRequestClose={onClose}
+    >
+      <TouchableOpacity
+        style={sendBidStyles.overlay}
+        activeOpacity={1}
+        onPress={onClose}
+      />
+      <View style={[sendBidStyles.sheet, { paddingBottom: Math.max(insets.bottom, Spacing.s4) }]}>
+        <View style={sendBidStyles.handle} />
+        <Text style={sendBidStyles.title}>{t('shared.chat.sendBidTitle')}</Text>
+
+        <Text style={sendBidStyles.fieldLabel}>{t('shared.chat.bidPrice')}</Text>
+        <View style={sendBidStyles.priceInputRow}>
+          <TextInput
+            style={[sendBidStyles.input, { flex: 1 }]}
+            placeholder="900"
+            keyboardType="numeric"
+            value={price}
+            onChangeText={setPrice}
+            placeholderTextColor={Colors.gray400}
+          />
+          <Text style={sendBidStyles.currencyBadge}>₾</Text>
+        </View>
+
+        <Text style={sendBidStyles.fieldLabel}>{t('shared.chat.bidNote')}</Text>
+        <TextInput
+          style={sendBidStyles.input}
+          placeholder={t('shared.chat.bidNotePlaceholder')}
+          value={note}
+          onChangeText={setNote}
+          placeholderTextColor={Colors.gray400}
+        />
+
+        <Text style={sendBidStyles.fieldLabel}>{t('shared.chat.bidArrival')}</Text>
+        <TextInput
+          style={sendBidStyles.input}
+          placeholder={t('shared.chat.bidArrivalPlaceholder')}
+          value={arrival}
+          onChangeText={setArrival}
+          placeholderTextColor={Colors.gray400}
+        />
+
+        <Button
+          label={t('shared.chat.sendBid')}
+          onPress={handleSend}
+          loading={sending}
+          style={sendBidStyles.sendBtn}
+        />
+      </View>
+    </Modal>
+  );
+}
+
+const sendBidStyles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.35)',
+  },
+  sheet: {
+    backgroundColor: Colors.white,
+    borderTopLeftRadius: Radius.xl,
+    borderTopRightRadius: Radius.xl,
+    paddingHorizontal: Spacing.s6,
+    paddingTop: Spacing.s3,
+    gap: Spacing.s3,
+  },
+  handle: {
+    width: 32,
+    height: 4,
+    borderRadius: Radius.full,
+    backgroundColor: Colors.gray200,
+    alignSelf: 'center',
+    marginBottom: Spacing.s2,
+  },
+  title: {
+    ...Typography.heading2,
+    color: Colors.gray900,
+    marginBottom: Spacing.s2,
+  },
+  fieldLabel: {
+    ...Typography.label,
+    color: Colors.gray600,
+    marginBottom: -Spacing.s1,
+  },
+  priceInputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.s2,
+  },
+  input: {
+    height: 52,
+    borderWidth: 1.5,
+    borderColor: Colors.gray200,
+    borderRadius: Radius.sm,
+    paddingHorizontal: Spacing.s4,
+    ...Typography.bodyMd,
+    color: Colors.gray900,
+  },
+  currencyBadge: {
+    ...Typography.heading2,
+    color: Colors.gray600,
+  },
+  sendBtn: {
+    marginTop: Spacing.s2,
   },
 });
 
@@ -242,6 +574,8 @@ export default function ChatScreen() {
   const user = useAuthStore((s) => s.user);
   const insets = useSafeAreaInsets();
 
+  const isExpert = user?.role === 'EXPERT';
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const clientRef = useRef<any>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -250,6 +584,36 @@ export default function ChatScreen() {
   const [kbHeight, setKbHeight] = useState(0);
   const [jobInfo, setJobInfo] = useState<ChatJobInfo | null>(null);
   const [isOtherOnline, setIsOtherOnline] = useState(false);
+  const [acceptedBidId, setAcceptedBidId] = useState<string | null>(null);
+  const [bidSheetVisible, setBidSheetVisible] = useState(false);
+  const [acceptingBid, setAcceptingBid] = useState(false);
+
+  // Stable ref for bid action callbacks (read from useMemo'd custom FlatList)
+  const bidActionsRef = useRef<BidActions>({ onAccept: () => {}, onCounter: () => {} });
+
+  // Update action callbacks each render so closures inside useMemo always call latest version
+  bidActionsRef.current = {
+    onAccept: async () => {
+      const bidId = acceptedBidId;
+      if (!bidId) return;
+      setAcceptingBid(true);
+      try {
+        await bidsService.accept(jobId, bidId);
+        Alert.alert(t('shared.chat.bidAccepted'), '');
+      } catch {
+        Alert.alert('', t('common.error'));
+      } finally {
+        setAcceptingBid(false);
+      }
+    },
+    onCounter: () => {
+      // Dismiss so the homeowner can type a counter in the chat
+    },
+  };
+
+  // Stable ref for opening the send-bid sheet (used inside useMemo'd InputButtons)
+  const bidPressRef = useRef(() => {});
+  bidPressRef.current = () => setBidSheetVisible(true);
 
   useEffect(() => {
     const show = Keyboard.addListener('keyboardDidShow', (e) => setKbHeight(e.endCoordinates.height + 20));
@@ -262,12 +626,12 @@ export default function ChatScreen() {
       const res = await jobsService.get(jobId);
       const job = res.data as ChatJobData;
 
-      const isHomeowner = user?.role === 'HOMEOWNER';
-      const otherPartyName = isHomeowner
-        ? (job.acceptedBid?.expert?.user?.name ?? '')
-        : (job.homeowner?.name ?? '');
+      const otherPartyName = isExpert
+        ? (job.homeowner?.name ?? '')
+        : (job.acceptedBid?.expert?.user?.name ?? '');
 
       setJobInfo({ status: job.status, otherPartyName });
+      setAcceptedBidId(job.acceptedBid?.id ?? null);
     } catch {
       // header falls back to plain title
     }
@@ -317,6 +681,90 @@ export default function ChatScreen() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [jobId]);
+
+  // ── Custom FlatList — intercepts bid_card messages ──────────────────────────
+  // Created once so the component reference is stable (no unmount/remount churn).
+  // Accesses dynamic data (role, actions) via refs captured at definition time.
+
+  const CustomFlatList = useMemo(() => {
+    const _isExpert = isExpert;
+    const _actionsRef = bidActionsRef;
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    function FixrMessageFlatList({ renderItem, ...props }: any) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      function patchedRenderItem(info: any) {
+        const msg = info?.item?.message;
+        if ((msg as any)?.fixr_type === 'bid_card') {
+          return (
+            <BidCardMessage
+              message={msg}
+              isExpert={_isExpert}
+              actionsRef={_actionsRef}
+            />
+          );
+        }
+        return renderItem(info);
+      }
+      return <FlatList {...props} renderItem={patchedRenderItem} />;
+    }
+
+    return FixrMessageFlatList;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // intentionally empty — uses stable refs and fixed isExpert
+
+  // ── Custom InputButtons — adds bid button for expert ────────────────────────
+
+  const CustomInputButtons = useMemo(() => {
+    const _isExpert = isExpert;
+    const _bidPressRef = bidPressRef;
+
+    function FixrInputButtons() {
+      return (
+        <View style={inputBtnStyles.row}>
+          <CameraButton />
+          {_isExpert && (
+            <TouchableOpacity
+              style={inputBtnStyles.bidBtn}
+              onPress={() => _bidPressRef.current()}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <MaterialIcons
+                name="local-offer"
+                size={IconSize.inline}
+                color={Colors.primary600}
+              />
+            </TouchableOpacity>
+          )}
+        </View>
+      );
+    }
+    return FixrInputButtons;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // intentionally empty — uses stable refs and fixed isExpert
+
+  // ── Send bid card ───────────────────────────────────────────────────────────
+
+  async function handleSendBidCard(price: number, note: string, arrival: string) {
+    if (!channel) return;
+    // Optionally update bid price via API if we have a bid ID
+    if (acceptedBidId) {
+      try {
+        await bidsService.update(acceptedBidId, { price } as any);
+      } catch {
+        // Non-fatal — still post the card in chat
+      }
+    }
+    await channel.sendMessage({
+      text: '',
+      fixr_type: 'bid_card',
+      bid_id: acceptedBidId ?? '',
+      bid_price: price,
+      bid_note: note,
+      bid_arrival: arrival,
+      bid_job_id: jobId,
+    });
+  }
 
   // ── Loading ────────────────────────────────────────────────────────────────
 
@@ -381,9 +829,6 @@ export default function ChatScreen() {
           />
         </SafeAreaView>
 
-        {/* paddingBottom = keyboard height while open, safe-area inset when closed.
-            Using Keyboard events directly avoids KeyboardAvoidingView's Android
-            bug where it doesn't reset paddingBottom to 0 after dismissal. */}
         <View style={[styles.chatArea, { paddingBottom: kbHeight > 0 ? kbHeight : insets.bottom }]}>
           {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
           <Chat client={clientRef.current as any}>
@@ -391,15 +836,32 @@ export default function ChatScreen() {
             <Channel
               channel={channel as any}
               disableKeyboardCompatibleView
-              DateHeader={CustomDateHeader}
-              InlineDateSeparator={CustomInlineDateSeparator}
-              InputButtons={CameraInputButton}
+              DateHeader={CustomDateHeader as any}
+              InlineDateSeparator={CustomInlineDateSeparator as any}
+              InputButtons={CustomInputButtons as any}
+              FlatList={CustomFlatList as any}
             >
               <MessageList />
               <MessageInput />
             </Channel>
           </Chat>
         </View>
+
+        {/* Send-bid sheet — only reachable for experts */}
+        {isExpert && (
+          <SendBidSheet
+            visible={bidSheetVisible}
+            onClose={() => setBidSheetVisible(false)}
+            onSend={handleSendBidCard}
+          />
+        )}
+
+        {/* Full-screen accept overlay */}
+        {acceptingBid && (
+          <View style={styles.acceptingOverlay}>
+            <ActivityIndicator size="large" color={Colors.white} />
+          </View>
+        )}
       </View>
     </OverlayProvider>
   );
@@ -436,7 +898,6 @@ const styles = StyleSheet.create({
     borderBottomColor: Colors.gray200,
     paddingHorizontal: Spacing.s4,
     gap: Spacing.s3,
-    // Force LTR layout regardless of device RTL system setting
     direction: 'ltr',
   },
   backCircle: {
@@ -474,7 +935,6 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: Colors.success600,
   },
-  // Fallback when job info not yet loaded
   headerTitle: {
     flex: 1,
     ...Typography.heading1,
@@ -505,6 +965,14 @@ const styles = StyleSheet.create({
   retryBtn: {
     width: 160,
   },
+
+  // ── Accepting overlay ───────────────────────────────────────────────────────
+  acceptingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 });
 
 const dateBadgeStyles = StyleSheet.create({
@@ -520,5 +988,18 @@ const dateBadgeStyles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: Colors.gray600,
+  },
+});
+
+const inputBtnStyles = StyleSheet.create({
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  bidBtn: {
+    width: 36,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

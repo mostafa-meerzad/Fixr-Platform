@@ -630,7 +630,19 @@
       "title": "Chat",
       "lockedTitle": "Chat not available yet",
       "lockedSubtitle": "Chat unlocks once a homeowner accepts your bid.",
-      "onlineNow": "Online now"
+      "onlineNow": "Online now",
+      "updatedBid": "UPDATED BID",
+      "acceptBid": "Accept bid",
+      "counter": "Counter",
+      "bidAccepted": "Bid accepted!",
+      "priceRequired": "Please enter a valid price.",
+      "sendBidTitle": "Send bid update",
+      "bidPrice": "Price (AFN)",
+      "bidNote": "Note",
+      "bidNotePlaceholder": "e.g. parts included",
+      "bidArrival": "Estimated arrival",
+      "bidArrivalPlaceholder": "e.g. Today, 2 pm",
+      "sendBid": "Send bid"
     },
     "review": {
       "headerTitle": "Leave a Review",
