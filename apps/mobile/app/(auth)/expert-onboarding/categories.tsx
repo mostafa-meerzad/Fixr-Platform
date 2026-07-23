@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import { ScreenWrapper } from '@/components/ui/ScreenWrapper';
 import { Button } from '@/components/ui/Button';
@@ -93,7 +93,7 @@ export default function CategoriesScreen() {
                   activeOpacity={0.75}
                 >
                   {item.icon ? (
-                    <MaterialIcons
+                    <MaterialCommunityIcons
                       name={item.icon as any}
                       size={IconSize.btn}
                       color={isSelected ? Colors.white : Colors.gray600}

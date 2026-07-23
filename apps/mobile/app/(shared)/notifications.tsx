@@ -10,7 +10,7 @@ import {
 import { router, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Colors, IconSize, Radius, Spacing, Typography } from '@/constants/theme';
 import { Icons } from '@/constants/icons';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -131,7 +131,7 @@ export default function NotificationsScreen() {
   const header = (
     <View style={styles.header}>
       <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-        <MaterialIcons name={Icons.back as any} size={24} color={Colors.gray900} />
+        <MaterialCommunityIcons name={Icons.back as any} size={24} color={Colors.gray900} />
       </TouchableOpacity>
       <Text style={styles.title}>{t('shared.notifications.title')}</Text>
       <TouchableOpacity
@@ -206,7 +206,7 @@ export default function NotificationsScreen() {
                 styles.iconSquare,
                 item.isRead ? styles.iconSquareRead : styles.iconSquareUnread,
               ]}>
-                <MaterialIcons
+                <MaterialCommunityIcons
                   name={notifIcon(item.type) as any}
                   size={IconSize.inline}
                   color={item.isRead ? Colors.gray400 : Colors.primary600}

@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import type { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { Colors, IconSize, Radius, Spacing, Typography } from '@/constants/theme';
@@ -154,7 +154,7 @@ function BidCard({ bid, onAccept, onViewExpert, t }: BidCardProps) {
           <View style={styles.bidNameRow}>
             <Text style={styles.bidExpertName} numberOfLines={1}>{bid.expert.user.name}</Text>
             {isVerified && (
-              <MaterialIcons name={Icons.verified as any} size={14} color={Colors.success600} />
+              <MaterialCommunityIcons name={Icons.verified as any} size={14} color={Colors.success600} />
             )}
           </View>
           <Text style={styles.bidExpertMeta}>
@@ -172,7 +172,7 @@ function BidCard({ bid, onAccept, onViewExpert, t }: BidCardProps) {
       {/* Warranty chip */}
       {bid.warrantyDescription ? (
         <View style={styles.warrantyRow}>
-          <MaterialIcons name={Icons.checkCircle as any} size={12} color={Colors.success600} />
+          <MaterialCommunityIcons name={Icons.checkCircle as any} size={12} color={Colors.success600} />
           <Text style={styles.warrantyText} numberOfLines={1}>
             {t('homeowner.jobDetail.warranty')} · {bid.warrantyDescription}
           </Text>
@@ -296,7 +296,7 @@ export default function HomeownerJobDetailScreen() {
       <SafeAreaView style={styles.safe} edges={['top']}>
         <View style={styles.header}>
           <TouchableOpacity style={styles.backCircle} onPress={() => router.back()}>
-            <MaterialIcons name={Icons.back as any} size={24} color={Colors.gray900} />
+            <MaterialCommunityIcons name={Icons.back as any} size={24} color={Colors.gray900} />
           </TouchableOpacity>
         </View>
         <View style={styles.centered}>
@@ -313,7 +313,7 @@ export default function HomeownerJobDetailScreen() {
       <SafeAreaView style={styles.safe} edges={['top']}>
         <View style={styles.header}>
           <TouchableOpacity style={styles.backCircle} onPress={() => router.back()}>
-            <MaterialIcons name={Icons.back as any} size={24} color={Colors.gray900} />
+            <MaterialCommunityIcons name={Icons.back as any} size={24} color={Colors.gray900} />
           </TouchableOpacity>
         </View>
         <View style={styles.centered}>
@@ -340,7 +340,7 @@ export default function HomeownerJobDetailScreen() {
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity style={styles.backCircle} onPress={() => router.back()}>
-            <MaterialIcons name={Icons.back as any} size={24} color={Colors.gray900} />
+            <MaterialCommunityIcons name={Icons.back as any} size={24} color={Colors.gray900} />
           </TouchableOpacity>
           <Text style={styles.headerTitle} numberOfLines={1}>{job.title}</Text>
           <View style={styles.headerSpacer} />
@@ -383,7 +383,7 @@ export default function HomeownerJobDetailScreen() {
             </View>
           ) : (
             <View style={styles.imagePlaceholder}>
-              <MaterialIcons
+              <MaterialCommunityIcons
                 name={(job.category ? Icons.assignment : Icons.image) as any}
                 size={IconSize.large}
                 color={Colors.primary600}
@@ -415,7 +415,7 @@ export default function HomeownerJobDetailScreen() {
 
             {/* Address row */}
             <View style={styles.addressRow}>
-              <MaterialIcons name={Icons.location as any} size={IconSize.status} color={Colors.gray400} />
+              <MaterialCommunityIcons name={Icons.location as any} size={IconSize.status} color={Colors.gray400} />
               <Text style={styles.addressText}>{job.address}</Text>
             </View>
 
@@ -566,7 +566,7 @@ export default function HomeownerJobDetailScreen() {
             <Text style={styles.sheetExpertName}>{selectedBid.expert.user.name}</Text>
             {selectedBid.expert.verificationStatus === 'VERIFIED' && (
               <View style={styles.sheetVerifiedRow}>
-                <MaterialIcons name={Icons.verified as any} size={14} color={Colors.success600} />
+                <MaterialCommunityIcons name={Icons.verified as any} size={14} color={Colors.success600} />
                 <Text style={styles.sheetVerifiedText}>{t('homeowner.jobDetail.verifiedExpert')}</Text>
               </View>
             )}

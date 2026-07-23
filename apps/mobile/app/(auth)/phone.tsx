@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { StyleSheet, Text, TextInput, View } from "react-native";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
-import { MaterialIcons } from "@expo/vector-icons";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { Button } from "@/components/ui/Button";
@@ -92,7 +92,7 @@ export default function PhoneScreen() {
           </View>
 
           <View style={styles.whatsappHint}>
-            <MaterialIcons
+            <MaterialCommunityIcons
               name="chat"
               size={IconSize.status}
               color={Colors.primary600}

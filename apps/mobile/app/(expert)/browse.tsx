@@ -12,7 +12,7 @@ import {
 import { router, useFocusEffect } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
-import { MaterialIcons } from "@expo/vector-icons";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import type { BottomSheetModal } from "@gorhom/bottom-sheet";
 import {
   Colors,
@@ -223,7 +223,7 @@ export default function BrowseScreen() {
         />
         {/* Amber / danger verification banner */}
         <View style={[styles.pendingBanner, { backgroundColor: bannerBg }]}>
-          <MaterialIcons
+          <MaterialCommunityIcons
             name={isPending ? "hourglass-empty" : "cancel"}
             size={IconSize.inline}
             color={bannerColor}
@@ -244,7 +244,7 @@ export default function BrowseScreen() {
         {/* Empty feed state */}
         <View style={styles.centered}>
           <View style={styles.searchIconBox}>
-            <MaterialIcons name="search" size={40} color={Colors.gray400} />
+            <MaterialCommunityIcons name="magnify" size={40} color={Colors.gray400} />
           </View>
           <Text style={styles.pendingFeedTitle}>
             {t("expert.browse.pendingFeedTitle")}
@@ -397,7 +397,7 @@ export default function BrowseScreen() {
                     {zone.nameEn ?? zone.name}
                   </Text>
                   {isSelected && (
-                    <MaterialIcons
+                    <MaterialCommunityIcons
                       name="check"
                       size={IconSize.inline}
                       color={Colors.primary600}
@@ -449,7 +449,7 @@ function BrowseHeader({
           ) : null}
         </View>
         <View style={styles.creditsPill}>
-          <MaterialIcons
+          <MaterialCommunityIcons
             name={Icons.credit as any}
             size={14}
             color={Colors.amber}

@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { Colors, IconSize, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
 import { Icons } from '@/constants/icons';
@@ -307,7 +307,7 @@ export default function ReviewScreen() {
               activeOpacity={0.7}
               hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
             >
-              <MaterialIcons
+              <MaterialCommunityIcons
                 name="star"
                 size={40}
                 color={star <= rating ? Colors.amber : Colors.gray200}
@@ -392,7 +392,7 @@ function TopBar({ onSkip }: { onSkip?: () => void }) {
   return (
     <View style={styles.topBar}>
       <TouchableOpacity style={styles.backCircle} onPress={() => router.back()}>
-        <MaterialIcons name={Icons.back as any} size={IconSize.inline} color={Colors.gray900} />
+        <MaterialCommunityIcons name={Icons.back as any} size={IconSize.inline} color={Colors.gray900} />
       </TouchableOpacity>
       <View style={styles.topBarSpacer} />
       {onSkip && (

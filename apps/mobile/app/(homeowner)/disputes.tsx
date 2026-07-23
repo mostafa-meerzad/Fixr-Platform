@@ -10,7 +10,7 @@ import {
 import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
-import { MaterialIcons } from "@expo/vector-icons";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Colors, Spacing, Typography } from "@/constants/theme";
 import { Icons } from "@/constants/icons";
 import { Divider } from "@/components/ui/Divider";
@@ -78,7 +78,7 @@ export default function DisputesScreen() {
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <MaterialIcons
+          <MaterialCommunityIcons
             name={Icons.back as any}
             size={24}
             color={Colors.gray900}

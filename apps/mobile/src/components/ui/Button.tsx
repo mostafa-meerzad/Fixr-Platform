@@ -7,7 +7,7 @@ import {
   StyleSheet,
   type ViewStyle,
 } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Colors, Spacing, Radius, IconSize } from '@/constants/theme';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'destructive' | 'ghost' | 'dark' | 'success';
@@ -65,7 +65,7 @@ export function Button({
       ) : (
         <View style={styles.content}>
           {leftIcon ? (
-            <MaterialIcons name={leftIcon as any} size={IconSize.btn} color={iconColor} />
+            <MaterialCommunityIcons name={leftIcon as any} size={IconSize.btn} color={iconColor} />
           ) : null}
           <Text style={[styles.text, { color: v.text }, isDisabled ? styles.disabledText : null]}>
             {label}

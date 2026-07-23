@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
-import { MaterialIcons } from "@expo/vector-icons";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { useToast } from "@/components/ui/Toast";
@@ -114,7 +114,7 @@ export default function OtpScreen() {
           onPress={() => router.back()}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
-          <MaterialIcons name="arrow-back" size={24} color={Colors.gray600} />
+          <MaterialCommunityIcons name="arrow-left" size={24} color={Colors.gray600} />
         </TouchableOpacity>
 
         {/* Header */}

@@ -10,7 +10,7 @@ import {
 import { router, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Colors, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
 import { Icons } from '@/constants/icons';
 import { Button } from '@/components/ui/Button';
@@ -139,7 +139,7 @@ export default function HomeScreen() {
           onPress={() => router.push('/(shared)/notifications' as any)}
           activeOpacity={0.7}
         >
-          <MaterialIcons
+          <MaterialCommunityIcons
             name={(unreadCount > 0 ? Icons.notifsActive : Icons.notifs) as any}
             size={24}
             color={Colors.primary600}
@@ -171,14 +171,14 @@ export default function HomeScreen() {
           >
             <View style={styles.heroLeft}>
               <View style={styles.heroPlusCircle}>
-                <MaterialIcons name={Icons.add as any} size={20} color={Colors.primary600} />
+                <MaterialCommunityIcons name={Icons.add as any} size={20} color={Colors.primary600} />
               </View>
               <View style={styles.heroTextBlock}>
                 <Text style={styles.heroTitle}>{t('homeowner.home.postJob')}</Text>
                 <Text style={styles.heroSubtitle}>{t('homeowner.home.postJobHint')}</Text>
               </View>
             </View>
-            <MaterialIcons name={Icons.chevronRight as any} size={24} color={Colors.white} />
+            <MaterialCommunityIcons name={Icons.chevronRight as any} size={24} color={Colors.white} />
           </TouchableOpacity>
 
           {!hasContent ? (

@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { Colors, IconSize, Radius, Spacing, Typography } from '@/constants/theme';
 import { Icons } from '@/constants/icons';
@@ -32,7 +32,7 @@ function StarRow({ rating }: { rating: number }) {
   return (
     <View style={styles.starRow}>
       {[1, 2, 3, 4, 5].map((n) => (
-        <MaterialIcons
+        <MaterialCommunityIcons
           key={n}
           name={Icons.star as any}
           size={14}
@@ -114,7 +114,7 @@ export default function ExpertPublicProfileScreen() {
       <SafeAreaView style={styles.safe} edges={['top']}>
         <View style={styles.header}>
           <TouchableOpacity style={styles.backCircle} onPress={() => router.back()}>
-            <MaterialIcons name={Icons.back as any} size={24} color={Colors.gray900} />
+            <MaterialCommunityIcons name={Icons.back as any} size={24} color={Colors.gray900} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>{t('homeowner.expertPublicProfile.title')}</Text>
           <View style={styles.headerSpacer} />
@@ -133,7 +133,7 @@ export default function ExpertPublicProfileScreen() {
       <SafeAreaView style={styles.safe} edges={['top']}>
         <View style={styles.header}>
           <TouchableOpacity style={styles.backCircle} onPress={() => router.back()}>
-            <MaterialIcons name={Icons.back as any} size={24} color={Colors.gray900} />
+            <MaterialCommunityIcons name={Icons.back as any} size={24} color={Colors.gray900} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>{t('homeowner.expertPublicProfile.title')}</Text>
           <View style={styles.headerSpacer} />
@@ -168,11 +168,11 @@ export default function ExpertPublicProfileScreen() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backCircle} onPress={() => router.back()}>
-          <MaterialIcons name={Icons.back as any} size={24} color={Colors.gray900} />
+          <MaterialCommunityIcons name={Icons.back as any} size={24} color={Colors.gray900} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{t('homeowner.expertPublicProfile.title')}</Text>
         <TouchableOpacity style={styles.backCircle}>
-          <MaterialIcons name="more-horiz" size={22} color={Colors.gray900} />
+          <MaterialCommunityIcons name="dots-horizontal" size={22} color={Colors.gray900} />
         </TouchableOpacity>
       </View>
 
@@ -200,7 +200,7 @@ export default function ExpertPublicProfileScreen() {
           <View style={styles.pillRow}>
             {isVerified && (
               <View style={styles.verifiedPill}>
-                <MaterialIcons name={Icons.verified as any} size={12} color={Colors.success600} />
+                <MaterialCommunityIcons name={Icons.verified as any} size={12} color={Colors.success600} />
                 <Text style={styles.verifiedPillText}>
                   {t('homeowner.expertPublicProfile.idVerified')}
                 </Text>
@@ -208,7 +208,7 @@ export default function ExpertPublicProfileScreen() {
             )}
             {profile.positivePoints >= 10 && (
               <View style={styles.guildPill}>
-                <MaterialIcons name={Icons.star as any} size={12} color={Colors.amber} />
+                <MaterialCommunityIcons name={Icons.star as any} size={12} color={Colors.amber} />
                 <Text style={styles.guildPillText}>
                   {t('homeowner.expertPublicProfile.guildMember')}
                 </Text>
@@ -249,7 +249,7 @@ export default function ExpertPublicProfileScreen() {
         {/* ── No-show warning ── */}
         {profile.noShowCount > 0 && (
           <View style={styles.noShowBanner}>
-            <MaterialIcons name={Icons.warning as any} size={IconSize.status} color={Colors.danger600} />
+            <MaterialCommunityIcons name={Icons.warning as any} size={IconSize.status} color={Colors.danger600} />
             <Text style={styles.noShowText}>
               {t('homeowner.expertPublicProfile.noShowWarning', { count: profile.noShowCount })}
             </Text>
@@ -289,7 +289,7 @@ export default function ExpertPublicProfileScreen() {
           <View style={styles.photoGrid}>
             {[0, 1, 2].map((i) => (
               <View key={i} style={styles.photoSlot}>
-                <MaterialIcons name={Icons.image as any} size={28} color={Colors.gray200} />
+                <MaterialCommunityIcons name={Icons.image as any} size={28} color={Colors.gray200} />
               </View>
             ))}
           </View>
@@ -352,7 +352,7 @@ function StatTile({ value, label, icon, iconColor }: StatTileProps) {
     <View style={styles.statTile}>
       <View style={styles.statValueRow}>
         {icon ? (
-          <MaterialIcons name={icon as any} size={14} color={iconColor ?? Colors.primary600} />
+          <MaterialCommunityIcons name={icon as any} size={14} color={iconColor ?? Colors.primary600} />
         ) : null}
         <Text style={styles.statValue}>{value}</Text>
       </View>

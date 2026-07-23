@@ -15,7 +15,7 @@ import {
 } from 'react-native';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { Colors, IconSize, Radius, Spacing, Typography } from '@/constants/theme';
 import { Icons } from '@/constants/icons';
@@ -145,7 +145,7 @@ function PickerField({
         >
           {selectedLabel || placeholder}
         </Text>
-        <MaterialIcons name={Icons.chevronDown as any} size={18} color={Colors.gray400} />
+        <MaterialCommunityIcons name={Icons.chevronDown as any} size={18} color={Colors.gray400} />
       </TouchableOpacity>
       {error ? <Text style={pickerStyles.errorText}>{error}</Text> : null}
       <Modal
@@ -181,7 +181,7 @@ function PickerField({
                   {opt.label}
                 </Text>
                 {selectedLabel === opt.label && (
-                  <MaterialIcons name="check" size={16} color={Colors.primary600} />
+                  <MaterialCommunityIcons name="check" size={16} color={Colors.primary600} />
                 )}
               </TouchableOpacity>
             ))}
@@ -430,7 +430,7 @@ export default function ExpertJobDetailScreen() {
       <View style={[styles.flex, { backgroundColor: Colors.bgApp, paddingTop: insets.top }]}>
         <View style={styles.header}>
           <TouchableOpacity style={styles.backCircle} onPress={() => router.back()}>
-            <MaterialIcons name={Icons.back as any} size={20} color={Colors.gray900} />
+            <MaterialCommunityIcons name={Icons.back as any} size={20} color={Colors.gray900} />
           </TouchableOpacity>
         </View>
         <View style={styles.centered}>
@@ -447,7 +447,7 @@ export default function ExpertJobDetailScreen() {
       <View style={[styles.flex, { backgroundColor: Colors.bgApp, paddingTop: insets.top }]}>
         <View style={styles.header}>
           <TouchableOpacity style={styles.backCircle} onPress={() => router.back()}>
-            <MaterialIcons name={Icons.back as any} size={20} color={Colors.gray900} />
+            <MaterialCommunityIcons name={Icons.back as any} size={20} color={Colors.gray900} />
           </TouchableOpacity>
         </View>
         <View style={styles.centered}>
@@ -468,7 +468,7 @@ export default function ExpertJobDetailScreen() {
         {/* ── Header ─────────────────────────────────────────────────────────── */}
         <View style={styles.header}>
           <TouchableOpacity style={styles.backCircle} onPress={() => router.back()} activeOpacity={0.8}>
-            <MaterialIcons name={Icons.back as any} size={20} color={Colors.gray900} />
+            <MaterialCommunityIcons name={Icons.back as any} size={20} color={Colors.gray900} />
           </TouchableOpacity>
           <Text style={styles.headerTitle} numberOfLines={1}>{job.title}</Text>
           <Pill label={getUrgencyLabel(job.urgency)} variant={getUrgencyVariant(job.urgency)} />
@@ -540,7 +540,7 @@ export default function ExpertJobDetailScreen() {
                     </View>
                     {myBid.warrantyDescription ? (
                       <View style={styles.chip}>
-                        <MaterialIcons name="check-circle" size={11} color={Colors.success600} />
+                        <MaterialCommunityIcons name="check-circle-outline" size={11} color={Colors.success600} />
                         <Text style={styles.chipText}>{myBid.warrantyDescription}</Text>
                       </View>
                     ) : null}
@@ -637,7 +637,7 @@ export default function ExpertJobDetailScreen() {
                   >
                     <View style={[styles.checkbox, includeWarranty ? styles.checkboxChecked : undefined]}>
                       {includeWarranty && (
-                        <MaterialIcons name="check" size={13} color={Colors.white} />
+                        <MaterialCommunityIcons name="check" size={13} color={Colors.white} />
                       )}
                     </View>
                     <Text style={styles.warrantyLabel}>{t('expert.jobDetail.warrantyCheck')}</Text>
@@ -682,7 +682,7 @@ export default function ExpertJobDetailScreen() {
               onPress={() => setFullscreenUri(null)}
               hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
             >
-              <MaterialIcons name={Icons.back as any} size={22} color={Colors.white} />
+              <MaterialCommunityIcons name={Icons.back as any} size={22} color={Colors.white} />
             </TouchableOpacity>
           </View>
           {fullscreenUri && (

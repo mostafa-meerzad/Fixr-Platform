@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { router, Stack } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ProgressBar } from '@/components/ui/ProgressBar';
@@ -56,7 +56,7 @@ export default function CreateJobScreen() {
 
       <View style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-          <MaterialIcons name={Icons.back as any} size={24} color={Colors.gray600} />
+          <MaterialCommunityIcons name={Icons.back as any} size={24} color={Colors.gray600} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{t('homeowner.post.newJobTitle')}</Text>
         <Text style={styles.stepLabel}>
@@ -91,7 +91,7 @@ export default function CreateJobScreen() {
                     activeOpacity={0.8}
                   >
                     <View style={[styles.iconBox, isSelected && styles.iconBoxSelected]}>
-                      <MaterialIcons
+                      <MaterialCommunityIcons
                         name={cat.icon as any}
                         size={24}
                         color={isSelected ? Colors.primary600 : Colors.gray400}

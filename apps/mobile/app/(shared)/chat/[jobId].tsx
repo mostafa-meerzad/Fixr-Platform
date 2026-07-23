@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { StreamChat } from 'stream-chat';
 import {
@@ -166,7 +166,7 @@ const avatarStyles = StyleSheet.create({
 function CameraButton() {
   return (
     <TouchableOpacity style={cameraStyles.btn} onPress={() => {}}>
-      <MaterialIcons name={Icons.camera as any} size={IconSize.inline} color={Colors.gray400} />
+      <MaterialCommunityIcons name={Icons.camera as any} size={IconSize.inline} color={Colors.gray400} />
     </TouchableOpacity>
   );
 }
@@ -201,7 +201,7 @@ function BidCardMessage({ message, isExpert, actionsRef }: BidCardMessageProps) 
         {/* Header */}
         <View style={bidCardStyles.headerRow}>
           <View style={bidCardStyles.headerIconWrap}>
-            <MaterialIcons name="local-offer" size={12} color={Colors.amber} />
+            <MaterialCommunityIcons name="tag-outline" size={12} color={Colors.amber} />
           </View>
           <Text style={bidCardStyles.headerLabel}>
             {t('shared.chat.updatedBid')}
@@ -534,7 +534,7 @@ function Header({ onBack, title, jobInfo, isOtherOnline }: HeaderProps) {
   return (
     <View style={styles.header} accessibilityRole="header">
       <TouchableOpacity style={styles.backCircle} onPress={onBack}>
-        <MaterialIcons name={Icons.back as any} size={24} color={Colors.gray900} />
+        <MaterialCommunityIcons name={Icons.back as any} size={24} color={Colors.gray900} />
       </TouchableOpacity>
 
       {hasJobInfo ? (
@@ -731,8 +731,8 @@ export default function ChatScreen() {
               onPress={() => _bidPressRef.current()}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
-              <MaterialIcons
-                name="local-offer"
+              <MaterialCommunityIcons
+                name="tag-outline"
                 size={IconSize.inline}
                 color={Colors.primary600}
               />

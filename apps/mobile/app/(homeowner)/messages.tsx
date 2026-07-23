@@ -10,7 +10,7 @@ import {
 import { router, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNotifStore } from '@/stores/notif.store';
 import { Colors, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
 import { Icons } from '@/constants/icons';
@@ -132,7 +132,7 @@ export default function MessagesScreen() {
           ListFooterComponent={
             jobs.length > 0 ? (
               <View style={styles.lockHint}>
-                <MaterialIcons name={Icons.info as any} size={14} color={Colors.gray400} />
+                <MaterialCommunityIcons name={Icons.info as any} size={14} color={Colors.gray400} />
                 <Text style={styles.lockHintText}>{t('homeowner.messages.lockHint')}</Text>
               </View>
             ) : null

@@ -6,7 +6,7 @@ import React, {
   useState,
 } from 'react';
 import { Animated, StyleSheet, Text, View } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors, Radius, Shadows, Spacing } from '@/constants/theme';
 
@@ -28,9 +28,9 @@ export function useToast() {
 }
 
 function variantIcon(variant: ToastVariant): string {
-  if (variant === 'success') return 'check-circle';
-  if (variant === 'error') return 'error';
-  return 'info';
+  if (variant === 'success') return 'check-circle-outline';
+  if (variant === 'error') return 'alert-circle-outline';
+  return 'information-outline';
 }
 
 function variantAccent(variant: ToastVariant): string {
@@ -84,7 +84,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
           ]}
         >
           <View style={[styles.accent, { backgroundColor: accent }]} />
-          <MaterialIcons name={variantIcon(variant) as any} size={18} color={accent} style={styles.icon} />
+          <MaterialCommunityIcons name={variantIcon(variant) as any} size={18} color={accent} style={styles.icon} />
           <Text style={styles.text} numberOfLines={2}>{config.message}</Text>
         </Animated.View>
       )}

@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 
 import { ScreenWrapper } from '@/components/ui/ScreenWrapper';
@@ -137,12 +137,12 @@ function DocZone({ label, idlePrompt, retakeLabel, uri, onCapture, onRetake }: D
           <>
             <Image source={{ uri }} style={styles.zoneImage} />
             <View style={styles.checkBadge}>
-              <MaterialIcons name="check" size={14} color={Colors.white} />
+              <MaterialCommunityIcons name="check" size={14} color={Colors.white} />
             </View>
           </>
         ) : (
           <View style={styles.idlePlaceholder}>
-            <MaterialIcons
+            <MaterialCommunityIcons
               name={Icons.camera as any}
               size={IconSize.btn}
               color={Colors.primary600}
@@ -154,7 +154,7 @@ function DocZone({ label, idlePrompt, retakeLabel, uri, onCapture, onRetake }: D
 
       {uri && (
         <TouchableOpacity style={styles.retakeBtn} onPress={onRetake}>
-          <MaterialIcons
+          <MaterialCommunityIcons
             name={Icons.camera as any}
             size={IconSize.status}
             color={Colors.primary600}

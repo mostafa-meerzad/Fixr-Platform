@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Tabs } from 'expo-router';
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { Colors } from '@/constants/theme';
 import { Icons } from '@/constants/icons';
@@ -21,7 +21,7 @@ function TabIcon({
 }) {
   return (
     <View>
-      <MaterialIcons name={name as any} size={size} color={color} />
+      <MaterialCommunityIcons name={name as any} size={size} color={color} />
       {hasBadge ? <View style={styles.badge} /> : null}
     </View>
   );

@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/ui/Button';
@@ -72,7 +72,7 @@ function BidCard({ bid }: { bid: LiveBid }) {
         <View style={cardStyles.nameRow}>
           <Text style={cardStyles.name}>{bid.expert.user.name}</Text>
           {isVerified && (
-            <MaterialIcons name={Icons.verified as any} size={14} color={Colors.success600} />
+            <MaterialCommunityIcons name={Icons.verified as any} size={14} color={Colors.success600} />
           )}
         </View>
         <Text style={cardStyles.meta}>
@@ -221,7 +221,7 @@ export default function SuccessScreen() {
       >
         {/* ── Check icon ── */}
         <View style={styles.checkCircle}>
-          <MaterialIcons name="check" size={32} color={Colors.success600} />
+          <MaterialCommunityIcons name="check" size={32} color={Colors.success600} />
         </View>
 
         <Text style={styles.heading}>{t('homeowner.post.successHeading')}</Text>

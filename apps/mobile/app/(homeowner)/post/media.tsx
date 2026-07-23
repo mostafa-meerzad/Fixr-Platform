@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
-import { MaterialIcons } from "@expo/vector-icons";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as ImagePicker from "expo-image-picker";
 
@@ -192,7 +192,7 @@ export default function MediaScreen() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={handleBack}>
-          <MaterialIcons
+          <MaterialCommunityIcons
             name={Icons.back as any}
             size={24}
             color={Colors.gray600}
@@ -239,7 +239,7 @@ export default function MediaScreen() {
                         { backgroundColor: Colors.danger100 },
                       ]}
                     >
-                      <MaterialIcons
+                      <MaterialCommunityIcons
                         name={"image" as any}
                         size={24}
                         color={Colors.danger600}
@@ -259,7 +259,7 @@ export default function MediaScreen() {
                     }
                     hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}
                   >
-                    <MaterialIcons
+                    <MaterialCommunityIcons
                       name="cancel"
                       size={22}
                       color={Colors.danger600}
@@ -277,7 +277,7 @@ export default function MediaScreen() {
                   onPress={handleAddPhoto}
                   activeOpacity={0.7}
                 >
-                  <MaterialIcons
+                  <MaterialCommunityIcons
                     name={Icons.addPhoto as any}
                     size={24}
                     color={Colors.gray400}
@@ -306,7 +306,7 @@ export default function MediaScreen() {
               </View>
             ) : (
               <View style={styles.videoPlaceholder}>
-                <MaterialIcons
+                <MaterialCommunityIcons
                   name={Icons.video as any}
                   size={32}
                   color={Colors.gray400}
@@ -323,7 +323,7 @@ export default function MediaScreen() {
               onPress={handleRemoveVideo}
               hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}
             >
-              <MaterialIcons name="cancel" size={22} color={Colors.danger600} />
+              <MaterialCommunityIcons name="cancel" size={22} color={Colors.danger600} />
             </TouchableOpacity>
           </View>
         ) : (
@@ -332,7 +332,7 @@ export default function MediaScreen() {
             onPress={handleAddVideo}
             activeOpacity={0.7}
           >
-            <MaterialIcons
+            <MaterialCommunityIcons
               name={Icons.video as any}
               size={20}
               color={Colors.gray400}

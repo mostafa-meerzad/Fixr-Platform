@@ -16,7 +16,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import * as SecureStore from "expo-secure-store";
 import { useTranslation } from "react-i18next";
 import type { BottomSheetModal } from "@gorhom/bottom-sheet";
-import { MaterialIcons } from "@expo/vector-icons";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Colors, Radius, Shadows, Spacing, Typography } from "@/constants/theme";
 import { Icons } from "@/constants/icons";
 import { BottomSheet } from "@/components/ui/BottomSheet";
@@ -235,7 +235,7 @@ export default function ProfileScreen() {
                   {avatarUploading ? (
                     <ActivityIndicator size="small" color={Colors.white} />
                   ) : (
-                    <MaterialIcons name="photo-camera" size={14} color={Colors.white} />
+                    <MaterialCommunityIcons name="camera-outline" size={14} color={Colors.white} />
                   )}
                 </View>
               </TouchableOpacity>
@@ -278,12 +278,12 @@ export default function ProfileScreen() {
                   onPress={row.onPress}
                   activeOpacity={0.7}
                 >
-                  <MaterialIcons name={row.icon as any} size={22} color={Colors.gray600} />
+                  <MaterialCommunityIcons name={row.icon as any} size={22} color={Colors.gray600} />
                   <Text style={styles.menuLabel}>{row.label}</Text>
                   {row.rightLabel ? (
                     <Text style={styles.menuRightLabel}>{row.rightLabel}</Text>
                   ) : null}
-                  <MaterialIcons name={Icons.chevronRight as any} size={20} color={Colors.gray400} />
+                  <MaterialCommunityIcons name={Icons.chevronRight as any} size={20} color={Colors.gray400} />
                 </TouchableOpacity>
                 {idx < settingRows.length - 1 && (
                   <Divider style={styles.rowDivider} />
@@ -341,7 +341,7 @@ export default function ProfileScreen() {
                 {t(`common.language.${option}`)}
               </Text>
               {lang === option && (
-                <MaterialIcons name="check" size={20} color={Colors.primary600} />
+                <MaterialCommunityIcons name="check" size={20} color={Colors.primary600} />
               )}
             </TouchableOpacity>
             {idx < arr.length - 1 && <Divider style={styles.rowDivider} />}

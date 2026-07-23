@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 
 import { ScreenWrapper } from '@/components/ui/ScreenWrapper';
@@ -196,7 +196,7 @@ export default function BusinessScreen() {
                 >
                   {selectedZone?.nameEn ?? t('auth.onboarding.shopZonePlaceholder')}
                 </Text>
-                <MaterialIcons name={Icons.chevronDown as any} size={18} color={Colors.gray400} />
+                <MaterialCommunityIcons name={Icons.chevronDown as any} size={18} color={Colors.gray400} />
               </TouchableOpacity>
               {zoneError ? <Text style={styles.fieldError}>{zoneError}</Text> : null}
             </View>
@@ -275,7 +275,7 @@ export default function BusinessScreen() {
                 >
                   <Text style={styles.zoneRowText}>{item.nameEn ?? item.name}</Text>
                   {selectedZone?.id === item.id && (
-                    <MaterialIcons name="check" size={20} color={Colors.primary600} />
+                    <MaterialCommunityIcons name="check" size={20} color={Colors.primary600} />
                   )}
                 </TouchableOpacity>
               )}
@@ -346,12 +346,12 @@ function UploadSlot({ label, uri, disabled, onPress, onRetake }: UploadSlotProps
           <>
             <Image source={{ uri }} style={styles.slotImage} />
             <View style={styles.checkBadge}>
-              <MaterialIcons name="check" size={12} color={Colors.white} />
+              <MaterialCommunityIcons name="check" size={12} color={Colors.white} />
             </View>
           </>
         ) : (
           <View style={styles.slotIdle}>
-            <MaterialIcons name={Icons.camera as any} size={IconSize.btn} color={Colors.gray400} />
+            <MaterialCommunityIcons name={Icons.camera as any} size={IconSize.btn} color={Colors.gray400} />
             <Text style={styles.slotIdleLabel}>{t('auth.onboarding.cameraOrGallery')}</Text>
           </View>
         )}
@@ -381,12 +381,12 @@ function SourcePickerModal({ visible, onClose, onCamera, onGallery }: SourcePick
         <View style={styles.actionSheet}>
           <View style={styles.sheetHandle} />
           <TouchableOpacity style={styles.actionRow} onPress={onCamera}>
-            <MaterialIcons name={Icons.camera as any} size={IconSize.inline} color={Colors.gray900} />
+            <MaterialCommunityIcons name={Icons.camera as any} size={IconSize.inline} color={Colors.gray900} />
             <Text style={styles.actionLabel}>{t('auth.onboarding.takePhoto')}</Text>
           </TouchableOpacity>
           <View style={styles.divider} />
           <TouchableOpacity style={styles.actionRow} onPress={onGallery}>
-            <MaterialIcons name={Icons.image as any} size={IconSize.inline} color={Colors.gray900} />
+            <MaterialCommunityIcons name={Icons.image as any} size={IconSize.inline} color={Colors.gray900} />
             <Text style={styles.actionLabel}>{t('auth.onboarding.chooseFromGallery')}</Text>
           </TouchableOpacity>
         </View>

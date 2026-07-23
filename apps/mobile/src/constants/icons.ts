@@ -1,85 +1,91 @@
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import type React from "react";
+
 export const Icons = {
   // Tab bar
-  tabHome: "home",
-  tabWork: "work",
-  tabChat: "chat",
-  tabPerson: "person",
-  tabBrowse: "search",
+  tabHome: "home-outline",
+  tabWork: "briefcase-outline",
+  tabChat: "chat-outline",
+  tabPerson: "account-outline",
+  tabBrowse: "magnify",
   tabBids: "gavel",
 
   // Navigation
-  back: "arrow-back",
+  back: "arrow-left",
   chevronRight: "chevron-right",
   close: "close",
   menu: "menu",
 
   // Actions
-  add: "add",
-  location: "room",
-  camera: "photo-camera",
-  edit: "edit",
-  delete: "delete",
-  share: "share",
+  add: "plus",
+  location: "map-marker-outline",
+  camera: "camera-outline",
+  edit: "pencil-outline",
+  delete: "delete-outline",
+  share: "share-outline",
   check: "check",
+
   // Urgency
-  emergency: "flash-on",
-  today: "schedule",
+  emergency: "lightning-bolt",
+  today: "clock-outline",
   scheduled: "calendar-today",
 
   // Credits / finance
-  credit: "toll",
+  credit: "ticket-outline",
 
   // Roles
-  handyman: "handyman",
-  homeRepair: "home-repair-service",
+  handyman: "hammer-wrench",
+  homeRepair: "toolbox-outline",
 
   // Categories
-  category: "category",
+  category: "shape-outline",
 
   // Trust / verification
-  verified: "verified",
-  star: "star",
-  thumbUp: "thumb-up",
+  verified: "check-decagram",
+  star: "star-outline",
+  thumbUp: "thumb-up-outline",
   noShow: "cancel",
 
   // Empty states
-  notifNone: "notifications-none",
-  workOutline: "work-outline",
+  notifNone: "bell-outline",
+  workOutline: "briefcase-outline",
   history: "history",
-  hourglass: "hourglass-empty",
-  chatNone: "chat",
-  searchOff: "search-off",
-  assignment: "assignment",
+  hourglass: "timer-sand-outline",
+  chatNone: "chat-outline",
+  searchOff: "magnify-remove-outline",
+  assignment: "clipboard-text-outline",
   gavel: "gavel",
 
   // Media
-  video: "videocam",
-  play: "play-circle",
-  image: "image",
-  addPhoto: "add-photo-alternate",
+  video: "video-outline",
+  play: "play-circle-outline",
+  image: "image-outline",
+  addPhoto: "image-plus",
 
   // Misc
-  chevronDown: "expand-more",
-  checkCircle: "check-circle",
-  warning: "warning",
-  info: "info",
-  phone: "phone",
-  notifs: "notifications",
-  notifsActive: "notifications-active",
-  language: "language",
-  help: "help",
-  about: "info",
+  chevronDown: "chevron-down",
+  checkCircle: "check-circle-outline",
+  warning: "alert-outline",
+  info: "information-outline",
+  phone: "phone-outline",
+  notifs: "bell-outline",
+  notifsActive: "bell-ring-outline",
+  language: "web",
+  help: "help-circle-outline",
+  about: "information-outline",
   logout: "logout",
-  visibility: "visibility",
-  visibilityOff: "visibility-off",
+  visibility: "eye-outline",
+  visibilityOff: "eye-off-outline",
 
   // Notification type icons
   undo: "undo",
-  assignmentTurnedIn: "assignment-turned-in",
-  taskAlt: "task-alt",
-  gppBad: "gpp-bad",
-  reportProblem: "report-problem",
-  handshake: "handshake",
+  assignmentTurnedIn: "clipboard-check-outline",
+  taskAlt: "check-circle-outline",
+  gppBad: "shield-remove-outline",
+  reportProblem: "alert-circle-outline",
+  handshake: "handshake-outline",
 } as const;
 
-export type IconName = (typeof Icons)[keyof typeof Icons];
+export type IconName = React.ComponentProps<
+  typeof MaterialCommunityIcons
+>["name"];

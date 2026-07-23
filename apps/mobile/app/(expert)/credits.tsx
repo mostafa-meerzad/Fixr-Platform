@@ -11,7 +11,7 @@ import {
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import type { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
 import { Icons } from '@/constants/icons';
@@ -70,11 +70,11 @@ export default function BuyCreditsScreen() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn} activeOpacity={0.7}>
-          <MaterialIcons name={Icons.back as any} size={22} color={Colors.gray900} />
+          <MaterialCommunityIcons name={Icons.back as any} size={22} color={Colors.gray900} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{t('expert.buyCredits.title')}</Text>
         <View style={styles.creditsPill}>
-          <MaterialIcons name={Icons.credit as any} size={14} color={Colors.amber} />
+          <MaterialCommunityIcons name={Icons.credit as any} size={14} color={Colors.amber} />
           {balanceLoading ? (
             <ActivityIndicator size="small" color={Colors.white} style={styles.pillLoader} />
           ) : (
@@ -183,13 +183,13 @@ export default function BuyCreditsScreen() {
       {/* In-person purchase info sheet */}
       <BottomSheet ref={purchaseSheetRef} snapPoints={['55%']}>
         <View style={styles.sheetIconWrap}>
-          <MaterialIcons name={'storefront' as any} size={40} color={Colors.primary600} />
+          <MaterialCommunityIcons name={'storefront' as any} size={40} color={Colors.primary600} />
         </View>
         <Text style={styles.sheetTitle}>{t('expert.buySheet.title')}</Text>
         <Text style={styles.sheetBody}>{t('expert.buySheet.body')}</Text>
         <View style={styles.sheetRows}>
           <View style={styles.sheetRow}>
-            <MaterialIcons name={'place' as any} size={18} color={Colors.primary600} />
+            <MaterialCommunityIcons name={'place' as any} size={18} color={Colors.primary600} />
             <Text style={styles.sheetRowText}>{t('expert.buySheet.address')}</Text>
           </View>
           <TouchableOpacity
@@ -197,13 +197,13 @@ export default function BuyCreditsScreen() {
             onPress={() => Linking.openURL(`tel:${t('expert.buySheet.phone')}`)}
             activeOpacity={0.7}
           >
-            <MaterialIcons name={'phone' as any} size={18} color={Colors.primary600} />
+            <MaterialCommunityIcons name={'phone' as any} size={18} color={Colors.primary600} />
             <Text style={[styles.sheetRowText, styles.sheetPhoneText]}>
               {t('expert.buySheet.phone')}
             </Text>
           </TouchableOpacity>
           <View style={styles.sheetRow}>
-            <MaterialIcons name={'schedule' as any} size={18} color={Colors.primary600} />
+            <MaterialCommunityIcons name={'schedule' as any} size={18} color={Colors.primary600} />
             <Text style={styles.sheetRowText}>{t('expert.buySheet.hours')}</Text>
           </View>
         </View>

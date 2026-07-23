@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { BackHandler, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import { ScreenWrapper } from '@/components/ui/ScreenWrapper';
 import { Button } from '@/components/ui/Button';
@@ -21,7 +21,7 @@ export default function SubmittedScreen() {
     <ScreenWrapper>
       <View style={styles.container}>
         <View style={styles.iconCircle}>
-          <MaterialIcons name="fact_check" size={48} color={Colors.primary600} />
+          <MaterialCommunityIcons name="clipboard-check-outline" size={48} color={Colors.primary600} />
         </View>
 
         <Text style={styles.title}>{t('auth.onboarding.submittedTitle')}</Text>

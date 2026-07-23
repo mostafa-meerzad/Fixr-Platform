@@ -1,7 +1,7 @@
 import React from 'react';
 import { TouchableOpacity, View, StyleSheet } from 'react-native';
 import { Tabs, router } from 'expo-router';
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { Colors, Spacing } from '@/constants/theme';
@@ -22,7 +22,7 @@ function TabIcon({
 }) {
   return (
     <View>
-      <MaterialIcons name={name as any} size={size} color={color} />
+      <MaterialCommunityIcons name={name as any} size={size} color={color} />
       {hasBadge ? <View style={styles.badge} /> : null}
     </View>
   );
@@ -85,7 +85,7 @@ export default function ExpertLayout() {
         onPress={() => router.push('/(shared)/notifications' as any)}
         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
       >
-        <MaterialIcons
+        <MaterialCommunityIcons
           name={(unreadCount > 0 ? Icons.notifsActive : Icons.notifs) as any}
           size={24}
           color={Colors.primary600}

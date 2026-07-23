@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import { ScreenWrapper } from '@/components/ui/ScreenWrapper';
 import { Button } from '@/components/ui/Button';
@@ -59,7 +59,7 @@ export default function ExpertOnboardingOverviewScreen() {
         </View>
 
         <View style={styles.optionalNote}>
-          <MaterialIcons name="stars" size={16} color={Colors.amber} />
+          <MaterialCommunityIcons name="star-circle" size={16} color={Colors.amber} />
           <Text style={styles.optionalNoteText}>
             {t('auth.onboarding.overview.optionalNote')}
           </Text>
@@ -115,7 +115,7 @@ interface DocTileProps {
 function DocTile({ icon, label }: DocTileProps) {
   return (
     <View style={styles.docTile}>
-      <MaterialIcons name={icon as any} size={18} color={Colors.primary600} />
+      <MaterialCommunityIcons name={icon as any} size={18} color={Colors.primary600} />
       <Text style={styles.docTileLabel}>{label}</Text>
     </View>
   );

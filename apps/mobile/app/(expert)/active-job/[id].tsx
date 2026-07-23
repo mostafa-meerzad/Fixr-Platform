@@ -15,7 +15,7 @@ import {
 } from 'react-native';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { Colors, IconSize, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
 import { Icons } from '@/constants/icons';
@@ -196,7 +196,7 @@ export default function ExpertActiveJobScreen() {
       <SafeAreaView style={styles.safe} edges={['top']}>
         <View style={styles.header}>
           <TouchableOpacity style={styles.backCircle} onPress={() => router.back()}>
-            <MaterialIcons name={Icons.back as any} size={24} color={Colors.gray900} />
+            <MaterialCommunityIcons name={Icons.back as any} size={24} color={Colors.gray900} />
           </TouchableOpacity>
         </View>
         <View style={styles.centered}>
@@ -213,7 +213,7 @@ export default function ExpertActiveJobScreen() {
       <SafeAreaView style={styles.safe} edges={['top']}>
         <View style={styles.header}>
           <TouchableOpacity style={styles.backCircle} onPress={() => router.back()}>
-            <MaterialIcons name={Icons.back as any} size={24} color={Colors.gray900} />
+            <MaterialCommunityIcons name={Icons.back as any} size={24} color={Colors.gray900} />
           </TouchableOpacity>
         </View>
         <View style={styles.centered}>
@@ -246,7 +246,7 @@ export default function ExpertActiveJobScreen() {
       return (
         <View style={styles.stepperNodeCol}>
           <View style={[styles.stepperNode, styles.stepperNodeDone]}>
-            <MaterialIcons name={Icons.check as any} size={14} color={Colors.white} />
+            <MaterialCommunityIcons name={Icons.check as any} size={14} color={Colors.white} />
           </View>
           <Text style={[styles.nodeLabel, styles.nodeLabelDone]}>{nodeLabels[index]}</Text>
         </View>
@@ -345,7 +345,7 @@ export default function ExpertActiveJobScreen() {
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity style={styles.backCircle} onPress={() => router.back()}>
-            <MaterialIcons name={Icons.back as any} size={24} color={Colors.gray900} />
+            <MaterialCommunityIcons name={Icons.back as any} size={24} color={Colors.gray900} />
           </TouchableOpacity>
           <Text style={styles.headerTitle} numberOfLines={1}>{job.title}</Text>
           <Pill label={statusLabel} variant={getStatusVariant(job.status)} />
@@ -380,7 +380,7 @@ export default function ExpertActiveJobScreen() {
                   onPress={() => Linking.openURL(`tel:${job.homeowner!.phone}`)}
                   activeOpacity={0.8}
                 >
-                  <MaterialIcons name={Icons.phone as any} size={IconSize.inline} color={Colors.success600} />
+                  <MaterialCommunityIcons name={Icons.phone as any} size={IconSize.inline} color={Colors.success600} />
                 </TouchableOpacity>
               ) : null}
             </View>
@@ -439,7 +439,7 @@ export default function ExpertActiveJobScreen() {
 
           {/* Hint row */}
           <View style={styles.hintRow}>
-            <MaterialIcons name={Icons.info as any} size={14} color={Colors.gray400} style={styles.hintIcon} />
+            <MaterialCommunityIcons name={Icons.info as any} size={14} color={Colors.gray400} style={styles.hintIcon} />
             <Text style={styles.hintText}>
               {t('expert.activeJob.finishedHint', { name: homeownerFirstName })}
             </Text>

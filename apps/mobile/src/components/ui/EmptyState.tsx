@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Colors, Spacing } from '@/constants/theme';
 import { Button } from './Button';
 
@@ -17,7 +17,7 @@ interface EmptyStateProps {
 export function EmptyState({ icon, title, subtitle, action }: EmptyStateProps) {
   return (
     <View style={styles.container}>
-      <MaterialIcons
+      <MaterialCommunityIcons
         name={icon as any}
         size={64}
         color={Colors.gray400}

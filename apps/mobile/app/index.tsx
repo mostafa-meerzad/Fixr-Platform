@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/stores/auth.store';
 import { Colors, Radius, Spacing } from '@/constants/theme';
@@ -66,7 +66,7 @@ export default function Index() {
       {/* Center content */}
       <View style={styles.center}>
         <Animated.View style={[styles.iconBox, { transform: [{ scale: iconScale }] }]}>
-          <MaterialIcons name="build" size={48} color={Colors.primary600} />
+          <MaterialCommunityIcons name="tools" size={48} color={Colors.primary600} />
           <View style={styles.iconDot} />
         </Animated.View>
 

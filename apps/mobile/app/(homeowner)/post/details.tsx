@@ -16,7 +16,7 @@ import {
 } from 'react-native';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 
@@ -196,7 +196,7 @@ export default function DetailsScreen() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={handleBack}>
-          <MaterialIcons name={Icons.back as any} size={24} color={Colors.gray600} />
+          <MaterialCommunityIcons name={Icons.back as any} size={24} color={Colors.gray600} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{t('homeowner.post.newJobTitle')}</Text>
         <Text style={styles.stepLabel}>
@@ -295,7 +295,7 @@ export default function DetailsScreen() {
             disabled={zonesLoading}
             activeOpacity={0.8}
           >
-            <MaterialIcons name={Icons.location as any} size={18} color={Colors.gray400} />
+            <MaterialCommunityIcons name={Icons.location as any} size={18} color={Colors.gray400} />
             {zonesLoading ? (
               <ActivityIndicator size="small" color={Colors.gray400} style={styles.flex} />
             ) : (
@@ -342,7 +342,7 @@ export default function DetailsScreen() {
                       onPress={() => handleRemovePhoto(photo.key)}
                       hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}
                     >
-                      <MaterialIcons name="cancel" size={22} color={Colors.danger600} />
+                      <MaterialCommunityIcons name="cancel" size={22} color={Colors.danger600} />
                     </TouchableOpacity>
                   </View>
                 );
@@ -356,7 +356,7 @@ export default function DetailsScreen() {
                     onPress={handleAddPhoto}
                     activeOpacity={0.75}
                   >
-                    <MaterialIcons name="add" size={24} color={Colors.gray400} />
+                    <MaterialCommunityIcons name="plus" size={24} color={Colors.gray400} />
                     <Text style={styles.addPhotoLabel}>{t('homeowner.post.detailsAddPhoto')}</Text>
                   </TouchableOpacity>
                 );
@@ -369,13 +369,13 @@ export default function DetailsScreen() {
           {/* Video slot */}
           {video ? (
             <View style={styles.videoFilled}>
-              <MaterialIcons name={Icons.video as any} size={20} color={Colors.primary600} />
+              <MaterialCommunityIcons name={Icons.video as any} size={20} color={Colors.primary600} />
               <Text style={styles.videoFilledText}>{t('homeowner.post.videoLabel')}</Text>
               <TouchableOpacity
                 onPress={() => setVideo(null)}
                 hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}
               >
-                <MaterialIcons name="cancel" size={20} color={Colors.danger600} />
+                <MaterialCommunityIcons name="cancel" size={20} color={Colors.danger600} />
               </TouchableOpacity>
             </View>
           ) : (
@@ -384,14 +384,14 @@ export default function DetailsScreen() {
               onPress={handleAddVideo}
               activeOpacity={0.75}
             >
-              <MaterialIcons name={Icons.video as any} size={18} color={Colors.gray400} />
+              <MaterialCommunityIcons name={Icons.video as any} size={18} color={Colors.gray400} />
               <Text style={styles.videoRowText}>{t('homeowner.post.detailsVideoHint')}</Text>
             </TouchableOpacity>
           )}
 
           {/* Draft hint */}
           <View style={styles.draftHint}>
-            <MaterialIcons name={Icons.info as any} size={14} color={Colors.gray400} />
+            <MaterialCommunityIcons name={Icons.info as any} size={14} color={Colors.gray400} />
             <Text style={styles.draftHintText}>{t('homeowner.post.detailsDraftHint')}</Text>
           </View>
 
@@ -445,7 +445,7 @@ export default function DetailsScreen() {
                 >
                   <Text style={styles.zonePickerRowText}>{item.nameEn ?? item.name}</Text>
                   {selectedZone?.id === item.id && (
-                    <MaterialIcons name="check" size={20} color={Colors.primary600} />
+                    <MaterialCommunityIcons name="check" size={20} color={Colors.primary600} />
                   )}
                 </TouchableOpacity>
               )}

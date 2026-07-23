@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 
 import { ScreenWrapper } from '@/components/ui/ScreenWrapper';
@@ -64,7 +64,7 @@ export default function SelfieScreen() {
               <Image source={{ uri: imageUri }} style={styles.circleImage} />
             ) : (
               <View style={styles.circlePlaceholder}>
-                <MaterialIcons
+                <MaterialCommunityIcons
                   name={Icons.camera as any}
                   size={IconSize.large}
                   color={Colors.primary600}
@@ -79,7 +79,7 @@ export default function SelfieScreen() {
           {/* Green check badge */}
           {imageUri && (
             <View style={styles.checkBadge}>
-              <MaterialIcons name="check" size={18} color={Colors.white} />
+              <MaterialCommunityIcons name="check" size={18} color={Colors.white} />
             </View>
           )}
         </View>
@@ -87,7 +87,7 @@ export default function SelfieScreen() {
         {/* Retake button (shown only after capture) */}
         {imageUri && (
           <TouchableOpacity style={styles.retakeBtn} onPress={pickImage}>
-            <MaterialIcons
+            <MaterialCommunityIcons
               name={Icons.camera as any}
               size={IconSize.status}
               color={Colors.primary600}
@@ -140,7 +140,7 @@ function StepIndicator({ total, current }: { total: number; current: number }) {
 function CheckRow({ label }: { label: string }) {
   return (
     <View style={styles.checkRow}>
-      <MaterialIcons name="check" size={16} color={Colors.success600} />
+      <MaterialCommunityIcons name="check" size={16} color={Colors.success600} />
       <Text style={styles.checkLabel}>{label}</Text>
     </View>
   );

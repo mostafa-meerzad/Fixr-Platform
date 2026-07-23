@@ -14,7 +14,7 @@ import { router, useFocusEffect } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as SecureStore from "expo-secure-store";
 import { useTranslation } from "react-i18next";
-import { MaterialIcons } from "@expo/vector-icons";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import type { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { Colors, Radius, Spacing, Typography } from "@/constants/theme";
 import { Icons } from "@/constants/icons";
@@ -258,7 +258,7 @@ export default function ExpertProfileScreen() {
                 <View style={styles.heroNameRow}>
                   <Text style={styles.heroName} numberOfLines={1}>{user?.name}</Text>
                   {verificationStatus === "VERIFIED" && (
-                    <MaterialIcons name={Icons.verified as any} size={16} color={Colors.white} />
+                    <MaterialCommunityIcons name={Icons.verified as any} size={16} color={Colors.white} />
                   )}
                 </View>
                 {!!shopLine && (
@@ -281,7 +281,7 @@ export default function ExpertProfileScreen() {
                 onPress={openEditSheet}
                 activeOpacity={0.7}
               >
-                <MaterialIcons name={Icons.edit as any} size={15} color={Colors.white} />
+                <MaterialCommunityIcons name={Icons.edit as any} size={15} color={Colors.white} />
               </TouchableOpacity>
             </View>
 
@@ -318,7 +318,7 @@ export default function ExpertProfileScreen() {
           <View style={styles.creditsCard}>
             <View style={styles.creditsLeft}>
               <View style={styles.creditsIconWrap}>
-                <MaterialIcons name={Icons.credit as any} size={20} color={Colors.amber} />
+                <MaterialCommunityIcons name={Icons.credit as any} size={20} color={Colors.amber} />
               </View>
               <View style={styles.creditsInfo}>
                 <Text style={styles.creditsCount}>
@@ -345,12 +345,12 @@ export default function ExpertProfileScreen() {
                   onPress={row.onPress}
                   activeOpacity={0.7}
                 >
-                  <MaterialIcons name={row.icon as any} size={22} color={Colors.gray600} />
+                  <MaterialCommunityIcons name={row.icon as any} size={22} color={Colors.gray600} />
                   <Text style={styles.menuLabel}>{row.label}</Text>
                   {row.rightLabel ? (
                     <Text style={styles.menuRightLabel}>{row.rightLabel}</Text>
                   ) : (
-                    <MaterialIcons
+                    <MaterialCommunityIcons
                       name={Icons.chevronRight as any}
                       size={20}
                       color={Colors.gray400}
@@ -410,7 +410,7 @@ export default function ExpertProfileScreen() {
                 {t(`common.language.${option}`)}
               </Text>
               {lang === option && (
-                <MaterialIcons name="check" size={20} color={Colors.primary600} />
+                <MaterialCommunityIcons name="check" size={20} color={Colors.primary600} />
               )}
             </TouchableOpacity>
             {idx < arr.length - 1 && <Divider style={styles.zoneDivider} />}
@@ -441,7 +441,7 @@ export default function ExpertProfileScreen() {
                     <Text style={[styles.zoneName, isSelected && styles.zoneNameSelected]}>
                       {zone.nameEn ?? zone.name}
                     </Text>
-                    <MaterialIcons
+                    <MaterialCommunityIcons
                       name={(isSelected ? "check_box" : "check_box_outline_blank") as any}
                       size={22}
                       color={isSelected ? Colors.primary600 : Colors.gray400}
@@ -482,7 +482,7 @@ export default function ExpertProfileScreen() {
                       <Text style={[styles.zoneName, isSelected && styles.zoneNameSelected]}>
                         {cat.nameEn ?? cat.name}
                       </Text>
-                      <MaterialIcons
+                      <MaterialCommunityIcons
                         name={(isSelected ? "check_box" : "check_box_outline_blank") as any}
                         size={22}
                         color={isSelected ? Colors.primary600 : Colors.gray400}

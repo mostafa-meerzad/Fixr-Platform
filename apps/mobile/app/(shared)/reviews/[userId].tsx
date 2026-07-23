@@ -10,7 +10,7 @@ import {
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Colors, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
 import { Icons } from '@/constants/icons';
 import { Avatar } from '@/components/ui/Avatar';
@@ -24,7 +24,7 @@ function MiniStars({ rating }: { rating: number }) {
   return (
     <View style={styles.miniStarsRow}>
       {[1, 2, 3, 4, 5].map((i) => (
-        <MaterialIcons
+        <MaterialCommunityIcons
           key={i}
           name="star"
           size={14}
@@ -41,7 +41,7 @@ function SummaryStars() {
   return (
     <View style={styles.summaryStarsRow}>
       {[1, 2, 3, 4, 5].map((i) => (
-        <MaterialIcons key={i} name="star" size={18} color={Colors.amber} />
+        <MaterialCommunityIcons key={i} name="star" size={18} color={Colors.amber} />
       ))}
     </View>
   );
@@ -185,7 +185,7 @@ export default function UserReviewsScreen() {
   const header = (
     <View style={styles.header}>
       <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-        <MaterialIcons name={Icons.back as any} size={24} color={Colors.gray900} />
+        <MaterialCommunityIcons name={Icons.back as any} size={24} color={Colors.gray900} />
       </TouchableOpacity>
       <Text style={styles.headerTitle} numberOfLines={1}>
         {headerTitle}

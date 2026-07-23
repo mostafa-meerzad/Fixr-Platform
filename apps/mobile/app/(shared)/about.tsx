@@ -11,7 +11,7 @@ import {
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
 import { Colors, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
 import { Icons } from '@/constants/icons';
@@ -44,7 +44,7 @@ export default function AboutScreen() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <MaterialIcons name={Icons.back as any} size={24} color={Colors.gray900} />
+          <MaterialCommunityIcons name={Icons.back as any} size={24} color={Colors.gray900} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{t('shared.about.title')}</Text>
       </View>
@@ -56,7 +56,7 @@ export default function AboutScreen() {
         {/* Brand block */}
         <View style={styles.brandCard}>
           <View style={styles.iconWrap}>
-            <MaterialIcons name={'build' as any} size={40} color={Colors.white} />
+            <MaterialCommunityIcons name={'build' as any} size={40} color={Colors.white} />
           </View>
           <Text style={styles.wordmark}>{t('shared.about.wordmark')}</Text>
           <Text style={styles.versionText}>
@@ -80,7 +80,7 @@ export default function AboutScreen() {
                     {link.value}
                   </Text>
                 ) : null}
-                <MaterialIcons
+                <MaterialCommunityIcons
                   name={Icons.chevronRight as any}
                   size={20}
                   color={Colors.gray400}

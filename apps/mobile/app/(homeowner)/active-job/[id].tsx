@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { Colors, IconSize, Radius, Spacing, Typography } from '@/constants/theme';
 import { Icons } from '@/constants/icons';
@@ -93,7 +93,7 @@ function HomeownerStepper({ status }: { status: JobStatus }) {
                       : stepStyles.circleFuture,
               ]}>
                 {isDone && (
-                  <MaterialIcons name="check" size={13} color={Colors.white} />
+                  <MaterialCommunityIcons name="check" size={13} color={Colors.white} />
                 )}
               </View>
               {i < steps.length - 1 && (
@@ -250,7 +250,7 @@ export default function HomeownerActiveJobScreen() {
       <SafeAreaView style={styles.safe} edges={['top']}>
         <View style={styles.header}>
           <TouchableOpacity style={styles.backCircle} onPress={() => router.back()}>
-            <MaterialIcons name={Icons.back as any} size={24} color={Colors.gray900} />
+            <MaterialCommunityIcons name={Icons.back as any} size={24} color={Colors.gray900} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>{t('homeowner.activeJob.title')}</Text>
           <View style={styles.headerSpacer} />
@@ -269,7 +269,7 @@ export default function HomeownerActiveJobScreen() {
       <SafeAreaView style={styles.safe} edges={['top']}>
         <View style={styles.header}>
           <TouchableOpacity style={styles.backCircle} onPress={() => router.back()}>
-            <MaterialIcons name={Icons.back as any} size={24} color={Colors.gray900} />
+            <MaterialCommunityIcons name={Icons.back as any} size={24} color={Colors.gray900} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>{t('homeowner.activeJob.title')}</Text>
           <View style={styles.headerSpacer} />
@@ -325,7 +325,7 @@ export default function HomeownerActiveJobScreen() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backCircle} onPress={() => router.back()}>
-          <MaterialIcons name={Icons.back as any} size={24} color={Colors.gray900} />
+          <MaterialCommunityIcons name={Icons.back as any} size={24} color={Colors.gray900} />
         </TouchableOpacity>
         <Text style={styles.headerTitle} numberOfLines={1}>{job.title}</Text>
         {isCompletionRequested ? (
@@ -342,7 +342,7 @@ export default function HomeownerActiveJobScreen() {
       {/* Amber banner — COMPLETION_REQUESTED */}
       {isCompletionRequested && (
         <View style={styles.completionBanner}>
-          <MaterialIcons name={Icons.warning as any} size={IconSize.inline} color={Colors.warning600} />
+          <MaterialCommunityIcons name={Icons.warning as any} size={IconSize.inline} color={Colors.warning600} />
           <Text style={styles.completionBannerText}>
             {t('homeowner.activeJob.completionRequestedBanner', { name: expertFirstName })}
           </Text>
@@ -372,7 +372,7 @@ export default function HomeownerActiveJobScreen() {
                 <View style={styles.expertNameRow}>
                   <Text style={styles.expertName}>{expert.user.name}</Text>
                   {isVerified && (
-                    <MaterialIcons name={Icons.verified as any} size={14} color={Colors.success600} />
+                    <MaterialCommunityIcons name={Icons.verified as any} size={14} color={Colors.success600} />
                   )}
                 </View>
                 <Text style={styles.expertMeta} numberOfLines={1}>

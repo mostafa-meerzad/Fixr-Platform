@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Colors } from '@/constants/theme';
 
 type AvatarSize = 32 | 40 | 56 | 80;
@@ -42,7 +42,7 @@ export function Avatar({ size = 40, name, uri, verified = false }: AvatarProps) 
             { width: badgeSize, height: badgeSize, borderRadius: badgeSize / 2 },
           ]}
         >
-          <MaterialIcons name="verified" size={14} color={Colors.success600} />
+          <MaterialCommunityIcons name="check-decagram" size={14} color={Colors.success600} />
         </View>
       )}
     </View>

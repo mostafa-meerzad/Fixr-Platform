@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
-import { MaterialIcons } from "@expo/vector-icons";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { Button } from "@/components/ui/Button";
@@ -170,7 +170,7 @@ export default function RegisterScreen() {
               onPress={() => router.back()}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
-              <MaterialIcons
+              <MaterialCommunityIcons
                 name={Icons.back as any}
                 size={24}
                 color={Colors.gray600}
@@ -204,7 +204,7 @@ export default function RegisterScreen() {
             </View>
 
             <View style={styles.disclaimerRow}>
-              <MaterialIcons name="info" size={16} color={Colors.gray400} />
+              <MaterialCommunityIcons name="information-outline" size={16} color={Colors.gray400} />
               <Text style={styles.disclaimerText}>
                 {t("auth.register.roleDisclaimer")}
               </Text>
@@ -229,7 +229,7 @@ export default function RegisterScreen() {
               onPress={handleBack}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
-              <MaterialIcons
+              <MaterialCommunityIcons
                 name={Icons.back as any}
                 size={24}
                 color={Colors.gray600}
@@ -309,7 +309,7 @@ export default function RegisterScreen() {
                             {selectedZone?.nameEn ??
                               t("auth.register.zonePlaceholder")}
                           </Text>
-                          <MaterialIcons
+                          <MaterialCommunityIcons
                             name={Icons.chevronDown as any}
                             size={20}
                             color={Colors.gray400}
@@ -340,7 +340,7 @@ export default function RegisterScreen() {
             {/* Expert hint note */}
             {role === "EXPERT" && (
               <View style={styles.expertHintRow}>
-                <MaterialIcons name="info" size={16} color={Colors.gray400} />
+                <MaterialCommunityIcons name="information-outline" size={16} color={Colors.gray400} />
                 <Text style={styles.expertHintText}>
                   {t("auth.register.expertNameHint")}
                 </Text>
@@ -399,7 +399,7 @@ export default function RegisterScreen() {
                     {item.nameEn ?? item.name}
                   </Text>
                   {selectedZone?.id === item.id && (
-                    <MaterialIcons
+                    <MaterialCommunityIcons
                       name="check"
                       size={20}
                       color={Colors.primary600}
@@ -442,7 +442,7 @@ function RoleCard({
       <View
         style={[styles.roleIconBox, selected && styles.roleIconBoxSelected]}
       >
-        <MaterialIcons
+        <MaterialCommunityIcons
           name={icon as any}
           size={28}
           color={selected ? Colors.primary600 : Colors.gray400}
@@ -466,7 +466,7 @@ function RoleCard({
           {description}
         </Text>
       </View>
-      <MaterialIcons
+      <MaterialCommunityIcons
         name={selected ? "check-circle" : "radio-button-unchecked"}
         size={24}
         color={selected ? Colors.white : Colors.gray200}
