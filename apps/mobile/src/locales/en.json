@@ -150,7 +150,7 @@
       "shopZonePlaceholder": "Select zone",
       "selectZoneTitle": "Select zone",
       "shopAddressLabel": "Shop address",
-      "shopAddressPlaceholder": "e.g. Street, landmark, house no.",
+      "shopAddressPlaceholder": "address...",
       "shopPhotoLabel": "Shop photo",
       "workLicenseLabel": "Work license",
       "addPhoto": "Add Photo",
@@ -457,6 +457,7 @@
       "fieldRequired": "Required"
     },
     "browse": {
+      "title": "Browse",
       "jobsIn": "Jobs in",
       "credits": "credits",
       "change": "Change",

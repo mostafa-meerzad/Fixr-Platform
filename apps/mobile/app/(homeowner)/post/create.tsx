@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   ScrollView,
@@ -6,17 +6,17 @@ import {
   Text,
   TouchableOpacity,
   View,
-} from 'react-native';
-import { router, Stack } from 'expo-router';
-import { useTranslation } from 'react-i18next';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { SafeAreaView } from 'react-native-safe-area-context';
+} from "react-native";
+import { router, Stack } from "expo-router";
+import { useTranslation } from "react-i18next";
+import { MaterialIcons } from "@expo/vector-icons";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-import { ProgressBar } from '@/components/ui/ProgressBar';
-import { useToast } from '@/components/ui/Toast';
-import { lookupService, type Category } from '@/services/lookup.service';
-import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
-import { Icons } from '@/constants/icons';
+import { ProgressBar } from "@/components/ui/ProgressBar";
+import { useToast } from "@/components/ui/Toast";
+import { lookupService, type Category } from "@/services/lookup.service";
+import { Colors, Radius, Spacing, Typography } from "@/constants/theme";
+import { Icons } from "@/constants/icons";
 
 export default function CreateJobScreen() {
   const { t } = useTranslation();
@@ -30,7 +30,7 @@ export default function CreateJobScreen() {
     lookupService
       .categories()
       .then(({ data }) => setCategories(data))
-      .catch(() => toast.show({ message: t('common.error'), variant: 'error' }))
+      .catch(() => toast.show({ message: t("common.error"), variant: "error" }))
       .finally(() => setLoading(false));
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -38,7 +38,7 @@ export default function CreateJobScreen() {
     setSelected(cat.id);
     setTimeout(() => {
       router.push({
-        pathname: '/(homeowner)/post/details' as any,
+        pathname: "/(homeowner)/post/details" as any,
         params: { categoryId: cat.id, categoryName: cat.nameEn ?? cat.name },
       });
     }, 150);
@@ -50,23 +50,31 @@ export default function CreateJobScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
+    <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
       <Stack.Screen options={{ headerShown: false }} />
       <ProgressBar currentStep={1} totalSteps={3} />
 
       <View style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-          <MaterialCommunityIcons name={Icons.back as any} size={24} color={Colors.gray600} />
+          <MaterialIcons
+            name={Icons.back as any}
+            size={24}
+            color={Colors.gray600}
+          />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>{t('homeowner.post.newJobTitle')}</Text>
+        <Text style={styles.headerTitle}>
+          {t("homeowner.post.newJobTitle")}
+        </Text>
         <Text style={styles.stepLabel}>
-          {t('homeowner.post.stepLabel', { current: 1, total: 3 })}
+          {t("homeowner.post.stepLabel", { current: 1, total: 3 })}
         </Text>
       </View>
 
       <View style={styles.titleBlock}>
-        <Text style={styles.pageTitle}>{t('homeowner.post.step1Title')}</Text>
-        <Text style={styles.pageSubtitle}>{t('homeowner.post.step1Subtitle')}</Text>
+        <Text style={styles.pageTitle}>{t("homeowner.post.step1Title")}</Text>
+        <Text style={styles.pageSubtitle}>
+          {t("homeowner.post.step1Subtitle")}
+        </Text>
       </View>
 
       {loading ? (
@@ -82,6 +90,8 @@ export default function CreateJobScreen() {
           {rows.map((row, rowIdx) => (
             <View key={rowIdx} style={styles.row}>
               {row.map((cat) => {
+                console.log("cat icon: ", cat.icon);
+
                 const isSelected = selected === cat.id;
                 return (
                   <TouchableOpacity
@@ -90,14 +100,24 @@ export default function CreateJobScreen() {
                     onPress={() => handleCategorySelect(cat)}
                     activeOpacity={0.8}
                   >
-                    <View style={[styles.iconBox, isSelected && styles.iconBoxSelected]}>
-                      <MaterialCommunityIcons
+                    <View
+                      style={[
+                        styles.iconBox,
+                        isSelected && styles.iconBoxSelected,
+                      ]}
+                    >
+                      <MaterialIcons
                         name={cat.icon as any}
                         size={24}
                         color={isSelected ? Colors.primary600 : Colors.gray400}
                       />
                     </View>
-                    <Text style={[styles.tileName, isSelected && styles.tileNameSelected]}>
+                    <Text
+                      style={[
+                        styles.tileName,
+                        isSelected && styles.tileNameSelected,
+                      ]}
+                    >
                       {cat.nameEn ?? cat.name}
                     </Text>
                   </TouchableOpacity>
@@ -110,7 +130,7 @@ export default function CreateJobScreen() {
       )}
 
       <View style={styles.hintRow}>
-        <Text style={styles.hintText}>{t('homeowner.post.tapHint')}</Text>
+        <Text style={styles.hintText}>{t("homeowner.post.tapHint")}</Text>
       </View>
     </SafeAreaView>
   );
@@ -126,13 +146,13 @@ const styles = StyleSheet.create({
   },
   centered: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
 
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: Spacing.s4,
     paddingTop: Spacing.s3,
     paddingBottom: Spacing.s2,
@@ -143,8 +163,8 @@ const styles = StyleSheet.create({
     height: 32,
     borderRadius: Radius.full,
     backgroundColor: Colors.gray100,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   headerTitle: {
     flex: 1,
@@ -181,7 +201,7 @@ const styles = StyleSheet.create({
     gap: Spacing.s3,
   },
   row: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: Spacing.s3,
   },
   tile: {
@@ -192,7 +212,7 @@ const styles = StyleSheet.create({
     borderRadius: Radius.md,
     padding: Spacing.s4,
     gap: Spacing.s3,
-    alignItems: 'flex-start',
+    alignItems: "flex-start",
   },
   tileSelected: {
     borderWidth: 2,
@@ -207,15 +227,15 @@ const styles = StyleSheet.create({
     height: 44,
     borderRadius: Radius.sm,
     backgroundColor: Colors.sand,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   iconBoxSelected: {
     backgroundColor: Colors.primary100,
   },
   tileName: {
     fontSize: Typography.label.fontSize,
-    fontWeight: '600' as any,
+    fontWeight: "600" as any,
     color: Colors.gray900,
   },
   tileNameSelected: {
@@ -223,7 +243,7 @@ const styles = StyleSheet.create({
   },
 
   hintRow: {
-    alignItems: 'center',
+    alignItems: "center",
     paddingVertical: Spacing.s4,
     borderTopWidth: 1,
     borderTopColor: Colors.gray200,

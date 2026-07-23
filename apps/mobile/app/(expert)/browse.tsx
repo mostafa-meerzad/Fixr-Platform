@@ -12,7 +12,7 @@ import {
 import { router, useFocusEffect } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
 import type { BottomSheetModal } from "@gorhom/bottom-sheet";
 import {
   Colors,
@@ -74,7 +74,9 @@ export default function BrowseScreen() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [zones, setZones] = useState<Zone[]>([]);
   const [jobs, setJobs] = useState<BrowseJob[]>([]);
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
+    null,
+  );
   const [loading, setLoading] = useState(true);
   const [feedLoading, setFeedLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -130,7 +132,11 @@ export default function BrowseScreen() {
     }
   }, [selectedCategoryId]);
 
-  useFocusEffect(useCallback(() => { load(); }, [load]));
+  useFocusEffect(
+    useCallback(() => {
+      load();
+    }, [load]),
+  );
 
   useEffect(() => {
     if (profileRefreshKey > 0) load();
@@ -223,7 +229,7 @@ export default function BrowseScreen() {
         />
         {/* Amber / danger verification banner */}
         <View style={[styles.pendingBanner, { backgroundColor: bannerBg }]}>
-          <MaterialCommunityIcons
+          <MaterialIcons
             name={isPending ? "hourglass-empty" : "cancel"}
             size={IconSize.inline}
             color={bannerColor}
@@ -234,7 +240,9 @@ export default function BrowseScreen() {
                 ? t("expert.browse.pendingTitle")
                 : t("expert.browse.rejectedTitle")}
             </Text>
-            <Text style={[styles.pendingBannerSubtitle, { color: bannerColor }]}>
+            <Text
+              style={[styles.pendingBannerSubtitle, { color: bannerColor }]}
+            >
               {isPending
                 ? t("expert.browse.pendingBannerSubtitle")
                 : t("expert.browse.rejectedBanner")}
@@ -244,7 +252,11 @@ export default function BrowseScreen() {
         {/* Empty feed state */}
         <View style={styles.centered}>
           <View style={styles.searchIconBox}>
-            <MaterialCommunityIcons name="magnify" size={40} color={Colors.gray400} />
+            <MaterialCommunityIcons
+              name="magnify"
+              size={40}
+              color={Colors.gray400}
+            />
           </View>
           <Text style={styles.pendingFeedTitle}>
             {t("expert.browse.pendingFeedTitle")}

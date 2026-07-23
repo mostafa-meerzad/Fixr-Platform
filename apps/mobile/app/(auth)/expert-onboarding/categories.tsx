@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -6,17 +6,23 @@ import {
   Text,
   TouchableOpacity,
   View,
-} from 'react-native';
-import { useRouter } from 'expo-router';
-import { useTranslation } from 'react-i18next';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+} from "react-native";
+import { useRouter } from "expo-router";
+import { useTranslation } from "react-i18next";
+import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
 
-import { ScreenWrapper } from '@/components/ui/ScreenWrapper';
-import { Button } from '@/components/ui/Button';
-import { useToast } from '@/components/ui/Toast';
-import { lookupService, type Category } from '@/services/lookup.service';
-import { usersService } from '@/services/users.service';
-import { Colors, IconSize, Radius, Spacing, Typography } from '@/constants/theme';
+import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
+import { Button } from "@/components/ui/Button";
+import { useToast } from "@/components/ui/Toast";
+import { lookupService, type Category } from "@/services/lookup.service";
+import { usersService } from "@/services/users.service";
+import {
+  Colors,
+  IconSize,
+  Radius,
+  Spacing,
+  Typography,
+} from "@/constants/theme";
 
 export default function CategoriesScreen() {
   const { t } = useTranslation();
@@ -38,7 +44,10 @@ export default function CategoriesScreen() {
       const res = await lookupService.categories();
       setCategories(res.data);
     } catch {
-      toast.show({ message: t('auth.onboarding.categoriesLoadError'), variant: 'error' });
+      toast.show({
+        message: t("auth.onboarding.categoriesLoadError"),
+        variant: "error",
+      });
     } finally {
       setLoading(false);
     }
@@ -56,9 +65,12 @@ export default function CategoriesScreen() {
     setSaving(true);
     try {
       await usersService.updateCategories(Array.from(selected));
-      router.push('/(auth)/expert-onboarding/business' as any);
+      router.push("/(auth)/expert-onboarding/business" as any);
     } catch {
-      toast.show({ message: t('auth.onboarding.errorNetwork'), variant: 'error' });
+      toast.show({
+        message: t("auth.onboarding.errorNetwork"),
+        variant: "error",
+      });
     } finally {
       setSaving(false);
     }
@@ -69,8 +81,10 @@ export default function CategoriesScreen() {
       <StepIndicator total={4} current={3} />
 
       <View style={styles.container}>
-        <Text style={styles.title}>{t('auth.onboarding.categoriesTitle')}</Text>
-        <Text style={styles.subtitle}>{t('auth.onboarding.categoriesSubtitle')}</Text>
+        <Text style={styles.title}>{t("auth.onboarding.categoriesTitle")}</Text>
+        <Text style={styles.subtitle}>
+          {t("auth.onboarding.categoriesSubtitle")}
+        </Text>
 
         {loading ? (
           <View style={styles.loaderWrap}>
@@ -93,13 +107,18 @@ export default function CategoriesScreen() {
                   activeOpacity={0.75}
                 >
                   {item.icon ? (
-                    <MaterialCommunityIcons
+                    <MaterialIcons
                       name={item.icon as any}
                       size={IconSize.btn}
                       color={isSelected ? Colors.white : Colors.gray600}
                     />
                   ) : null}
-                  <Text style={[styles.tileLabel, isSelected && styles.tileLabelSelected]}>
+                  <Text
+                    style={[
+                      styles.tileLabel,
+                      isSelected && styles.tileLabelSelected,
+                    ]}
+                  >
                     {item.nameEn ?? item.name}
                   </Text>
                 </TouchableOpacity>
@@ -109,15 +128,19 @@ export default function CategoriesScreen() {
         )}
 
         {/* Selection counter */}
-        <Text style={[styles.counter, selected.size === 0 && styles.counterZero]}>
+        <Text
+          style={[styles.counter, selected.size === 0 && styles.counterZero]}
+        >
           {selected.size === 0
-            ? t('auth.onboarding.categoriesNoneSelected')
-            : t('auth.onboarding.categoriesSelected', { count: selected.size })}
+            ? t("auth.onboarding.categoriesNoneSelected")
+            : t("auth.onboarding.categoriesSelected", { count: selected.size })}
         </Text>
 
         <View style={styles.footer}>
           <Button
-            label={saving ? t('auth.onboarding.categoriesSaving') : t('common.next')}
+            label={
+              saving ? t("auth.onboarding.categoriesSaving") : t("common.next")
+            }
             onPress={handleNext}
             disabled={loading || saving || selected.size === 0}
             loading={saving}
@@ -152,7 +175,7 @@ function StepIndicator({ total, current }: { total: number; current: number }) {
 
 const indicatorStyles = StyleSheet.create({
   row: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: Spacing.s2,
     paddingHorizontal: Spacing.s4,
     paddingTop: Spacing.s4,
@@ -192,8 +215,8 @@ const styles = StyleSheet.create({
   },
   loaderWrap: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     paddingVertical: Spacing.s10,
   },
   grid: {
@@ -204,8 +227,8 @@ const styles = StyleSheet.create({
   },
   tile: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     gap: Spacing.s2,
     paddingVertical: Spacing.s4,
     paddingHorizontal: Spacing.s3,
@@ -221,18 +244,18 @@ const styles = StyleSheet.create({
   },
   tileLabel: {
     fontSize: Typography.label.fontSize,
-    fontWeight: '600',
+    fontWeight: "600",
     color: Colors.gray600,
-    textAlign: 'center',
+    textAlign: "center",
   },
   tileLabelSelected: {
     color: Colors.white,
   },
   counter: {
     fontSize: Typography.label.fontSize,
-    fontWeight: '500',
+    fontWeight: "500",
     color: Colors.primary600,
-    textAlign: 'center',
+    textAlign: "center",
     marginTop: Spacing.s4,
     marginBottom: Spacing.s2,
   },

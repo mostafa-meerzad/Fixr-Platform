@@ -1,12 +1,12 @@
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import { useRouter } from 'expo-router';
-import { useTranslation } from 'react-i18next';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import React from "react";
+import { StyleSheet, Text, View } from "react-native";
+import { useRouter } from "expo-router";
+import { useTranslation } from "react-i18next";
+import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
 
-import { ScreenWrapper } from '@/components/ui/ScreenWrapper';
-import { Button } from '@/components/ui/Button';
-import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
+import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
+import { Button } from "@/components/ui/Button";
+import { Colors, Radius, Spacing, Typography } from "@/constants/theme";
 
 export default function ExpertOnboardingOverviewScreen() {
   const { t } = useTranslation();
@@ -16,64 +16,68 @@ export default function ExpertOnboardingOverviewScreen() {
     <ScreenWrapper scroll>
       <View style={styles.container}>
         <Text style={styles.smallHeader}>
-          {t('auth.onboarding.overview.smallHeader')}
+          {t("auth.onboarding.overview.smallHeader")}
         </Text>
 
         <Text style={styles.headline}>
-          {t('auth.onboarding.overview.headline')}
+          {t("auth.onboarding.overview.headline")}
         </Text>
         <Text style={styles.subheadline}>
-          {t('auth.onboarding.overview.subheadline')}
+          {t("auth.onboarding.overview.subheadline")}
         </Text>
 
         <View style={styles.steps}>
           <StepRow
             number={1}
-            title={t('auth.onboarding.overview.step1Title')}
-            subtitle={t('auth.onboarding.overview.step1Subtitle')}
+            title={t("auth.onboarding.overview.step1Title")}
+            subtitle={t("auth.onboarding.overview.step1Subtitle")}
             isLast={false}
           />
           <StepRow
             number={2}
-            title={t('auth.onboarding.overview.step2Title')}
-            subtitle={t('auth.onboarding.overview.step2Subtitle')}
+            title={t("auth.onboarding.overview.step2Title")}
+            subtitle={t("auth.onboarding.overview.step2Subtitle")}
             isLast={false}
           >
             <View style={styles.docTiles}>
               <DocTile
                 icon="badge"
-                label={t('auth.onboarding.overview.docTazkira')}
+                label={t("auth.onboarding.overview.docTazkira")}
               />
               <DocTile
                 icon="face"
-                label={t('auth.onboarding.overview.docSelfie')}
+                label={t("auth.onboarding.overview.docSelfie")}
               />
             </View>
           </StepRow>
           <StepRow
             number={3}
-            title={t('auth.onboarding.overview.step3Title')}
-            subtitle={t('auth.onboarding.overview.step3Subtitle')}
+            title={t("auth.onboarding.overview.step3Title")}
+            subtitle={t("auth.onboarding.overview.step3Subtitle")}
             isLast
           />
         </View>
 
         <View style={styles.optionalNote}>
-          <MaterialCommunityIcons name="star-circle" size={16} color={Colors.amber} />
+          <MaterialCommunityIcons
+            name="star-circle"
+            size={16}
+            color={Colors.amber}
+          />
           <Text style={styles.optionalNoteText}>
-            {t('auth.onboarding.overview.optionalNote')}
+            {t("auth.onboarding.overview.optionalNote")}
           </Text>
         </View>
 
         <View style={styles.footer}>
           <Button
-            label={t('auth.onboarding.overview.cta')}
+            label={t("auth.onboarding.overview.cta")}
             onPress={() =>
-              router.push('/(auth)/expert-onboarding/selfie' as any)
+              router.push("/(auth)/expert-onboarding/selfie" as any)
             }
           />
           <Text style={styles.footnote}>
-            {t('auth.onboarding.overview.footnote')}
+            {t("auth.onboarding.overview.footnote")}
           </Text>
         </View>
       </View>
@@ -115,7 +119,7 @@ interface DocTileProps {
 function DocTile({ icon, label }: DocTileProps) {
   return (
     <View style={styles.docTile}>
-      <MaterialCommunityIcons name={icon as any} size={18} color={Colors.primary600} />
+      <MaterialIcons name={icon as any} size={18} color={Colors.primary600} />
       <Text style={styles.docTileLabel}>{label}</Text>
     </View>
   );
@@ -130,14 +134,14 @@ const styles = StyleSheet.create({
   },
   smallHeader: {
     fontSize: Typography.label.fontSize,
-    fontWeight: '600',
+    fontWeight: "600",
     color: Colors.primary600,
     letterSpacing: 0.4,
     marginBottom: Spacing.s4,
   },
   headline: {
     fontSize: 26,
-    fontWeight: '700',
+    fontWeight: "700",
     color: Colors.gray900,
     marginBottom: Spacing.s2,
     lineHeight: 34,
@@ -155,11 +159,11 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.s6,
   },
   stepRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: Spacing.s4,
   },
   stepLeft: {
-    alignItems: 'center',
+    alignItems: "center",
     width: 36,
   },
   stepCircle: {
@@ -167,12 +171,12 @@ const styles = StyleSheet.create({
     height: 36,
     borderRadius: Radius.full,
     backgroundColor: Colors.primary600,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   stepNumber: {
     fontSize: 15,
-    fontWeight: '700',
+    fontWeight: "700",
     color: Colors.white,
   },
   connector: {
@@ -205,13 +209,13 @@ const styles = StyleSheet.create({
 
   // Doc tiles
   docTiles: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: Spacing.s3,
     marginTop: Spacing.s3,
   },
   docTile: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: Spacing.s2,
     backgroundColor: Colors.primary50,
     borderWidth: 1,
@@ -222,14 +226,14 @@ const styles = StyleSheet.create({
   },
   docTileLabel: {
     fontSize: Typography.label.fontSize,
-    fontWeight: '500',
+    fontWeight: "500",
     color: Colors.primary600,
   },
 
   // Optional note
   optionalNote: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    alignItems: "flex-start",
     gap: Spacing.s2,
     backgroundColor: Colors.sand,
     borderRadius: Radius.md,
@@ -240,20 +244,20 @@ const styles = StyleSheet.create({
   optionalNoteText: {
     flex: 1,
     fontSize: Typography.label.fontSize,
-    fontWeight: '400',
+    fontWeight: "400",
     color: Colors.gray600,
     lineHeight: 18,
   },
 
   // Footer
   footer: {
-    marginTop: 'auto',
+    marginTop: "auto",
     gap: Spacing.s4,
   },
   footnote: {
     fontSize: Typography.caption.fontSize,
     fontWeight: Typography.caption.fontWeight as any,
     color: Colors.gray400,
-    textAlign: 'center',
+    textAlign: "center",
   },
 });

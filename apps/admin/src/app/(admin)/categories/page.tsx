@@ -20,6 +20,7 @@ export default function CategoriesPage() {
   const [editing, setEditing] = useState<Category | null | 'new'>(null);
   const [form, setForm] = useState<CatForm>(empty);
   const [delTarget, setDelTarget] = useState<Category | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const { data, isLoading } = useQuery({ queryKey: ['categories'], queryFn: getCategories });
 
@@ -27,7 +28,11 @@ export default function CategoriesPage() {
     mutationFn: () => editing === 'new'
       ? createCategory(form)
       : updateCategory((editing as Category).id, form),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['categories'] }); setEditing(null); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['categories'] }); setEditing(null); setSaveError(null); },
+    onError: (err: unknown) => {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      setSaveError(typeof msg === 'string' ? msg : 'Failed to save category.');
+    },
   });
 
   const { mutate: del, isPending: deleting } = useMutation({
@@ -35,8 +40,12 @@ export default function CategoriesPage() {
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['categories'] }); setDelTarget(null); },
   });
 
-  function openNew() { setForm(empty); setEditing('new'); }
-  function openEdit(c: Category) { setForm({ name: c.name, nameEn: c.nameEn, icon: c.icon }); setEditing(c); }
+  function openNew() { setForm(empty); setEditing('new'); setSaveError(null); }
+  function openEdit(c: Category) {
+    setForm({ name: c.name, nameEn: c.nameEn ?? '', icon: c.icon ?? '' });
+    setEditing(c);
+    setSaveError(null);
+  }
 
   if (isLoading) return <PageSpinner />;
 
@@ -74,6 +83,7 @@ export default function CategoriesPage() {
           <Input label="Name (Dari)" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="لوله‌کشی" />
           <Input label="Name (English)" value={form.nameEn} onChange={(e) => setForm({ ...form, nameEn: e.target.value })} placeholder="Plumbing" />
           <Input label="Icon (lucide name)" value={form.icon} onChange={(e) => setForm({ ...form, icon: e.target.value })} placeholder="droplets" />
+          {saveError && <p className="text-xs text-red-400">{saveError}</p>}
           <div className="flex gap-3 mt-1">
             <Button onClick={() => save()} disabled={saving || !form.name || !form.nameEn || !form.icon}>
               {saving ? 'Saving…' : 'Save'}

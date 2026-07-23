@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
 
 import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { Button } from "@/components/ui/Button";
@@ -204,7 +204,11 @@ export default function RegisterScreen() {
             </View>
 
             <View style={styles.disclaimerRow}>
-              <MaterialCommunityIcons name="information-outline" size={16} color={Colors.gray400} />
+              <MaterialCommunityIcons
+                name="information-outline"
+                size={16}
+                color={Colors.gray400}
+              />
               <Text style={styles.disclaimerText}>
                 {t("auth.register.roleDisclaimer")}
               </Text>
@@ -340,7 +344,11 @@ export default function RegisterScreen() {
             {/* Expert hint note */}
             {role === "EXPERT" && (
               <View style={styles.expertHintRow}>
-                <MaterialCommunityIcons name="information-outline" size={16} color={Colors.gray400} />
+                <MaterialCommunityIcons
+                  name="information-outline"
+                  size={16}
+                  color={Colors.gray400}
+                />
                 <Text style={styles.expertHintText}>
                   {t("auth.register.expertNameHint")}
                 </Text>
@@ -458,15 +466,12 @@ function RoleCard({
           {title}
         </Text>
         <Text
-          style={[
-            styles.roleCardDesc,
-            selected && styles.roleCardDescSelected,
-          ]}
+          style={[styles.roleCardDesc, selected && styles.roleCardDescSelected]}
         >
           {description}
         </Text>
       </View>
-      <MaterialCommunityIcons
+      <MaterialIcons
         name={selected ? "check-circle" : "radio-button-unchecked"}
         size={24}
         color={selected ? Colors.white : Colors.gray200}
