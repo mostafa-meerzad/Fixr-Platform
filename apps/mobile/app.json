@@ -25,7 +25,7 @@
         "backgroundColor": "#B5432A"
       },
       "splash": {
-        "image": "./assets/icon1.png",
+        "image": "./assets/icon.png",
         "resizeMode": "contain",
         "backgroundColor": "#FFF6ED"
       },
