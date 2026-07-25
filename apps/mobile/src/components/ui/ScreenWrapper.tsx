@@ -27,12 +27,19 @@ export function ScreenWrapper({
   edges = ['top', 'bottom'],
   keyboardAvoiding = false,
 }: ScreenWrapperProps) {
+  // iOS scroll screens: automaticallyAdjustKeyboardInsets handles both the
+  // content inset AND auto-scroll to the focused input — no KAV needed.
+  // All other keyboardAvoiding cases: wrap with KAV + behavior="padding".
+  const useNativeInsets = keyboardAvoiding && scroll && Platform.OS === 'ios';
+  const useKAV = keyboardAvoiding && !useNativeInsets;
+
   const content = scroll ? (
     <ScrollView
       style={styles.scroll}
       contentContainerStyle={[styles.scrollContent, contentStyle]}
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
+      automaticallyAdjustKeyboardInsets={useNativeInsets}
     >
       {children}
     </ScrollView>
@@ -40,11 +47,8 @@ export function ScreenWrapper({
     <View style={[styles.inner, contentStyle]}>{children}</View>
   );
 
-  const wrapped = keyboardAvoiding ? (
-    <KeyboardAvoidingView
-      style={styles.flex}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
+  const wrapped = useKAV ? (
+    <KeyboardAvoidingView style={styles.flex} behavior="padding">
       {content}
     </KeyboardAvoidingView>
   ) : (

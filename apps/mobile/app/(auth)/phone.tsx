@@ -10,8 +10,31 @@ import { useToast } from "@/components/ui/Toast";
 import { authService } from "@/services/auth.service";
 import { Colors, Spacing, Radius, IconSize } from "@/constants/theme";
 
+function AfghanFlag() {
+  return (
+    <View style={flagStyles.flag}>
+      <View style={[flagStyles.stripe, { backgroundColor: "#000000" }]} />
+      <View style={[flagStyles.stripe, { backgroundColor: "#D32011" }]} />
+      <View style={[flagStyles.stripe, { backgroundColor: "#009A00" }]} />
+    </View>
+  );
+}
+
+const flagStyles = StyleSheet.create({
+  flag: {
+    width: 24,
+    height: 16,
+    borderRadius: 3,
+    flexDirection: "row",
+    overflow: "hidden",
+  },
+  stripe: {
+    flex: 1,
+  },
+});
+
 const MIN_DIGITS = 9;
-const MAX_DIGITS = 10;
+const MAX_DIGITS = 9;
 
 export default function PhoneScreen() {
   const { t } = useTranslation();
@@ -46,7 +69,7 @@ export default function PhoneScreen() {
   }
 
   return (
-    <ScreenWrapper>
+    <ScreenWrapper keyboardAvoiding>
       <View style={styles.container}>
         {/* Brand */}
         <View style={styles.brandSection}>
@@ -61,7 +84,7 @@ export default function PhoneScreen() {
 
           <View style={styles.phoneRow}>
             <View style={styles.prefixPill}>
-              <Text style={styles.flag}>🇦🇫</Text>
+              <AfghanFlag />
               <Text style={styles.prefixText}>+93</Text>
             </View>
 
@@ -101,6 +124,7 @@ export default function PhoneScreen() {
           </View>
         </View>
 
+        <View style={styles.spacer} />
         <View style={styles.footer}>
           <Button
             label={t("auth.phone.continue")}
@@ -119,7 +143,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: Spacing.s4,
-    paddingTop: Spacing.s12,
+    paddingTop: Spacing.s2,
     paddingBottom: Spacing.s6,
   },
 
@@ -158,6 +182,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: Spacing.s2,
     marginBottom: Spacing.s2,
+    marginTop: Spacing.s3,
   },
   prefixPill: {
     flexDirection: "row",
@@ -167,9 +192,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.s3,
     borderRadius: Radius.md,
     height: 52,
-  },
-  flag: {
-    fontSize: 18,
   },
   prefixText: {
     fontSize: 15,
@@ -224,10 +246,10 @@ const styles = StyleSheet.create({
     color: Colors.gray600,
   },
 
+  spacer: {
+    flex: 1,
+  },
   footer: {
-    position: "absolute",
-    bottom: Spacing.s6,
-    left: Spacing.s4,
-    right: Spacing.s4,
+    paddingBottom: Spacing.s2,
   },
 });

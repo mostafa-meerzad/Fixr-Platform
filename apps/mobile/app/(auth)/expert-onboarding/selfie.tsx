@@ -34,11 +34,27 @@ export default function SelfieScreen() {
       toast.show({ message: t('auth.onboarding.permissionDenied'), variant: 'error' });
       return;
     }
-    const result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      quality: 0.85,
-    });
-    if (result.canceled || !result.assets?.[0]) return;
+
+    let result: ImagePicker.ImagePickerResult | null = null;
+    try {
+      result = await ImagePicker.launchCameraAsync({
+        mediaTypes: 'images',
+        quality: 0.85,
+      });
+    } catch {
+      // Camera unavailable (e.g. iOS Simulator) — fall back to library
+      const libPerm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (libPerm.status !== 'granted') {
+        toast.show({ message: t('auth.onboarding.permissionDenied'), variant: 'error' });
+        return;
+      }
+      result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: 'images',
+        quality: 0.85,
+      });
+    }
+
+    if (!result || result.canceled || !result.assets?.[0]) return;
     const asset = result.assets[0];
     setImageUri(asset.uri);
     setSelfie(asset.uri, asset.mimeType ?? undefined);

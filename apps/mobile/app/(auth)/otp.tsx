@@ -106,7 +106,7 @@ export default function OtpScreen() {
   }
 
   return (
-    <ScreenWrapper>
+    <ScreenWrapper keyboardAvoiding>
       <View style={styles.container}>
         {/* Back button */}
         <TouchableOpacity
@@ -189,6 +189,7 @@ export default function OtpScreen() {
         </View>
 
         {/* Bottom footnote */}
+        <View style={styles.spacer} />
         <Text style={styles.hint}>{t("auth.otp.hint")}</Text>
       </View>
     </ScreenWrapper>
@@ -299,14 +300,14 @@ const styles = StyleSheet.create({
     color: Colors.primary600,
   },
 
+  spacer: {
+    flex: 1,
+  },
   hint: {
-    position: "absolute",
-    bottom: Spacing.s6,
-    left: Spacing.s4,
-    right: Spacing.s4,
     fontSize: 12,
     fontWeight: "400",
     color: Colors.gray400,
     textAlign: "center",
+    paddingBottom: Spacing.s2,
   },
 });
