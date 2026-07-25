@@ -9,7 +9,7 @@
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#F9FAFB"
+      "backgroundColor": "#FFF6ED"
     },
     "ios": {
       "supportsTablet": false,
@@ -22,12 +22,12 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#0D9488"
+        "backgroundColor": "#B5432A"
       },
       "splash": {
-        "image": "./assets/splash.png",
-        "resizeMode": "cover",
-        "backgroundColor": "#F9FAFB"
+        "image": "./assets/icon1.png",
+        "resizeMode": "contain",
+        "backgroundColor": "#FFF6ED"
       },
       "package": "com.fixr.app",
       "softwareKeyboardLayoutMode": "resize",
@@ -47,7 +47,7 @@
         "expo-notifications",
         {
           "icon": "./assets/notification-icon.png",
-          "color": "#0D9488"
+          "color": "#B5432A"
         }
       ],
       "expo-font",

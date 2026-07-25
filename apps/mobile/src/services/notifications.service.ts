@@ -22,7 +22,7 @@ export const notificationsService = {
         name: 'Fixr',
         importance: Notifications.AndroidImportance.MAX,
         vibrationPattern: [0, 250, 250, 250],
-        lightColor: '#0D9488',
+        lightColor: '#B5432A',
         sound: 'default',
       });
     }
