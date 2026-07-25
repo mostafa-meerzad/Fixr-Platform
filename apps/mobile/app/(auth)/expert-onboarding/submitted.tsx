@@ -1,19 +1,19 @@
-import React, { useEffect } from 'react';
-import { BackHandler, StyleSheet, Text, View } from 'react-native';
-import { useRouter } from 'expo-router';
-import { useTranslation } from 'react-i18next';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import React, { useEffect } from "react";
+import { BackHandler, StyleSheet, Text, View } from "react-native";
+import { useRouter } from "expo-router";
+import { useTranslation } from "react-i18next";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
-import { ScreenWrapper } from '@/components/ui/ScreenWrapper';
-import { Button } from '@/components/ui/Button';
-import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
+import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
+import { Button } from "@/components/ui/Button";
+import { Colors, Radius, Spacing, Typography } from "@/constants/theme";
 
 export default function SubmittedScreen() {
   const { t } = useTranslation();
   const router = useRouter();
 
   useEffect(() => {
-    const sub = BackHandler.addEventListener('hardwareBackPress', () => true);
+    const sub = BackHandler.addEventListener("hardwareBackPress", () => true);
     return () => sub.remove();
   }, []);
 
@@ -21,20 +21,26 @@ export default function SubmittedScreen() {
     <ScreenWrapper>
       <View style={styles.container}>
         <View style={styles.iconCircle}>
-          <MaterialCommunityIcons name="clipboard-check-outline" size={48} color={Colors.primary600} />
+          <MaterialCommunityIcons
+            name="clipboard-check-outline"
+            size={48}
+            color={Colors.primary600}
+          />
         </View>
 
-        <Text style={styles.title}>{t('auth.onboarding.submittedTitle')}</Text>
-        <Text style={styles.body}>{t('auth.onboarding.submittedBody')}</Text>
+        <Text style={styles.title}>{t("auth.onboarding.submittedTitle")}</Text>
+        <Text style={styles.body}>{t("auth.onboarding.submittedBody")}</Text>
 
-        <DocsStatusCard label={t('auth.onboarding.submittedDocsRow')} />
+        <DocsStatusCard label={t("auth.onboarding.submittedDocsRow")} />
 
-        <Text style={styles.creditsNote}>{t('auth.onboarding.submittedCreditsNote')}</Text>
+        <Text style={styles.creditsNote}>
+          {t("auth.onboarding.submittedCreditsNote")}
+        </Text>
 
         <View style={styles.footer}>
           <Button
-            label={t('auth.onboarding.submittedCta')}
-            onPress={() => router.replace('/(expert)/browse' as any)}
+            label={t("auth.onboarding.submittedCta")}
+            onPress={() => router.replace("/(expert)/browse" as any)}
           />
         </View>
       </View>
@@ -62,8 +68,8 @@ function DocsStatusCard({ label }: { label: string }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     paddingHorizontal: Spacing.s6,
     paddingBottom: Spacing.s10,
   },
@@ -72,37 +78,37 @@ const styles = StyleSheet.create({
     height: 96,
     borderRadius: Radius.full,
     backgroundColor: Colors.primary100,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginBottom: Spacing.s6,
   },
   title: {
     fontSize: Typography.heading1.fontSize,
     fontWeight: Typography.heading1.fontWeight,
     color: Colors.primary600,
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: Spacing.s4,
   },
   body: {
     fontSize: Typography.body.fontSize,
     fontWeight: Typography.body.fontWeight,
     color: Colors.gray600,
-    textAlign: 'center',
+    textAlign: "center",
     lineHeight: 22,
     marginBottom: Spacing.s6,
   },
   docsCard: {
-    width: '100%',
+    width: "100%",
     backgroundColor: Colors.success100,
     borderRadius: Radius.md,
     paddingVertical: Spacing.s3,
     paddingHorizontal: Spacing.s4,
-    alignItems: 'center',
+    alignItems: "center",
     gap: Spacing.s2,
     marginBottom: Spacing.s5,
   },
   dotsRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: Spacing.s2,
   },
   dot: {
@@ -113,18 +119,19 @@ const styles = StyleSheet.create({
   },
   docsLabel: {
     fontSize: Typography.caption.fontSize,
-    fontWeight: '500',
+    fontWeight: "500",
     color: Colors.success600,
-    textAlign: 'center',
+    textAlign: "center",
   },
   creditsNote: {
     fontSize: Typography.caption.fontSize,
     fontWeight: Typography.caption.fontWeight,
     color: Colors.gray400,
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: Spacing.s8,
   },
   footer: {
-    width: '100%',
+    marginTop: Spacing.s6,
+    width: "100%",
   },
 });
