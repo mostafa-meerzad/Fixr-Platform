@@ -68,20 +68,23 @@ export class DisputesService {
     });
   }
 
-  async findAll() {
-    return this.prisma.dispute.findMany({
-      include: {
-        reporter: { select: { id: true, name: true, role: true } },
-        job: {
-          include: {
-            homeowner: { select: { id: true, name: true } },
-            acceptedBid: { include: { expert: { include: { user: { select: { id: true, name: true } } } } } },
-            media: true,
-          },
+  async findAll(page = 1, limit = 20) {
+    const skip = (page - 1) * limit;
+    const include = {
+      reporter: { select: { id: true, name: true, role: true } },
+      job: {
+        include: {
+          homeowner: { select: { id: true, name: true } },
+          acceptedBid: { include: { expert: { include: { user: { select: { id: true, name: true } } } } } },
+          media: true,
         },
       },
-      orderBy: { createdAt: 'desc' },
-    });
+    };
+    const [data, total] = await Promise.all([
+      this.prisma.dispute.findMany({ include, orderBy: { createdAt: 'desc' }, skip, take: limit }),
+      this.prisma.dispute.count(),
+    ]);
+    return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 
   async findOne(disputeId: string) {

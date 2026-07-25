@@ -109,7 +109,7 @@ export interface Dispute {
   resolvedAt: string | null;
   createdAt: string;
   job?: Job;
-  raisedBy?: User;
+  reporter?: User;
 }
 
 export interface CreditTx {

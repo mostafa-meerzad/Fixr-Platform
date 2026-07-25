@@ -1,5 +1,5 @@
-import { Controller, Get, Post, Body, Param, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import { Controller, Get, Post, Body, Param, Query, UseGuards } from '@nestjs/common';
+import { ApiTags, ApiBearerAuth, ApiOperation, ApiQuery } from '@nestjs/swagger';
 import { DisputesService } from './disputes.service';
 import { CreateDisputeDto } from './dto/create-dispute.dto';
 import { ResolveDisputeDto } from './dto/resolve-dispute.dto';
@@ -29,8 +29,13 @@ export class DisputesController {
   @Get('disputes')
   @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'List all disputes (admin)' })
-  findAll() {
-    return this.disputesService.findAll();
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  findAll(
+    @Query('page') page = '1',
+    @Query('limit') limit = '20',
+  ) {
+    return this.disputesService.findAll(Number(page), Number(limit));
   }
 
   @Get('disputes/:id')

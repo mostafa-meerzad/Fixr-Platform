@@ -56,7 +56,7 @@ export default function DisputesPage() {
               <Tr key={d.id}>
                 <Td><Badge label={d.reason} className="bg-red-900 text-red-300" /></Td>
                 <Td className="text-[var(--text-muted)] text-xs">{d.job?.title ?? d.job?.id ?? '—'}</Td>
-                <Td>{d.raisedBy?.name ?? '—'}</Td>
+                <Td>{d.reporter?.name ?? '—'}</Td>
                 <Td className="text-[var(--text-muted)] text-xs">{fmtDate(d.createdAt)}</Td>
                 <Td>
                   {d.resolvedAt
