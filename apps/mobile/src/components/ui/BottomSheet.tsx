@@ -14,10 +14,12 @@ interface BottomSheetProps {
   snapPoints?: (string | number)[];
   onDismiss?: () => void;
   scrollable?: boolean;
+  /** Auto-size the sheet to its content instead of using fixed snap points */
+  dynamicSize?: boolean;
 }
 
 export const BottomSheet = forwardRef<RNBottomSheetModal, BottomSheetProps>(
-  ({ children, snapPoints = ['50%'], onDismiss, scrollable = false }, ref) => {
+  ({ children, snapPoints = ['50%'], onDismiss, scrollable = false, dynamicSize = false }, ref) => {
     const renderBackdrop = useCallback(
       (props: BottomSheetBackdropProps) => (
         <BottomSheetBackdrop
@@ -33,7 +35,7 @@ export const BottomSheet = forwardRef<RNBottomSheetModal, BottomSheetProps>(
     return (
       <RNBottomSheetModal
         ref={ref}
-        snapPoints={snapPoints}
+        {...(dynamicSize ? { enableDynamicSizing: true } : { snapPoints })}
         backdropComponent={renderBackdrop}
         backgroundStyle={styles.background}
         handleIndicatorStyle={styles.handle}

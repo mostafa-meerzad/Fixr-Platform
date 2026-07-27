@@ -302,7 +302,7 @@ export default function ProfileScreen() {
       )}
 
       {/* ── Edit name sheet ── */}
-      <BottomSheet ref={editSheetRef} snapPoints={["40%"]}>
+      <BottomSheet ref={editSheetRef} dynamicSize>
         <Text style={styles.sheetTitle}>{t("homeowner.profile.editNameTitle")}</Text>
         <Input
           label={t("homeowner.profile.nameLabel")}

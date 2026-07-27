@@ -378,7 +378,7 @@ export default function ExpertProfileScreen() {
       )}
 
       {/* Edit name sheet */}
-      <BottomSheet ref={editSheetRef} snapPoints={["40%"]}>
+      <BottomSheet ref={editSheetRef} dynamicSize>
         <Text style={styles.sheetTitle}>{t("expert.profile.editNameTitle")}</Text>
         <Input
           label={t("expert.profile.nameLabel")}
