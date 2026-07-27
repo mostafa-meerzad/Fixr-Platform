@@ -210,6 +210,9 @@ export default function BusinessScreen() {
         shopZoneId: selectedZone!.id,
         shopAddress: shopAddress.trim(),
       });
+      // Seed service zone so browse screen has a zone immediately after onboarding.
+      // shop zone and service zones are separate backend concepts; expert can change later.
+      await usersService.updateZones([selectedZone!.id]);
       clearOnboarding();
       router.replace("/(auth)/expert-onboarding/submitted" as any);
     } catch (err: any) {
