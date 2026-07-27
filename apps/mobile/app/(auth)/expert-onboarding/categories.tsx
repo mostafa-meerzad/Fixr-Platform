@@ -107,11 +107,15 @@ export default function CategoriesScreen() {
                   activeOpacity={0.75}
                 >
                   {item.icon ? (
-                    <MaterialIcons
-                      name={item.icon as any}
-                      size={IconSize.btn}
-                      color={isSelected ? Colors.white : Colors.gray600}
-                    />
+                    <View style={styles.iconWrap}>
+                      <MaterialIcons
+                        name={item.icon as any}
+                        size={IconSize.btn}
+                        color={
+                          isSelected ? Colors.primary500 : Colors.primary600
+                        }
+                      />
+                    </View>
                   ) : null}
                   <Text
                     style={[
@@ -213,6 +217,15 @@ const styles = StyleSheet.create({
     color: Colors.gray600,
     marginBottom: Spacing.s5,
   },
+  iconWrap: {
+    width: 48,
+    height: 48,
+    borderRadius: Radius.md,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: Colors.sand,
+    marginBottom: Spacing.s2,
+  },
   loaderWrap: {
     flex: 1,
     alignItems: "center",
@@ -243,8 +256,8 @@ const styles = StyleSheet.create({
     borderColor: Colors.primary600,
   },
   tileLabel: {
-    fontSize: Typography.label.fontSize,
-    fontWeight: "600",
+    fontSize: Typography.labelBold.fontSize,
+    fontWeight: "bold",
     color: Colors.gray600,
     textAlign: "center",
   },

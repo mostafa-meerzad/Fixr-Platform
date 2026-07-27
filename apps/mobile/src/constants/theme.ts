@@ -42,6 +42,7 @@ export const Typography = {
   body:      { fontSize: 15, fontWeight: '400' as const, color: Colors.gray600 },
   bodyMd:    { fontSize: 15, fontWeight: '500' as const, color: Colors.gray900 },
   label:     { fontSize: 13, fontWeight: '500' as const, color: Colors.gray600 },
+  labelBold: { fontSize: 15, fontWeight: '500' as const, color: Colors.gray600 },
   caption:   { fontSize: 12, fontWeight: '400' as const, color: Colors.gray400 },
   captionMd: { fontSize: 12, fontWeight: '600' as const, color: Colors.gray400 },
 } as const;

@@ -60,7 +60,7 @@ export function Button({
       {loading ? (
         <ActivityIndicator
           size="small"
-          color={['primary', 'dark', 'success'].includes(variant) ? Colors.white : Colors.primary600}
+          color={['primary', 'dark', 'success'].includes(variant) ? Colors.gray600 : Colors.primary600}
         />
       ) : (
         <View style={styles.content}>
