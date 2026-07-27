@@ -316,6 +316,7 @@ export default function ProfileScreen() {
           }}
           autoCapitalize="words"
           style={styles.sheetInput}
+          bottomSheet
         />
         <Button
           label={t("homeowner.profile.saveChanges")}

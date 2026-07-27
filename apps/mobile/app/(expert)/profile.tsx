@@ -392,6 +392,7 @@ export default function ExpertProfileScreen() {
           }}
           autoCapitalize="words"
           style={styles.sheetInput}
+          bottomSheet
         />
         <Button label={t("expert.profile.saveChanges")} onPress={handleSaveName} loading={saving} />
       </BottomSheet>

@@ -8,6 +8,7 @@ import {
   type KeyboardTypeOptions,
   type ReturnKeyTypeOptions,
 } from 'react-native';
+import { BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import { Colors, Spacing, Radius } from '@/constants/theme';
 import { useRTL } from '@/hooks/useRTL';
 
@@ -30,6 +31,8 @@ interface InputProps {
   style?: ViewStyle;
   /** Force LTR text alignment regardless of language — use for phone numbers, prices, numeric codes */
   ltrText?: boolean;
+  /** Use BottomSheetTextInput so gorhom's keyboard-avoidance works inside a BottomSheetModal */
+  bottomSheet?: boolean;
 }
 
 export const Input = forwardRef<TextInput, InputProps>(function Input(
@@ -51,6 +54,7 @@ export const Input = forwardRef<TextInput, InputProps>(function Input(
     autoCapitalize,
     style,
     ltrText = false,
+    bottomSheet = false,
   },
   ref,
 ) {
@@ -60,12 +64,14 @@ export const Input = forwardRef<TextInput, InputProps>(function Input(
   // Numeric/phone/OTP fields are always LTR regardless of language
   const resolvedTextAlign = ltrText ? 'left' : textAlign;
 
+  const InputComponent = bottomSheet ? (BottomSheetTextInput as unknown as typeof TextInput) : TextInput;
+
   return (
     <View style={[styles.container, style]}>
       {label ? (
         <Text style={[styles.label, { textAlign: resolvedTextAlign }]}>{label}</Text>
       ) : null}
-      <TextInput
+      <InputComponent
         ref={ref}
         value={value}
         onChangeText={onChangeText}
