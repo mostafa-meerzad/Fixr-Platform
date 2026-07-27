@@ -39,6 +39,9 @@ export const BottomSheet = forwardRef<RNBottomSheetModal, BottomSheetProps>(
         handleIndicatorStyle={styles.handle}
         onDismiss={onDismiss}
         enablePanDownToClose
+        keyboardBehavior="interactive"
+        keyboardBlurBehavior="restore"
+        android_keyboardInputMode="adjustResize"
       >
         {scrollable ? (
           <BottomSheetScrollView contentContainerStyle={styles.content}>
