@@ -556,7 +556,8 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white,
     borderBottomWidth: 1,
     borderBottomColor: Colors.gray200,
-    paddingHorizontal: Spacing.s4,
+    paddingLeft: Spacing.s4,
+    paddingRight: 56, // Spacing.s4 (16) + bell width (32) + gap (8) — clears the absolute bell overlay
     paddingTop: Spacing.s4,
     paddingBottom: Spacing.s3,
   },
