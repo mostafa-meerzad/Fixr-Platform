@@ -3,6 +3,7 @@ import { TouchableOpacity, View, StyleSheet } from 'react-native';
 import { Tabs, router } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useNavigationState } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { Colors, Spacing } from '@/constants/theme';
 import { Icons } from '@/constants/icons';
@@ -28,11 +29,15 @@ function TabIcon({
   );
 }
 
+const TAB_SCREENS = new Set(['browse', 'my-bids', 'messages', 'profile']);
+
 export default function ExpertLayout() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const hasUnread = useNotifStore((s) => s.unreadChatCount > 0);
   const unreadCount = useNotifStore((s) => s.unreadCount);
+  const activeRouteName = useNavigationState((s) => s.routes[s.index]?.name ?? '');
+  const showBell = TAB_SCREENS.has(activeRouteName);
 
   return (
     <View style={styles.root}>
@@ -76,22 +81,24 @@ export default function ExpertLayout() {
             ),
           }}
         />
-        <Tabs.Screen name="job/[id]" options={{ href: null }} />
-        <Tabs.Screen name="active-job/[id]" options={{ href: null }} />
-        <Tabs.Screen name="credits" options={{ href: null }} />
+        <Tabs.Screen name="job/[id]" options={{ href: null, tabBarStyle: { display: 'none' } }} />
+        <Tabs.Screen name="active-job/[id]" options={{ href: null, tabBarStyle: { display: 'none' } }} />
+        <Tabs.Screen name="credits" options={{ href: null, tabBarStyle: { display: 'none' } }} />
       </Tabs>
-      <TouchableOpacity
-        style={[styles.bell, { top: insets.top + 8 }]}
-        onPress={() => router.push('/(shared)/notifications' as any)}
-        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-      >
-        <MaterialCommunityIcons
-          name={(unreadCount > 0 ? Icons.notifsActive : Icons.notifs) as any}
-          size={24}
-          color={Colors.primary600}
-        />
-        {unreadCount > 0 && <View style={styles.bellDot} />}
-      </TouchableOpacity>
+      {showBell && (
+        <TouchableOpacity
+          style={[styles.bell, { top: insets.top + 8 }]}
+          onPress={() => router.push('/(shared)/notifications' as any)}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          <MaterialCommunityIcons
+            name={(unreadCount > 0 ? Icons.notifsActive : Icons.notifs) as any}
+            size={24}
+            color={Colors.primary600}
+          />
+          {unreadCount > 0 && <View style={styles.bellDot} />}
+        </TouchableOpacity>
+      )}
     </View>
   );
 }

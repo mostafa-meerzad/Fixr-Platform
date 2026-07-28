@@ -478,7 +478,7 @@ export default function ExpertJobDetailScreen() {
         <KeyboardAvoidingView
           style={styles.flex}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          keyboardVerticalOffset={insets.top + 56}
+          keyboardVerticalOffset={0}
         >
           <ScrollView
             showsVerticalScrollIndicator={false}
