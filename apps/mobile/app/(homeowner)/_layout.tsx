@@ -73,10 +73,10 @@ export default function HomeownerLayout() {
             ),
           }}
         />
-        <Tabs.Screen name="disputes" options={{ href: null }} />
-        <Tabs.Screen name="expert/[id]" options={{ href: null }} />
-        <Tabs.Screen name="job/[id]" options={{ href: null }} />
-        <Tabs.Screen name="active-job/[id]" options={{ href: null }} />
+        <Tabs.Screen name="disputes" options={{ href: null, tabBarStyle: { display: 'none' } }} />
+        <Tabs.Screen name="expert/[id]" options={{ href: null, tabBarStyle: { display: 'none' } }} />
+        <Tabs.Screen name="job/[id]" options={{ href: null, tabBarStyle: { display: 'none' } }} />
+        <Tabs.Screen name="active-job/[id]" options={{ href: null, tabBarStyle: { display: 'none' } }} />
         <Tabs.Screen name="post/create" options={{ href: null, tabBarStyle: { display: 'none' } }} />
         <Tabs.Screen name="post/details" options={{ href: null, tabBarStyle: { display: 'none' } }} />
         <Tabs.Screen name="post/media" options={{ href: null, tabBarStyle: { display: 'none' } }} />
