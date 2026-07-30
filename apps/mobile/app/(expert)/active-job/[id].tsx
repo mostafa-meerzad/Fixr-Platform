@@ -24,6 +24,7 @@ import { Avatar } from '@/components/ui/Avatar';
 import { Pill, getStatusVariant } from '@/components/ui/Pill';
 import { useToast } from '@/components/ui/Toast';
 import { jobsService, type JobStatus, type JobUrgency } from '@/services/jobs.service';
+import { formatAFNEn } from '@/utils/format';
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -416,7 +417,7 @@ export default function ExpertActiveJobScreen() {
             <View style={styles.termsRow}>
               <View style={styles.termChip}>
                 <Text style={styles.termValueAccent}>
-                  {job.acceptedBid ? `${job.acceptedBid.price} AFN` : '—'}
+                  {job.acceptedBid ? formatAFNEn(job.acceptedBid.price) : '—'}
                 </Text>
                 <Text style={styles.termLabel}>{t('expert.activeJob.priceLabel')}</Text>
               </View>

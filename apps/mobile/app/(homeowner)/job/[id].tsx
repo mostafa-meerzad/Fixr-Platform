@@ -26,7 +26,7 @@ import { Pill, getStatusVariant } from '@/components/ui/Pill';
 import { useToast } from '@/components/ui/Toast';
 import { bidsService } from '@/services/bids.service';
 import { jobsService, type JobStatus, type JobUrgency } from '@/services/jobs.service';
-import { formatRelativeTime } from '@/utils/format';
+import { formatRelativeTime, formatAFNEn } from '@/utils/format';
 
 const SCREEN_W = Dimensions.get('window').width;
 
@@ -162,7 +162,7 @@ function BidCard({ bid, onAccept, onViewExpert, t }: BidCardProps) {
           </Text>
         </View>
         <View style={styles.bidPriceBlock}>
-          <Text style={styles.bidPrice}>{bid.price.toLocaleString()} AFN</Text>
+          <Text style={styles.bidPrice}>{formatAFNEn(bid.price)}</Text>
           <Text style={styles.bidArrivalText}>
             ~{bid.estimatedArrivalMinutes}min · {bid.estimatedDurationHours}h
           </Text>
@@ -439,7 +439,7 @@ export default function HomeownerJobDetailScreen() {
                       </Text>
                     </View>
                     <Text style={styles.expertPrice}>
-                      {job.acceptedBid.price.toLocaleString()} AFN
+                      {formatAFNEn(job.acceptedBid.price)}
                     </Text>
                   </View>
 
@@ -571,7 +571,7 @@ export default function HomeownerJobDetailScreen() {
               </View>
             )}
             <Text style={styles.sheetPrice}>
-              {selectedBid.price.toLocaleString()} AFN
+              {formatAFNEn(selectedBid.price)}
             </Text>
             <Text style={styles.sheetArrival}>
               ~{selectedBid.estimatedArrivalMinutes}min {t('homeowner.jobDetail.arrival')}

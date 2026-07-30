@@ -20,6 +20,7 @@
       "en": "English",
       "fa": "دری"
     },
+    "currency": "AFN",
     "status": {
       "open": "Open",
       "assigned": "Assigned",
@@ -555,7 +556,7 @@
       "arrivalLabel": "arrival",
       "durationLabel": "duration",
       "warrantyLabel": "warranty",
-      "finishedHint": "When finished, add a note — {{name}} confirms before the job closes",
+      "finishedHint": "When finished, request completion — {{name}} confirms before the job closes",
       "cancelledBanner": "This job was cancelled.",
       "disputedBanner": "This job is under dispute. Admin will review."
     },
@@ -619,10 +620,10 @@
       "title": "Buy credits",
       "explainer": "Each bid costs 1 credit. Credits are refunded when a homeowner cancels a job you bid on.",
       "mostPopular": "MOST POPULAR",
-      "perBid": "{{amount}}₾ per bid",
+      "perBid": "{{amount}} AFN per bid",
       "save": "save {{pct}}%",
       "payWith": "Pay with",
-      "cta": "Buy {{credits}} credits · {{price}}₾"
+      "cta": "Buy {{credits}} credits · {{price}} AFN"
     },
     "buySheet": {
       "title": "Purchase Credits",

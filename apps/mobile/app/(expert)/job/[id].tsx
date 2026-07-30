@@ -29,7 +29,7 @@ import { useToast } from '@/components/ui/Toast';
 import { bidsService, type PlaceBidPayload } from '@/services/bids.service';
 import { jobsService, type JobStatus, type JobUrgency } from '@/services/jobs.service';
 import { usersService } from '@/services/users.service';
-import { formatRelativeTime } from '@/utils/format';
+import { formatRelativeTime, formatAFNEn } from '@/utils/format';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 
@@ -528,7 +528,7 @@ export default function ExpertJobDetailScreen() {
               {myBid && !editMode && (
                 <Card variant="accepted" style={styles.myBidCard}>
                   <View style={styles.myBidTopRow}>
-                    <Text style={styles.myBidPrice}>{myBid.price.toLocaleString()} AFN</Text>
+                    <Text style={styles.myBidPrice}>{formatAFNEn(myBid.price)}</Text>
                     <Pill label={t('expert.jobDetail.bidPlacedPill')} variant="primary" />
                   </View>
                   <View style={styles.chipsRow}>

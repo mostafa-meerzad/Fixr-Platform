@@ -1,9 +1,11 @@
+export const CURRENCY = 'AFN';
+
 export function formatAFN(amount: number): string {
   return `${amount.toLocaleString('fa-AF')} ؋`;
 }
 
 export function formatAFNEn(amount: number): string {
-  return `${amount.toLocaleString()} AFN`;
+  return `${amount.toLocaleString()} ${CURRENCY}`;
 }
 
 export function formatRelativeTime(date: string | Date, lang = 'fa'): string {
