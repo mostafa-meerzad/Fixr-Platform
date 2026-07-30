@@ -14,9 +14,11 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.fixr.app",
+      "googleServicesFile": "./GoogleService-Info.plist",
       "infoPlist": {
         "NSCameraUsageDescription": "Used to take selfies and document job photos.",
-        "NSPhotoLibraryUsageDescription": "Used to upload job images and profile photos."
+        "NSPhotoLibraryUsageDescription": "Used to upload job images and profile photos.",
+        "UIBackgroundModes": ["remote-notification", "fetch"]
       }
     },
     "android": {
@@ -41,6 +43,7 @@
       "googleServicesFile": "./google-services.json"
     },
     "plugins": [
+      "@react-native-firebase/app",
       "expo-router",
       "expo-secure-store",
       [

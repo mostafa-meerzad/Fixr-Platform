@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { AppState, AppStateStatus, StyleSheet, View } from 'react-native';
+import { AppState, AppStateStatus, Platform, StyleSheet, View } from 'react-native';
 import { Stack, router } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import {
@@ -13,6 +13,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import * as Notifications from 'expo-notifications';
+import messaging from '@react-native-firebase/messaging';
 import '@/i18n';
 import { useAuthStore } from '@/stores/auth.store';
 import { Colors } from '@/constants/theme';
@@ -71,13 +72,20 @@ export default function RootLayout() {
     usersService.updateMe({ language: 'en' }).catch(() => {});
   }, [user?.id]);
 
-  // Re-register when Android rotates the FCM token (reinstall, token invalidation, etc.)
+  // Re-register when the FCM token rotates (reinstall, token invalidation, etc.)
   useEffect(() => {
     if (!user) return;
-    const sub = Notifications.addPushTokenListener((newToken) => {
-      usersService.updateFcmToken(newToken.data).catch(() => {});
-    });
-    return () => sub.remove();
+    if (Platform.OS === 'android') {
+      const sub = Notifications.addPushTokenListener((newToken) => {
+        usersService.updateFcmToken(newToken.data).catch(() => {});
+      });
+      return () => sub.remove();
+    }
+    if (Platform.OS === 'ios') {
+      return messaging().onTokenRefresh((token) => {
+        usersService.updateFcmToken(token).catch(() => {});
+      });
+    }
   }, [user?.id]);
 
   const syncUnreadCounts = useCallback(() => {

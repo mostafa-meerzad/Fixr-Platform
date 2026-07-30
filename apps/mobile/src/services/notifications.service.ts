@@ -2,6 +2,7 @@ import { Platform } from 'react-native';
 import { api } from './api';
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
+import messaging from '@react-native-firebase/messaging';
 import { usersService } from './users.service';
 
 export const notificationsService = {
@@ -25,24 +26,40 @@ export const notificationsService = {
         lightColor: '#B5432A',
         sound: 'default',
       });
+
+      const { status: existing } = await Notifications.getPermissionsAsync();
+      let finalStatus = existing;
+      if (existing !== 'granted') {
+        const { status } = await Notifications.requestPermissionsAsync();
+        finalStatus = status;
+      }
+      if (finalStatus !== 'granted') return null;
+
+      try {
+        const { data: token } = await Notifications.getDevicePushTokenAsync();
+        await usersService.updateFcmToken(token);
+        return token;
+      } catch {
+        return null;
+      }
     }
 
-    const { status: existing } = await Notifications.getPermissionsAsync();
-    let finalStatus = existing;
+    if (Platform.OS === 'ios') {
+      const authStatus = await messaging().requestPermission();
+      const granted =
+        authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+        authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+      if (!granted) return null;
 
-    if (existing !== 'granted') {
-      const { status } = await Notifications.requestPermissionsAsync();
-      finalStatus = status;
+      try {
+        const token = await messaging().getToken();
+        await usersService.updateFcmToken(token);
+        return token;
+      } catch {
+        return null;
+      }
     }
 
-    if (finalStatus !== 'granted') return null;
-
-    try {
-      const { data: token } = await Notifications.getDevicePushTokenAsync();
-      await usersService.updateFcmToken(token);
-      return token;
-    } catch {
-      return null;
-    }
+    return null;
   },
 };
