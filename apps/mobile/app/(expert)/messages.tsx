@@ -10,14 +10,14 @@ import {
 import { router, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNotifStore } from '@/stores/notif.store';
-import { Colors, Spacing, Typography } from '@/constants/theme';
+import { Colors, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
 import { Icons } from '@/constants/icons';
-import { Avatar } from '@/components/ui/Avatar';
-import { Divider } from '@/components/ui/Divider';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Pill, getStatusVariant } from '@/components/ui/Pill';
 import { bidsService } from '@/services/bids.service';
+import { formatRelativeTime } from '@/utils/format';
 
 interface BidJob {
   id: string;
@@ -25,6 +25,7 @@ interface BidJob {
   status: string;
   acceptedBidId?: string | null;
   zone?: { nameEn: string };
+  createdAt: string;
 }
 
 interface MineBid {
@@ -32,14 +33,8 @@ interface MineBid {
   job: BidJob;
 }
 
-const CHAT_STATUSES = [
-  'ASSIGNED',
-  'EN_ROUTE',
-  'ARRIVED',
-  'IN_PROGRESS',
-  'COMPLETION_REQUESTED',
-  'COMPLETED',
-];
+const CHAT_STATUSES = ['ASSIGNED', 'EN_ROUTE', 'ARRIVED', 'IN_PROGRESS', 'COMPLETION_REQUESTED', 'COMPLETED'];
+const ONLINE_STATUSES = ['ASSIGNED', 'EN_ROUTE', 'ARRIVED', 'IN_PROGRESS'];
 
 function getStatusLabel(status: string, t: (k: string) => string): string {
   const map: Record<string, string> = {
@@ -51,6 +46,12 @@ function getStatusLabel(status: string, t: (k: string) => string): string {
     COMPLETED: t('common.status.completed'),
   };
   return map[status] ?? status;
+}
+
+function getInitials(name: string): string {
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) return (parts[0][0] ?? '?').toUpperCase();
+  return ((parts[0][0] ?? '') + (parts[parts.length - 1][0] ?? '')).toUpperCase();
 }
 
 export default function ExpertMessagesScreen() {
@@ -83,32 +84,43 @@ export default function ExpertMessagesScreen() {
     load();
   }, [load]));
 
-  const renderItem = ({ item: job, index }: { item: BidJob; index: number }) => (
-    <View>
+  const renderItem = ({ item: job }: { item: BidJob }) => {
+    const isOnline = ONLINE_STATUSES.includes(job.status);
+    const timestamp = formatRelativeTime(job.createdAt, 'en');
+
+    return (
       <TouchableOpacity
         style={styles.row}
         onPress={() => router.push(`/(shared)/chat/${job.id}` as any)}
         activeOpacity={0.7}
       >
-        <Avatar size={40} name={job.title} />
+        <View style={styles.avatarWrap}>
+          <View style={styles.avatar}>
+            <Text style={styles.avatarText}>{getInitials(job.title)}</Text>
+          </View>
+          {isOnline && <View style={styles.onlineDot} />}
+        </View>
+
         <View style={styles.rowContent}>
           <Text style={styles.rowTitle} numberOfLines={1}>
             {job.title}
           </Text>
-          <Text style={styles.rowMeta} numberOfLines={1}>
-            {job.zone?.nameEn}
+          <Text style={styles.rowExcerpt} numberOfLines={1}>
+            {job.zone?.nameEn ?? ''}
           </Text>
         </View>
-        <Pill label={getStatusLabel(job.status, t)} variant={getStatusVariant(job.status)} />
+
+        <View style={styles.rowRight}>
+          <Text style={styles.timestamp}>{timestamp}</Text>
+          <Pill label={getStatusLabel(job.status, t)} variant={getStatusVariant(job.status)} />
+        </View>
       </TouchableOpacity>
-      {index < jobs.length - 1 ? <Divider style={styles.divider} /> : null}
-    </View>
-  );
+    );
+  };
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.header}>
-        <Text style={styles.subtitle}>{t('expert.messages.subtitle')}</Text>
         <Text style={styles.title}>{t('expert.messages.title')}</Text>
       </View>
 
@@ -132,8 +144,16 @@ export default function ExpertMessagesScreen() {
               subtitle={t('expert.messages.emptySubtitle')}
             />
           }
+          ListFooterComponent={
+            jobs.length > 0 ? (
+              <View style={styles.lockHint}>
+                <MaterialCommunityIcons name={Icons.info as any} size={14} color={Colors.gray400} />
+                <Text style={styles.lockHintText}>{t('expert.messages.lockHint')}</Text>
+              </View>
+            ) : null
+          }
+          contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
-          style={styles.list}
         />
       )}
     </SafeAreaView>
@@ -153,11 +173,6 @@ const styles = StyleSheet.create({
     paddingTop: Spacing.s4,
     paddingBottom: Spacing.s3,
   },
-  subtitle: {
-    fontSize: 12,
-    color: Colors.gray400,
-    marginBottom: 2,
-  },
   title: {
     ...Typography.display,
   },
@@ -170,29 +185,86 @@ const styles = StyleSheet.create({
     ...Typography.body,
     textAlign: 'center',
   },
-  list: {
-    flex: 1,
-    backgroundColor: Colors.white,
+  listContent: {
+    padding: Spacing.s4,
+    gap: Spacing.s3,
+    flexGrow: 1,
   },
+
+  // ── Conversation row card ──
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    height: 72,
-    paddingHorizontal: Spacing.s4,
-    gap: Spacing.s3,
     backgroundColor: Colors.white,
+    borderRadius: Radius.lg,
+    padding: Spacing.s4,
+    gap: Spacing.s3,
+    ...Shadows.sm,
   },
+
+  // ── Avatar with online dot ──
+  avatarWrap: {
+    position: 'relative',
+  },
+  avatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: Colors.primary600,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: Colors.white,
+  },
+  onlineDot: {
+    position: 'absolute',
+    bottom: 1,
+    right: 1,
+    width: 11,
+    height: 11,
+    borderRadius: 6,
+    backgroundColor: Colors.success600,
+    borderWidth: 2,
+    borderColor: Colors.white,
+  },
+
+  // ── Row content ──
   rowContent: {
     flex: 1,
-    gap: 2,
+    gap: 3,
   },
   rowTitle: {
     ...Typography.bodyMd,
   },
-  rowMeta: {
+  rowExcerpt: {
     ...Typography.caption,
   },
-  divider: {
-    marginVertical: 0,
+
+  // ── Timestamp + pill column ──
+  rowRight: {
+    alignItems: 'flex-end',
+    gap: Spacing.s1,
+  },
+  timestamp: {
+    fontSize: 11,
+    fontWeight: '400',
+    color: Colors.gray400,
+  },
+
+  // ── Lock hint footer ──
+  lockHint: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.s1,
+    marginTop: Spacing.s2,
+    paddingVertical: Spacing.s3,
+  },
+  lockHintText: {
+    fontSize: 12,
+    color: Colors.gray400,
   },
 });

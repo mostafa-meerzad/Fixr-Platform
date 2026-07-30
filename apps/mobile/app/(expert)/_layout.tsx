@@ -1,14 +1,14 @@
-import React from 'react';
-import { TouchableOpacity, View, StyleSheet } from 'react-native';
-import { Tabs, router } from 'expo-router';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigationState } from '@react-navigation/native';
-import { useTranslation } from 'react-i18next';
-import { Colors, Spacing } from '@/constants/theme';
-import { Icons } from '@/constants/icons';
-import { useNotifStore } from '@/stores/notif.store';
-import { FloatingTabBar } from '@/components/ui/FloatingTabBar';
+import React from "react";
+import { TouchableOpacity, View, StyleSheet } from "react-native";
+import { Tabs, router } from "expo-router";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useNavigationState } from "@react-navigation/native";
+import { useTranslation } from "react-i18next";
+import { Colors, Spacing } from "@/constants/theme";
+import { Icons } from "@/constants/icons";
+import { useNotifStore } from "@/stores/notif.store";
+import { FloatingTabBar } from "@/components/ui/FloatingTabBar";
 
 function TabIcon({
   name,
@@ -29,14 +29,16 @@ function TabIcon({
   );
 }
 
-const TAB_SCREENS = new Set(['browse', 'my-bids', 'messages', 'profile']);
+const TAB_SCREENS = new Set(["browse", "my-bids", "messages", "profile"]);
 
 export default function ExpertLayout() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const hasUnread = useNotifStore((s) => s.unreadChatCount > 0);
   const unreadCount = useNotifStore((s) => s.unreadCount);
-  const activeRouteName = useNavigationState((s) => s.routes[s.index]?.name ?? '');
+  const activeRouteName = useNavigationState(
+    (s) => s.routes[s.index]?.name ?? "",
+  );
   const showBell = TAB_SCREENS.has(activeRouteName);
 
   return (
@@ -48,7 +50,7 @@ export default function ExpertLayout() {
         <Tabs.Screen
           name="browse"
           options={{
-            title: t('expert.browse.title'),
+            title: t("expert.browse.title"),
             tabBarIcon: ({ color, size }) => (
               <TabIcon name={Icons.tabBrowse} color={color} size={size} />
             ),
@@ -57,7 +59,7 @@ export default function ExpertLayout() {
         <Tabs.Screen
           name="my-bids"
           options={{
-            title: t('expert.myBids.title'),
+            title: t("expert.myBids.title"),
             tabBarIcon: ({ color, size }) => (
               <TabIcon name={Icons.tabBids} color={color} size={size} />
             ),
@@ -66,29 +68,43 @@ export default function ExpertLayout() {
         <Tabs.Screen
           name="messages"
           options={{
-            title: t('expert.messages.title'),
+            title: t("expert.messages.title"),
             tabBarIcon: ({ color, size }) => (
-              <TabIcon name={Icons.tabChat} color={color} size={size} hasBadge={hasUnread} />
+              <TabIcon
+                name={Icons.tabChat}
+                color={color}
+                size={size}
+                hasBadge={hasUnread}
+              />
             ),
           }}
         />
         <Tabs.Screen
           name="profile"
           options={{
-            title: t('expert.profile.title'),
+            title: t("expert.profile.title"),
             tabBarIcon: ({ color, size }) => (
               <TabIcon name={Icons.tabPerson} color={color} size={size} />
             ),
           }}
         />
-        <Tabs.Screen name="job/[id]" options={{ href: null, tabBarStyle: { display: 'none' } }} />
-        <Tabs.Screen name="active-job/[id]" options={{ href: null, tabBarStyle: { display: 'none' } }} />
-        <Tabs.Screen name="credits" options={{ href: null, tabBarStyle: { display: 'none' } }} />
+        <Tabs.Screen
+          name="job/[id]"
+          options={{ href: null, tabBarStyle: { display: "none" } }}
+        />
+        <Tabs.Screen
+          name="active-job/[id]"
+          options={{ href: null, tabBarStyle: { display: "none" } }}
+        />
+        <Tabs.Screen
+          name="credits"
+          options={{ href: null, tabBarStyle: { display: "none" } }}
+        />
       </Tabs>
       {showBell && (
         <TouchableOpacity
           style={[styles.bell, { top: insets.top + 8 }]}
-          onPress={() => router.push('/(shared)/notifications' as any)}
+          onPress={() => router.push("/(shared)/notifications" as any)}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
           <MaterialCommunityIcons
@@ -108,7 +124,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   badge: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     right: -2,
     width: 8,
@@ -117,15 +133,15 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.danger600,
   },
   bell: {
-    position: 'absolute',
+    position: "absolute",
     right: Spacing.s4,
     width: 32,
     height: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   bellDot: {
-    position: 'absolute',
+    position: "absolute",
     top: 2,
     right: 2,
     width: 8,

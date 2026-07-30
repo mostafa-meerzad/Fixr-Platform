@@ -518,7 +518,8 @@
       "subtitle": "Post-acceptance chats",
       "title": "Messages",
       "emptyTitle": "No conversations yet",
-      "emptySubtitle": "Your chat unlocks once a homeowner accepts your bid."
+      "emptySubtitle": "Your chat unlocks once a homeowner accepts your bid.",
+      "lockHint": "Chat opens once a homeowner accepts your bid"
     },
     "activeJob": {
       "homeownerLabel": "HOMEOWNER",
