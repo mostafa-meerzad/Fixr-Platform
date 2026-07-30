@@ -37,6 +37,7 @@ import {
 } from "@/services/lookup.service";
 import { formatRelativeTime } from "@/utils/format";
 import { useAuthStore } from "@/stores/auth.store";
+import { useNotifStore } from "@/stores/notif.store";
 
 interface BrowseJob {
   id: string;
@@ -68,6 +69,7 @@ function getUrgencyLabel(urgency: string): string {
 export default function BrowseScreen() {
   const { t } = useTranslation();
   const profileRefreshKey = useAuthStore((s) => s.profileRefreshKey);
+  const unreadCount = useNotifStore((s) => s.unreadCount);
   const zoneSheetRef = useRef<BottomSheetModal>(null);
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -201,6 +203,7 @@ export default function BrowseScreen() {
           creditBalance={creditBalance}
           creditsLabel={t("expert.browse.credits")}
           showChange={false}
+          unreadCount={unreadCount}
         />
         <View style={styles.centered}>
           <Text style={styles.errorText}>{t("common.error")}</Text>
@@ -226,6 +229,7 @@ export default function BrowseScreen() {
           creditBalance={creditBalance}
           creditsLabel={t("expert.browse.credits")}
           showChange={false}
+          unreadCount={unreadCount}
         />
         {/* Amber / danger verification banner */}
         <View style={[styles.pendingBanner, { backgroundColor: bannerBg }]}>
@@ -282,6 +286,7 @@ export default function BrowseScreen() {
         changeLabel={t("expert.browse.change")}
         showChange
         onChangePress={() => zoneSheetRef.current?.present()}
+        unreadCount={unreadCount}
       />
 
       {/* Category filter chips */}
@@ -437,6 +442,7 @@ function BrowseHeader({
   changeLabel,
   showChange = false,
   onChangePress,
+  unreadCount = 0,
 }: {
   jobsInLabel: string;
   zoneName: string;
@@ -445,6 +451,7 @@ function BrowseHeader({
   changeLabel?: string;
   showChange?: boolean;
   onChangePress?: () => void;
+  unreadCount?: number;
 }) {
   return (
     <View style={styles.header}>
@@ -460,15 +467,30 @@ function BrowseHeader({
             </TouchableOpacity>
           ) : null}
         </View>
-        <View style={styles.creditsPill}>
-          <MaterialCommunityIcons
-            name={Icons.credit as any}
-            size={14}
-            color={Colors.amber}
-          />
-          <Text style={styles.creditsText}>
-            {creditBalance} {creditsLabel}
-          </Text>
+        <View style={styles.headerRight}>
+          <View style={styles.creditsPill}>
+            <MaterialCommunityIcons
+              name={Icons.credit as any}
+              size={14}
+              color={Colors.amber}
+            />
+            <Text style={styles.creditsText}>
+              {creditBalance} {creditsLabel}
+            </Text>
+          </View>
+          <TouchableOpacity
+            onPress={() => router.push("/(shared)/notifications" as any)}
+            style={styles.bellBtn}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            activeOpacity={0.7}
+          >
+            <MaterialCommunityIcons
+              name={(unreadCount > 0 ? Icons.notifsActive : Icons.notifs) as any}
+              size={24}
+              color={Colors.primary600}
+            />
+            {unreadCount > 0 && <View style={styles.bellDot} />}
+          </TouchableOpacity>
         </View>
       </View>
     </View>
@@ -556,8 +578,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white,
     borderBottomWidth: 1,
     borderBottomColor: Colors.gray200,
-    paddingLeft: Spacing.s4,
-    paddingRight: 56, // Spacing.s4 (16) + bell width (32) + gap (8) — clears the absolute bell overlay
+    paddingHorizontal: Spacing.s4,
     paddingTop: Spacing.s4,
     paddingBottom: Spacing.s3,
   },
@@ -587,6 +608,11 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     color: Colors.primary600,
   },
+  headerRight: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.s2,
+  },
   creditsPill: {
     flexDirection: "row",
     alignItems: "center",
@@ -600,6 +626,23 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: "600",
     color: Colors.amber,
+  },
+  bellBtn: {
+    width: 32,
+    height: 32,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  bellDot: {
+    position: "absolute",
+    top: 2,
+    right: 2,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: Colors.danger600,
+    borderWidth: 1.5,
+    borderColor: Colors.white,
   },
 
   // ── Pending banner ───────────────────────────────────────────────────────────

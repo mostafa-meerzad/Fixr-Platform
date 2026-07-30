@@ -29,7 +29,8 @@ function TabIcon({
   );
 }
 
-const TAB_SCREENS = new Set(["browse", "my-bids", "messages", "profile"]);
+// browse owns its own bell in the header — layout bell only for the other tabs
+const TAB_SCREENS = new Set(["my-bids", "messages", "profile"]);
 
 export default function ExpertLayout() {
   const { t } = useTranslation();
