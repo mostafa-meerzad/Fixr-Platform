@@ -71,13 +71,15 @@ type NodeState = 'done' | 'current' | 'future';
 
 function getNodeStates(status: JobStatus): [NodeState, NodeState, NodeState, NodeState] {
   switch (status) {
-    case 'ASSIGNED':             return ['done', 'current', 'future', 'future'];
-    case 'EN_ROUTE':             return ['done', 'current', 'future', 'future'];
-    case 'ARRIVED':              return ['done', 'done', 'current', 'future'];
-    case 'IN_PROGRESS':          return ['done', 'done', 'current', 'future'];
-    case 'COMPLETION_REQUESTED': return ['done', 'done', 'done', 'current'];
-    case 'COMPLETED':            return ['done', 'done', 'done', 'done'];
-    default:                     return ['done', 'current', 'future', 'future'];
+    case 'ASSIGNED':             return ['current', 'future', 'future', 'future'];
+    case 'EN_ROUTE':             return ['done',    'current', 'future', 'future'];
+    case 'ARRIVED':              return ['done',    'done',    'current', 'future'];
+    case 'IN_PROGRESS':          return ['done',    'done',    'current', 'future'];
+    case 'COMPLETION_REQUESTED': return ['done',    'done',    'done',    'current'];
+    case 'COMPLETED':            return ['done',    'done',    'done',    'done'];
+    case 'CANCELLED':            return ['done',    'done',    'done',    'done'];
+    case 'DISPUTED':             return ['done',    'done',    'done',    'done'];
+    default:                     return ['current', 'future', 'future', 'future'];
   }
 }
 
@@ -406,13 +408,25 @@ export default function ExpertActiveJobScreen() {
             </View>
           </View>
 
+          {/* Terminal state banners */}
+          {job.status === 'CANCELLED' && (
+            <View style={styles.cancelledBanner}>
+              <Text style={styles.cancelledBannerText}>{t('expert.activeJob.cancelledBanner')}</Text>
+            </View>
+          )}
+          {job.status === 'DISPUTED' && (
+            <View style={styles.disputedBanner}>
+              <Text style={styles.disputedBannerText}>{t('expert.activeJob.disputedBanner')}</Text>
+            </View>
+          )}
+
           {/* Agreed terms card */}
           <View style={[styles.card, Shadows.sm]}>
             <Text style={styles.cardHeading}>{t('expert.activeJob.agreedTerms')}</Text>
             <View style={styles.termsRow}>
               <View style={styles.termChip}>
                 <Text style={styles.termValueAccent}>
-                  {job.acceptedBid ? `${job.acceptedBid.price} ₾` : '—'}
+                  {job.acceptedBid ? `${job.acceptedBid.price} AFN` : '—'}
                 </Text>
                 <Text style={styles.termLabel}>{t('expert.activeJob.priceLabel')}</Text>
               </View>
@@ -715,6 +729,28 @@ const styles = StyleSheet.create({
     flex: 1,
     ...Typography.caption,
     lineHeight: 18,
+  },
+
+  // ── Terminal banners ─────────────────────────────────────────────────────────
+  cancelledBanner: {
+    backgroundColor: Colors.danger100,
+    borderRadius: Radius.sm,
+    padding: Spacing.s3,
+  },
+  cancelledBannerText: {
+    fontSize: 13,
+    fontWeight: '500' as const,
+    color: Colors.danger600,
+  },
+  disputedBanner: {
+    backgroundColor: Colors.warning100,
+    borderRadius: Radius.sm,
+    padding: Spacing.s3,
+  },
+  disputedBannerText: {
+    fontSize: 13,
+    fontWeight: '500' as const,
+    color: Colors.warning600,
   },
 
   // ── Dispute link ────────────────────────────────────────────────────────────

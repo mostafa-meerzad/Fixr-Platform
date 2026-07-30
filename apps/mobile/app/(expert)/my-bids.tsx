@@ -46,6 +46,16 @@ type TFunc = (key: string, opts?: Record<string, string | number>) => string;
 
 const ACTIVE_STATUSES = ['ASSIGNED', 'EN_ROUTE', 'ARRIVED', 'IN_PROGRESS', 'COMPLETION_REQUESTED'];
 
+function getAcceptedCtaLabel(status: string, t: TFunc): string {
+  switch (status) {
+    case 'EN_ROUTE':             return t('expert.myBids.ctaEnRoute');
+    case 'ARRIVED':              return t('expert.myBids.ctaArrived');
+    case 'IN_PROGRESS':          return t('expert.myBids.ctaInProgress');
+    case 'COMPLETION_REQUESTED': return t('expert.myBids.ctaWaiting');
+    default:                     return t('expert.myBids.ctaOnMyWay');
+  }
+}
+
 function getActiveBidState(bid: Bid): 'accepted' | 'outbid' | 'pending' {
   if (bid.job.acceptedBidId === bid.id && ACTIVE_STATUSES.includes(bid.job.status))
     return 'accepted';
@@ -267,7 +277,7 @@ function ActiveBidCard({
         <View style={styles.buttonRow}>
           <View style={styles.buttonHalf}>
             <Button
-              label={t('expert.myBids.ctaOnMyWay')}
+              label={getAcceptedCtaLabel(bid.job.status, t)}
               variant="success"
               onPress={() => router.push(`/(expert)/active-job/${bid.job.id}` as any)}
             />

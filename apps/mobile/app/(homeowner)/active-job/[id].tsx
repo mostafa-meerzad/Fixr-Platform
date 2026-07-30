@@ -51,11 +51,13 @@ interface ActiveJobDetail {
 function getHomeownerStep(status: JobStatus): number {
   switch (status) {
     case 'ASSIGNED':             return 0;
-    case 'EN_ROUTE':
-    case 'ARRIVED':              return 1;
+    case 'EN_ROUTE':             return 1;
+    case 'ARRIVED':              return 2;
     case 'IN_PROGRESS':          return 2;
     case 'COMPLETION_REQUESTED': return 3;
-    case 'COMPLETED':            return 4; // all nodes done
+    case 'COMPLETED':            return 4;
+    case 'CANCELLED':            return 4;
+    case 'DISPUTED':             return 4;
     default:                     return 0;
   }
 }
@@ -402,6 +404,18 @@ export default function HomeownerActiveJobScreen() {
           <HomeownerStepper status={job.status} />
         </Card>
 
+        {/* Terminal state banners */}
+        {job.status === 'CANCELLED' && (
+          <View style={styles.cancelledBanner}>
+            <Text style={styles.cancelledBannerText}>{t('homeowner.activeJob.cancelledBanner')}</Text>
+          </View>
+        )}
+        {job.status === 'DISPUTED' && (
+          <View style={styles.disputedBanner}>
+            <Text style={styles.disputedBannerText}>{t('homeowner.activeJob.disputedBanner')}</Text>
+          </View>
+        )}
+
         {/* Completion notes (COMPLETION_REQUESTED only) */}
         {isCompletionRequested && job.acceptedBid?.expertMessage && (
           <Card style={styles.notesCard}>
@@ -603,6 +617,28 @@ const styles = StyleSheet.create({
     color: Colors.primary600,
     textTransform: 'uppercase',
     letterSpacing: 0.8,
+  },
+
+  // ── Terminal banners ─────────────────────────────────────────────────────────
+  cancelledBanner: {
+    backgroundColor: Colors.danger100,
+    borderRadius: Radius.sm,
+    padding: Spacing.s3,
+  },
+  cancelledBannerText: {
+    fontSize: 13,
+    fontWeight: '500' as const,
+    color: Colors.danger600,
+  },
+  disputedBanner: {
+    backgroundColor: Colors.warning100,
+    borderRadius: Radius.sm,
+    padding: Spacing.s3,
+  },
+  disputedBannerText: {
+    fontSize: 13,
+    fontWeight: '500' as const,
+    color: Colors.warning600,
   },
 
   // ── Dispute link ─────────────────────────────────────────────────────────────

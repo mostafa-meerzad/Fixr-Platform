@@ -36,7 +36,7 @@ function getUrgencyLabel(urgency: string, t: (key: string) => string): string {
 
 function getStatusLabel(status: string, t: (key: string) => string): string {
   const map: Record<string, string> = {
-    OPEN: 'Open',
+    OPEN: t('common.status.open'),
     ASSIGNED: t('common.status.assigned'),
     EN_ROUTE: t('common.status.enRoute'),
     ARRIVED: t('common.status.arrived'),

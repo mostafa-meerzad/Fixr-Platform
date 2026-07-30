@@ -370,7 +370,9 @@
       "stepWorking": "Working",
       "stepConfirm": "Confirm",
       "agreedPrice": "agreed {{price}} AFN",
-      "completionSuccess": "Job completed!"
+      "completionSuccess": "Job completed!",
+      "cancelledBanner": "This job was cancelled.",
+      "disputedBanner": "This job is under dispute. Admin will review."
     },
     "profile": {
       "title": "Profile",
@@ -503,7 +505,9 @@
       "withdrawConfirmMsg": "Your credit will be refunded.",
       "withdrawSuccess": "Bid withdrawn",
       "ctaOnMyWay": "I'm On My Way",
+      "ctaEnRoute": "Currently En Route",
       "ctaArrived": "I've Arrived",
+      "ctaInProgress": "Job In Progress",
       "ctaStart": "Start Job",
       "ctaRequestCompletion": "Request Completion",
       "ctaWaiting": "Waiting for confirmation...",
@@ -551,7 +555,9 @@
       "arrivalLabel": "arrival",
       "durationLabel": "duration",
       "warrantyLabel": "warranty",
-      "finishedHint": "When finished, add a note — {{name}} confirms before the job closes"
+      "finishedHint": "When finished, add a note — {{name}} confirms before the job closes",
+      "cancelledBanner": "This job was cancelled.",
+      "disputedBanner": "This job is under dispute. Admin will review."
     },
     "profile": {
       "title": "Profile",
