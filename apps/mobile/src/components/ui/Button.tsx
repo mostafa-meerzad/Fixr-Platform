@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   TouchableOpacity,
   Text,
@@ -6,11 +6,17 @@ import {
   ActivityIndicator,
   StyleSheet,
   type ViewStyle,
-} from 'react-native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Colors, Spacing, Radius, IconSize } from '@/constants/theme';
+} from "react-native";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { Colors, Spacing, Radius, IconSize } from "@/constants/theme";
 
-export type ButtonVariant = 'primary' | 'secondary' | 'destructive' | 'ghost' | 'dark' | 'success';
+export type ButtonVariant =
+  | "primary"
+  | "secondary"
+  | "destructive"
+  | "ghost"
+  | "dark"
+  | "success";
 
 interface ButtonProps {
   label: string;
@@ -22,19 +28,26 @@ interface ButtonProps {
   style?: ViewStyle;
 }
 
-const variantMap: Record<ButtonVariant, { bg: string; border?: string; text: string }> = {
-  primary:     { bg: Colors.primary600,                           text: Colors.white      },
-  secondary:   { bg: Colors.white,   border: Colors.primary600,  text: Colors.primary600 },
-  destructive: { bg: Colors.danger100,                           text: Colors.danger600  },
-  ghost:       { bg: 'transparent',                              text: Colors.primary600 },
-  dark:        { bg: Colors.dark,                                text: Colors.white      },
-  success:     { bg: Colors.success700,                          text: Colors.white      },
+const variantMap: Record<
+  ButtonVariant,
+  { bg: string; border?: string; text: string }
+> = {
+  primary: { bg: Colors.primary600, text: Colors.white },
+  secondary: {
+    bg: Colors.white,
+    border: Colors.primary600,
+    text: Colors.primary600,
+  },
+  destructive: { bg: Colors.danger100, text: Colors.danger600 },
+  ghost: { bg: "transparent", text: Colors.primary600 },
+  dark: { bg: Colors.dark, text: Colors.white },
+  success: { bg: Colors.success700, text: Colors.white },
 };
 
 export function Button({
   label,
   onPress,
-  variant = 'primary',
+  variant = "primary",
   disabled = false,
   loading = false,
   leftIcon,
@@ -60,14 +73,28 @@ export function Button({
       {loading ? (
         <ActivityIndicator
           size="small"
-          color={['primary', 'dark', 'success'].includes(variant) ? Colors.gray600 : Colors.primary600}
+          color={
+            ["primary", "dark", "success"].includes(variant)
+              ? Colors.gray600
+              : Colors.primary600
+          }
         />
       ) : (
         <View style={styles.content}>
           {leftIcon ? (
-            <MaterialCommunityIcons name={leftIcon as any} size={IconSize.btn} color={iconColor} />
+            <MaterialCommunityIcons
+              name={leftIcon as any}
+              size={IconSize.btn}
+              color={iconColor}
+            />
           ) : null}
-          <Text style={[styles.text, { color: v.text }, isDisabled ? styles.disabledText : null]}>
+          <Text
+            style={[
+              styles.text,
+              { color: v.text },
+              isDisabled ? styles.disabledText : null,
+            ]}
+          >
             {label}
           </Text>
         </View>
@@ -80,19 +107,19 @@ const styles = StyleSheet.create({
   base: {
     height: 52,
     borderRadius: Radius.sm,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     paddingHorizontal: Spacing.s6,
-    width: '100%',
+    width: "100%",
   },
   content: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 8,
   },
   text: {
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   disabledContainer: {
     backgroundColor: Colors.gray200,

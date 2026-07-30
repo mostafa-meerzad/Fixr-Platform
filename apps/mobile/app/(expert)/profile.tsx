@@ -269,7 +269,7 @@ export default function ExpertProfileScreen() {
                     {serviceCategories.slice(0, 3).map((sc) => (
                       <View key={sc.category.id} style={styles.heroPill}>
                         <Text style={styles.heroPillText}>
-                          {(sc.category.nameEn ?? sc.category.name ?? "").toUpperCase()}
+                          {(sc.category.nameEn ?? "").toUpperCase()}
                         </Text>
                       </View>
                     ))}

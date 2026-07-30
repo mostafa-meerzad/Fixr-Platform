@@ -3,7 +3,7 @@ import { View, Text, Image, StyleSheet } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Colors } from '@/constants/theme';
 
-type AvatarSize = 32 | 40 | 56 | 80;
+type AvatarSize = 32 | 36 | 40 | 56 | 80;
 
 interface AvatarProps {
   size?: AvatarSize;

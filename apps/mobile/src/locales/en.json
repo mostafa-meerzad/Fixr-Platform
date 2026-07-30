@@ -632,6 +632,8 @@
       "lockedTitle": "Chat not available yet",
       "lockedSubtitle": "Chat unlocks once a homeowner accepts your bid.",
       "onlineNow": "Online now",
+      "offline": "Offline",
+      "about": "About",
       "updatedBid": "UPDATED BID",
       "acceptBid": "Accept bid",
       "counter": "Counter",
