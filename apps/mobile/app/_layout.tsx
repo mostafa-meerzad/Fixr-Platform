@@ -71,6 +71,15 @@ export default function RootLayout() {
     usersService.updateMe({ language: 'en' }).catch(() => {});
   }, [user?.id]);
 
+  // Re-register when Android rotates the FCM token (reinstall, token invalidation, etc.)
+  useEffect(() => {
+    if (!user) return;
+    const sub = Notifications.addPushTokenListener((newToken) => {
+      usersService.updateFcmToken(newToken.data).catch(() => {});
+    });
+    return () => sub.remove();
+  }, [user?.id]);
+
   const syncUnreadCounts = useCallback(() => {
     if (!user) return;
     notificationsService

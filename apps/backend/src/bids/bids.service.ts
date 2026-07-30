@@ -99,12 +99,22 @@ export class BidsService {
     await this.assertBidOwner(bid, expert.id);
     this.assertBidEditable(bid);
 
-    return this.prisma.bid.update({
+    const updated = await this.prisma.bid.update({
       where: { id: bidId },
       data: { isWithdrawn: true },
       include: BID_INCLUDE,
     });
-    // Note: no credit refund on voluntary withdrawal — only homeowner cancellation refunds
+
+    await this.notifications.notifyUser(bid.job.homeownerId, {
+      type: 'BID_WITHDRAWN',
+      title: 'قیمت پس گرفته شد',
+      titleEn: 'Bid withdrawn',
+      body: `${expert.name} قیمت خود را برای "${bid.job.title}" پس گرفت.`,
+      bodyEn: `${expert.name} withdrew their bid on "${bid.job.title}".`,
+      data: { jobId: bid.job.id, bidId },
+    });
+
+    return updated;
   }
 
   async accept(jobId: string, bidId: string, homeowner: User) {

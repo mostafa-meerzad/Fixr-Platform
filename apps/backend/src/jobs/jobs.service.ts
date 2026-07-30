@@ -184,9 +184,24 @@ export class JobsService {
 
     await this.sendTransitionNotification(updated, actor, targetStatus);
 
-    // When a job completes, update the expert's stats
+    // When a job completes, update stats and prompt both parties to leave a review
     if (targetStatus === JobStatus.COMPLETED && updated.acceptedBid?.expertId) {
       await this.updateExpertCompletionStats(updated.acceptedBid.expertId);
+
+      const expertUserId = updated.acceptedBid?.expert?.user?.id;
+      const reviewPayload = (recipientId: string) => ({
+        type: 'REVIEW_REQUESTED' as const,
+        title: 'لطفاً نظر خود را ثبت کنید',
+        titleEn: 'Leave a review',
+        body: `کار "${updated.title}" تمام شد. نظر خود را ثبت کنید.`,
+        bodyEn: `"${updated.title}" is complete. Share your experience.`,
+        data: { jobId: updated.id },
+      });
+
+      await Promise.allSettled([
+        this.notifications.notifyUser(updated.homeownerId, reviewPayload(updated.homeownerId)),
+        ...(expertUserId ? [this.notifications.notifyUser(expertUserId, reviewPayload(expertUserId))] : []),
+      ]);
     }
 
     return updated;
@@ -232,14 +247,17 @@ export class JobsService {
       if (acceptedBid) {
         await this.credits.refundBid(acceptedBid.expertId, jobId);
 
-        await this.notifications.notifyUser(acceptedBid.expertId, {
-          type: 'JOB_CANCELLED',
-          title: 'کار لغو شد',
-          titleEn: 'Job cancelled',
-          body: `کار "${job.title}" توسط صاحب خانه لغو شد. اعتبار شما بازگشت داده شد.`,
-          bodyEn: `"${job.title}" was cancelled. Your bid credit has been refunded.`,
-          data: { jobId },
-        });
+        const expertUserId = job.acceptedBid?.expert?.user?.id;
+        if (expertUserId) {
+          await this.notifications.notifyUser(expertUserId, {
+            type: 'JOB_CANCELLED',
+            title: 'کار لغو شد',
+            titleEn: 'Job cancelled',
+            body: `کار "${job.title}" توسط صاحب خانه لغو شد. اعتبار شما بازگشت داده شد.`,
+            bodyEn: `"${job.title}" was cancelled. Your bid credit has been refunded.`,
+            data: { jobId },
+          });
+        }
       }
     }
 
@@ -444,7 +462,7 @@ export class JobsService {
   ) {
     const notifyUserId =
       actor.role === UserRole.EXPERT
-        ? job.homeowner?.id
+        ? job.homeownerId
         : job.acceptedBid?.expert?.user?.id;
 
     if (!notifyUserId) return;

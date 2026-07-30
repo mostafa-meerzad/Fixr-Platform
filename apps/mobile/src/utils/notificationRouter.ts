@@ -81,6 +81,10 @@ export function navigateFromNotification(
       }
       break;
 
+    case 'REVIEW_REQUESTED':
+      if (jobId) router.push(`/(shared)/review/${jobId}` as any);
+      break;
+
     default:
       break;
   }

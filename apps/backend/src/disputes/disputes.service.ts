@@ -6,6 +6,7 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { CreateDisputeDto } from './dto/create-dispute.dto';
 import { ResolveDisputeDto } from './dto/resolve-dispute.dto';
 import { JobStatus, User, UserRole } from '@prisma/client';
@@ -20,7 +21,10 @@ const DISPUTABLE_STATUSES: JobStatus[] = [
 
 @Injectable()
 export class DisputesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notifications: NotificationsService,
+  ) {}
 
   async create(jobId: string, reporter: User, dto: CreateDisputeDto) {
     const job = await this.prisma.job.findUnique({
@@ -54,7 +58,7 @@ export class DisputesService {
       data: { status: JobStatus.DISPUTED },
     });
 
-    return this.prisma.dispute.create({
+    const dispute = await this.prisma.dispute.create({
       data: {
         jobId,
         reporterId: reporter.id,
@@ -66,6 +70,25 @@ export class DisputesService {
         job: { select: { id: true, title: true, status: true } },
       },
     });
+
+    // Notify the other party that a dispute was opened
+    const otherPartyId =
+      reporter.role === UserRole.HOMEOWNER
+        ? job.acceptedBid?.expert?.user?.id
+        : job.homeownerId;
+
+    if (otherPartyId) {
+      await this.notifications.notifyUser(otherPartyId, {
+        type: 'DISPUTE_OPENED',
+        title: 'اعتراض ثبت شد',
+        titleEn: 'Dispute opened',
+        body: `یک اعتراض برای کار "${job.title}" ثبت شده است.`,
+        bodyEn: `A dispute has been opened for "${job.title}".`,
+        data: { jobId },
+      }).catch(() => {});
+    }
+
+    return dispute;
   }
 
   async findAll(page = 1, limit = 20) {
@@ -101,7 +124,7 @@ export class DisputesService {
             bids: {
               include: { expert: { include: { user: { select: { id: true, name: true, phone: true } } } } },
             },
-            acceptedBid: true,
+            acceptedBid: { include: { expert: { include: { user: true } } } },
           },
         },
       },
@@ -118,13 +141,39 @@ export class DisputesService {
       throw new BadRequestException('This dispute has already been resolved.');
     }
 
-    return this.prisma.dispute.update({
+    const updated = await this.prisma.dispute.update({
       where: { id: disputeId },
       data: {
         resolution: dto.resolution,
         resolvedAt: new Date(),
       },
     });
+
+    // Notify both homeowner and expert that admin resolved the dispute
+    const homeownerId = dispute.job.homeowner?.id;
+    const expertUserId = dispute.job.acceptedBid?.expert?.user?.id;
+    const jobTitle = dispute.job.title;
+
+    await Promise.allSettled([
+      homeownerId && this.notifications.notifyUser(homeownerId, {
+        type: 'DISPUTE_RESOLVED',
+        title: 'اعتراض حل‌وفصل شد',
+        titleEn: 'Dispute resolved',
+        body: `اعتراض برای کار "${jobTitle}" توسط ادمین حل‌وفصل شد.`,
+        bodyEn: `The dispute for "${jobTitle}" has been resolved by admin.`,
+        data: { jobId: dispute.jobId },
+      }),
+      expertUserId && this.notifications.notifyUser(expertUserId, {
+        type: 'DISPUTE_RESOLVED',
+        title: 'اعتراض حل‌وفصل شد',
+        titleEn: 'Dispute resolved',
+        body: `اعتراض برای کار "${jobTitle}" توسط ادمین حل‌وفصل شد.`,
+        bodyEn: `The dispute for "${jobTitle}" has been resolved by admin.`,
+        data: { jobId: dispute.jobId },
+      }),
+    ]);
+
+    return updated;
   }
 
   async findForUser(userId: string) {
