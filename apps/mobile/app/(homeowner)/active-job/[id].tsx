@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   RefreshControl,
@@ -12,11 +12,14 @@ import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
+import type { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { Colors, IconSize, Radius, Spacing, Typography } from '@/constants/theme';
 import { Icons } from '@/constants/icons';
 import { Avatar } from '@/components/ui/Avatar';
+import { BottomSheet } from '@/components/ui/BottomSheet';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { Input } from '@/components/ui/Input';
 import { useToast } from '@/components/ui/Toast';
 import { jobsService, type JobStatus } from '@/services/jobs.service';
 
@@ -196,6 +199,10 @@ const DISPUTABLE_STATUSES: JobStatus[] = [
   'ASSIGNED', 'EN_ROUTE', 'ARRIVED', 'IN_PROGRESS', 'COMPLETION_REQUESTED',
 ];
 
+const CANCELLABLE_STATUSES: JobStatus[] = [
+  'ASSIGNED', 'EN_ROUTE', 'ARRIVED', 'IN_PROGRESS',
+];
+
 export default function HomeownerActiveJobScreen() {
   const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -206,6 +213,10 @@ export default function HomeownerActiveJobScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [job, setJob] = useState<ActiveJobDetail | null>(null);
   const [confirmLoading, setConfirmLoading] = useState(false);
+  const [cancelReason, setCancelReason] = useState('');
+  const [cancelLoading, setCancelLoading] = useState(false);
+
+  const cancelSheetRef = useRef<BottomSheetModal>(null);
 
   const fetchJob = useCallback(async () => {
     const res = await jobsService.get(id);
@@ -244,6 +255,20 @@ export default function HomeownerActiveJobScreen() {
       setConfirmLoading(false);
     }
   }, [id, fetchJob, show, t]);
+
+  const handleCancelJob = useCallback(async () => {
+    try {
+      setCancelLoading(true);
+      await jobsService.cancel(id, cancelReason);
+      cancelSheetRef.current?.dismiss();
+      show({ message: t('homeowner.jobDetail.cancelSuccess'), variant: 'success' });
+      router.back();
+    } catch {
+      show({ message: t('common.error'), variant: 'error' });
+    } finally {
+      setCancelLoading(false);
+    }
+  }, [id, cancelReason, show, t]);
 
   // ── Loading ────────────────────────────────────────────────────────────────
 
@@ -323,7 +348,8 @@ export default function HomeownerActiveJobScreen() {
   // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
-    <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
+    <>
+      <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backCircle} onPress={() => router.back()}>
@@ -416,16 +442,6 @@ export default function HomeownerActiveJobScreen() {
           </View>
         )}
 
-        {/* Completion notes (COMPLETION_REQUESTED only) */}
-        {isCompletionRequested && job.acceptedBid?.expertMessage && (
-          <Card style={styles.notesCard}>
-            <Text style={styles.notesHeading}>
-              {t('homeowner.activeJob.completionNotesFrom', { name: expertFirstName })}
-            </Text>
-            <Text style={styles.notesBody}>"{job.acceptedBid.expertMessage}"</Text>
-          </Card>
-        )}
-
         {/* Warranty info (COMPLETED only) */}
         {isCompleted && job.acceptedBid?.warrantyDescription && (
           <Card style={styles.notesCard}>
@@ -446,6 +462,17 @@ export default function HomeownerActiveJobScreen() {
             </Text>
           </TouchableOpacity>
         )}
+
+        {/* Cancel job link */}
+        {CANCELLABLE_STATUSES.includes(job.status) && (
+          <TouchableOpacity
+            style={styles.cancelRow}
+            onPress={() => cancelSheetRef.current?.present()}
+            activeOpacity={0.6}
+          >
+            <Text style={styles.cancelLink}>{t('homeowner.jobDetail.cancelJob')}</Text>
+          </TouchableOpacity>
+        )}
       </ScrollView>
 
       {/* Sticky CTA bar (only when there's an action) */}
@@ -455,6 +482,34 @@ export default function HomeownerActiveJobScreen() {
         </View>
       )}
     </SafeAreaView>
+
+    {/* Cancel job sheet */}
+    <BottomSheet ref={cancelSheetRef} snapPoints={['50%']}>
+      <View style={styles.sheetContent}>
+        <Text style={styles.sheetTitle}>{t('homeowner.jobDetail.cancelJob')}</Text>
+        <Input
+          label={t('homeowner.jobDetail.cancelReason')}
+          placeholder={t('homeowner.jobDetail.cancelReasonPlaceholder')}
+          value={cancelReason}
+          onChangeText={setCancelReason}
+          multiline
+        />
+        <Button
+          label={t('homeowner.jobDetail.cancelConfirm')}
+          variant="destructive"
+          onPress={handleCancelJob}
+          loading={cancelLoading}
+          style={styles.sheetBtn}
+        />
+        <Button
+          label={t('common.cancel')}
+          variant="ghost"
+          onPress={() => cancelSheetRef.current?.dismiss()}
+          style={styles.sheetBtnSecondary}
+        />
+      </View>
+    </BottomSheet>
+    </>
   );
 }
 
@@ -601,11 +656,6 @@ const styles = StyleSheet.create({
   notesCard: {
     gap: Spacing.s2,
   },
-  notesHeading: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: Colors.gray900,
-  },
   notesBody: {
     ...Typography.body,
     lineHeight: 22,
@@ -659,5 +709,33 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: Colors.gray200,
     padding: Spacing.s4,
+  },
+
+  // ── Cancel link ──────────────────────────────────────────────────────────────
+  cancelRow: {
+    alignItems: 'center',
+    paddingVertical: Spacing.s3,
+  },
+  cancelLink: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.primary600,
+    textDecorationLine: 'underline',
+  },
+
+  // ── Cancel sheet ─────────────────────────────────────────────────────────────
+  sheetContent: {
+    gap: Spacing.s2,
+    alignItems: 'stretch',
+  },
+  sheetTitle: {
+    ...Typography.heading2,
+    marginBottom: Spacing.s2,
+  },
+  sheetBtn: {
+    marginTop: Spacing.s4,
+  },
+  sheetBtnSecondary: {
+    marginTop: Spacing.s1,
   },
 });

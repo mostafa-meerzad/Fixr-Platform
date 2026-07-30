@@ -21,7 +21,6 @@ import { Colors, IconSize, Radius, Shadows, Spacing, Typography } from '@/consta
 import { Icons } from '@/constants/icons';
 import { Button } from '@/components/ui/Button';
 import { Avatar } from '@/components/ui/Avatar';
-import { Input } from '@/components/ui/Input';
 import { Pill, getStatusVariant } from '@/components/ui/Pill';
 import { useToast } from '@/components/ui/Toast';
 import { jobsService, type JobStatus, type JobUrgency } from '@/services/jobs.service';
@@ -108,18 +107,10 @@ export default function ExpertActiveJobScreen() {
   const [job, setJob] = useState<ActiveJobDetail | null>(null);
   const [transitionLoading, setTransitionLoading] = useState(false);
   const [completionVisible, setCompletionVisible] = useState(false);
-  const [completionNotes, setCompletionNotes] = useState('');
   const [completionLoading, setCompletionLoading] = useState(false);
-  const [kbHeight, setKbHeight] = useState(0);
 
   const pulseAnimRef = useRef(new Animated.Value(1));
   const animLoopRef = useRef<Animated.CompositeAnimation | null>(null);
-
-  useEffect(() => {
-    const onShow = Keyboard.addListener('keyboardDidShow', (e) => setKbHeight(e.endCoordinates.height));
-    const onHide = Keyboard.addListener('keyboardDidHide', () => setKbHeight(0));
-    return () => { onShow.remove(); onHide.remove(); };
-  }, []);
 
   useEffect(() => {
     animLoopRef.current?.stop();
@@ -182,7 +173,6 @@ export default function ExpertActiveJobScreen() {
       setCompletionLoading(true);
       await jobsService.requestCompletion(id);
       setCompletionVisible(false);
-      setCompletionNotes('');
       await fetchJob();
     } catch {
       show({ message: t('common.error'), variant: 'error' });
@@ -494,20 +484,10 @@ export default function ExpertActiveJobScreen() {
           }}
         />
         <View style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-          <View style={[styles.modalSheet, { marginBottom: kbHeight }]}>
+          <View style={styles.modalSheet}>
             <View style={styles.modalHandle} />
             <Text style={styles.sheetTitle}>{t('expert.activeJob.completionSheetTitle')}</Text>
             <Text style={styles.sheetSubtitle}>{t('expert.activeJob.completionSheetSubtitle')}</Text>
-            <View style={styles.notesLabelRow}>
-              <Text style={styles.notesLabel}>{t('expert.activeJob.notesLabel')}</Text>
-              <Text style={styles.notesOptional}>{t('expert.activeJob.notesOptional')}</Text>
-            </View>
-            <Input
-              placeholder={t('expert.activeJob.notesPlaceholder')}
-              value={completionNotes}
-              onChangeText={setCompletionNotes}
-              multiline
-            />
             <Button
               label={t('expert.activeJob.sendCompletion')}
               onPress={handleRequestCompletion}
@@ -800,21 +780,6 @@ const styles = StyleSheet.create({
   },
   sheetSubtitle: {
     ...Typography.body,
-  },
-  notesLabelRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.s2,
-  },
-  notesLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: Colors.primary600,
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
-  },
-  notesOptional: {
-    ...Typography.caption,
   },
   sheetBtn: {
     marginTop: Spacing.s2,
